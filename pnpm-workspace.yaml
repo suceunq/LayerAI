@@ -3,4 +3,6 @@ packages:
   - "packages/*"
   - "tooling/*"
 allowBuilds:
+  electron-winstaller: true
   esbuild: true
+  electron: true
