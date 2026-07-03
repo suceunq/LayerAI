@@ -17,6 +17,7 @@
     "@layerai/config-generator": "workspace:*",
     "@layerai/explanation-engine": "workspace:*",
     "@layerai/intent-engine": "workspace:*",
+    "@layerai/learning-store": "workspace:*",
     "@layerai/mesh-analysis": "workspace:*",
     "@layerai/pdf-report": "workspace:*",
     "@layerai/prusa-profile-db": "workspace:*",

@@ -1,4 +1,13 @@
-import type { AnalyzedMesh, ComparisonMetrics, ExplanationSet, GeneratedConfig, IntentResult, MeshGeometryData } from "@layerai/shared-types";
+import type {
+  AnalyzedMesh,
+  ComparisonMetrics,
+  ExplanationSet,
+  GeneratedConfig,
+  IntentResult,
+  IntentTag,
+  MeshGeometryData,
+  PrintOutcomeId,
+} from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../preload/api.js";
 
 export interface AnalysisRunRequest {
@@ -63,3 +72,13 @@ export interface ExportPdfReportRequest {
 }
 
 export type ExportPdfReportResponse = { saved: true; filePath: string } | { saved: false };
+
+export interface RecordOutcomeRequest {
+  analysis: AnalyzedMesh["analysis"];
+  printerId: string;
+  filamentId: string;
+  intentTags: IntentTag[];
+  configUsed: GeneratedConfig;
+  outcome: PrintOutcomeId;
+  notes?: string;
+}

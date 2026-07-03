@@ -8,6 +8,7 @@ import type {
   GeneratedConfig,
   ExplanationSet,
   ComparisonMetrics,
+  PrintOutcomeId,
 } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../../../preload/api.js";
 import type { CustomProfile } from "../../../shared/ipc-types.js";
@@ -54,6 +55,9 @@ interface AppState {
   saveCurrentAsProfile: (name: string) => Promise<void>;
   applyCustomProfile: (profile: CustomProfile) => void;
   deleteCustomProfile: (id: string) => Promise<void>;
+
+  outcomeRecorded: boolean;
+  recordOutcome: (outcome: PrintOutcomeId) => Promise<void>;
 }
 
 async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry: MeshGeometryData; analysis: MeshAnalysisResult }> {
@@ -81,6 +85,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   showAdvanced: false,
 
   customProfiles: [],
+  outcomeRecorded: false,
 
   loadProfileDb: async () => {
     try {
@@ -209,6 +214,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       explanations: null,
       comparison: null,
       error: null,
+      outcomeRecorded: false,
     }),
 
   loadCustomProfiles: async () => {
@@ -237,6 +243,25 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       await window.api.deleteCustomProfile(id);
       set((s) => ({ customProfiles: s.customProfiles.filter((p) => p.id !== id) }));
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  recordOutcome: async (outcome) => {
+    const { analysis, intentResult, config, selectedPrinterId, selectedFilamentId } = get();
+    if (!analysis || !intentResult || !config) return;
+    try {
+      const intentTags = intentResult.weights.filter((w) => w.weight >= 0.15).map((w) => w.tag);
+      await window.api.recordOutcome({
+        analysis,
+        printerId: selectedPrinterId,
+        filamentId: selectedFilamentId,
+        intentTags,
+        configUsed: config,
+        outcome,
+      });
+      set({ outcomeRecorded: true });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }

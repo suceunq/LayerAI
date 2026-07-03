@@ -12,6 +12,7 @@ import type {
   ExportPdfReportResponse,
   CustomProfile,
   SaveCustomProfileRequest,
+  RecordOutcomeRequest,
 } from "../shared/ipc-types.js";
 
 export interface ImportedFilePayload {
@@ -30,7 +31,7 @@ export interface LayerAiApi {
   exportThreeMf: (request: ExportThreeMfRequest) => Promise<ExportThreeMfResponse>;
   exportIni: (request: ExportIniRequest) => Promise<ExportIniResponse>;
   exportPdfReport: (request: ExportPdfReportRequest) => Promise<ExportPdfReportResponse>;
-  recordOutcome: (payload: unknown) => Promise<unknown>;
+  recordOutcome: (request: RecordOutcomeRequest) => Promise<void>;
   getCustomProfiles: () => Promise<CustomProfile[]>;
   saveCustomProfile: (request: SaveCustomProfileRequest) => Promise<CustomProfile>;
   deleteCustomProfile: (id: string) => Promise<void>;

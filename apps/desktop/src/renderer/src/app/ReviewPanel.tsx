@@ -4,6 +4,7 @@ import { Card } from "../components/ui/Card.js";
 import { ConfidenceBadge } from "../components/ui/ConfidenceBadge.js";
 import { AdvancedTable } from "./AdvancedTable.js";
 import { ComparisonView } from "./ComparisonView.js";
+import { OutcomeTagging } from "./OutcomeTagging.js";
 
 export function ReviewPanel(): React.JSX.Element {
   const explanations = useAppStore((s) => s.explanations);
@@ -81,6 +82,8 @@ export function ReviewPanel(): React.JSX.Element {
           </Button>
         </div>
       </div>
+
+      <OutcomeTagging />
     </div>
   );
 }

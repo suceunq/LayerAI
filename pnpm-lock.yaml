@@ -26,6 +26,9 @@ importers:
       '@layerai/intent-engine':
         specifier: workspace:*
         version: link:../../packages/intent-engine
+      '@layerai/learning-store':
+        specifier: workspace:*
+        version: link:../../packages/learning-store
       '@layerai/mesh-analysis':
         specifier: workspace:*
         version: link:../../packages/mesh-analysis
@@ -120,6 +123,19 @@ importers:
         specifier: workspace:*
         version: link:../shared-types
     devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
+  packages/learning-store:
+    dependencies:
+      '@layerai/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.0
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

@@ -4,9 +4,13 @@ import { resolveIntent } from "@layerai/intent-engine";
 import { generateConfig, computeComparisonMetrics } from "@layerai/config-generator";
 import { generateExplanations } from "@layerai/explanation-engine";
 import { getAllPrinters, getAllFilaments, getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
-import type { MeshGeometryData, IntentResult } from "@layerai/shared-types";
+import { getOutcomeStats, computeAdjustments, type LearningAdjustment } from "@layerai/learning-store";
+import type { GeneratedConfig, IntentTag, MeshGeometryData, IntentResult } from "@layerai/shared-types";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { AnalysisRunRequest, AnalysisRunResponse, ConfigGenerateRequest, ConfigGenerateResponse } from "../../shared/ipc-types.js";
+import { getLearningDb } from "./learning.handlers.js";
+
+const INTENT_TAG_THRESHOLD = 0.15;
 
 async function parseImportedFile(file: AnalysisRunRequest["file"]): Promise<MeshGeometryData> {
   const bytes = file.data instanceof Uint8Array ? file.data : new Uint8Array(file.data);
@@ -18,6 +22,22 @@ async function parseImportedFile(file: AnalysisRunRequest["file"]): Promise<Mesh
     case "3mf":
       return parseThreeMf(bytes);
   }
+}
+
+/** Applies learning-store nudges as an additive layer on top of the rule-based config - never overwrites, only shifts. */
+function applyLearningAdjustments(config: GeneratedConfig, adjustments: LearningAdjustment[]): GeneratedConfig {
+  if (adjustments.length === 0) return config;
+  const patched: GeneratedConfig = { ...config };
+  for (const adjustment of adjustments) {
+    const existing = patched[adjustment.parameterKey];
+    if (!existing || typeof existing.value !== "number") continue;
+    patched[adjustment.parameterKey] = {
+      value: Math.max(0, existing.value + adjustment.delta),
+      confidence: Math.max(existing.confidence, 0.55),
+      ruleId: adjustment.ruleId,
+    };
+  }
+  return patched;
 }
 
 export function registerAnalysisHandlers(): void {
@@ -33,7 +53,12 @@ export function registerAnalysisHandlers(): void {
     if (!filament) throw new Error(`Filament inconnu : ${request.filamentId}`);
 
     const intent = resolveIntent(request.intentText);
-    const config = generateConfig({ analysis: request.analysis, intent, printer, filament });
+    let config = generateConfig({ analysis: request.analysis, intent, printer, filament });
+
+    const activeTags: IntentTag[] = intent.weights.filter((w) => w.weight >= INTENT_TAG_THRESHOLD).map((w) => w.tag);
+    const stats = getOutcomeStats(getLearningDb(), request.printerId, request.filamentId, activeTags);
+    config = applyLearningAdjustments(config, computeAdjustments(stats));
+
     const explanations = generateExplanations(config, intent, request.analysis);
 
     const neutralIntent: IntentResult = { rawText: "", weights: [], unrecognized: true, languageDetected: "unknown" };
