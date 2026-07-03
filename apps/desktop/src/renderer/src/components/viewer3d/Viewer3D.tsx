@@ -1,14 +1,22 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { MeshGeometryData, OverhangFace, PrinterProfile } from "@layerai/shared-types";
+import type { BoundingBox3, MeshGeometryData, OverhangFace, PrinterProfile } from "@layerai/shared-types";
 import { buildBedPlate } from "./build-bed-plate.js";
 import { buildDisplayGeometry } from "./build-display-geometry.js";
+import { buildInfillTexture } from "./infill-texture.js";
+
+export interface LayerViewState {
+  heightMm: number;
+  fillPattern: string;
+}
 
 interface Viewer3DProps {
   printer: PrinterProfile | undefined;
   geometry: MeshGeometryData | null;
   overhangFaces: OverhangFace[];
+  boundingBoxMm: BoundingBox3 | null;
+  layerView: LayerViewState | null;
 }
 
 interface SceneRefs {
@@ -18,10 +26,12 @@ interface SceneRefs {
   controls: OrbitControls;
   bedGroup: THREE.Group | null;
   meshObject: THREE.Mesh | null;
+  capMesh: THREE.Mesh | null;
+  clippingPlane: THREE.Plane;
   animationHandle: number;
 }
 
-export function Viewer3D({ printer, geometry, overhangFaces }: Viewer3DProps): React.JSX.Element {
+export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, layerView }: Viewer3DProps): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const refs = useRef<SceneRefs | null>(null);
 
@@ -38,6 +48,7 @@ export function Viewer3D({ printer, geometry, overhangFaces }: Viewer3DProps): R
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.localClippingEnabled = true;
     container.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -50,7 +61,17 @@ export function Viewer3D({ printer, geometry, overhangFaces }: Viewer3DProps): R
     dirLight.position.set(200, -300, 400);
     scene.add(dirLight);
 
-    const sceneRefs: SceneRefs = { renderer, scene, camera, controls, bedGroup: null, meshObject: null, animationHandle: 0 };
+    const sceneRefs: SceneRefs = {
+      renderer,
+      scene,
+      camera,
+      controls,
+      bedGroup: null,
+      meshObject: null,
+      capMesh: null,
+      clippingPlane: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0),
+      animationHandle: 0,
+    };
     refs.current = sceneRefs;
 
     const resize = (): void => {
@@ -117,6 +138,40 @@ export function Viewer3D({ printer, geometry, overhangFaces }: Viewer3DProps): R
     sceneRefs.scene.add(mesh);
     sceneRefs.meshObject = mesh;
   }, [geometry, overhangFaces]);
+
+  useEffect(() => {
+    const sceneRefs = refs.current;
+    if (!sceneRefs) return;
+
+    if (sceneRefs.capMesh) {
+      sceneRefs.scene.remove(sceneRefs.capMesh);
+      sceneRefs.capMesh.geometry.dispose();
+      (sceneRefs.capMesh.material as THREE.Material).dispose();
+      sceneRefs.capMesh = null;
+    }
+
+    const meshMaterial = sceneRefs.meshObject?.material as THREE.MeshStandardMaterial | undefined;
+
+    if (!layerView || !boundingBoxMm || !meshMaterial) {
+      if (meshMaterial) meshMaterial.clippingPlanes = [];
+      return;
+    }
+
+    sceneRefs.clippingPlane.constant = layerView.heightMm;
+    meshMaterial.clippingPlanes = [sceneRefs.clippingPlane];
+
+    const width = Math.max(1, boundingBoxMm.max.x - boundingBoxMm.min.x);
+    const depth = Math.max(1, boundingBoxMm.max.y - boundingBoxMm.min.y);
+    const texture = buildInfillTexture(layerView.fillPattern);
+    texture.repeat.set(width / 15, depth / 15);
+
+    const capGeometry = new THREE.PlaneGeometry(width, depth);
+    const capMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+    const capMesh = new THREE.Mesh(capGeometry, capMaterial);
+    capMesh.position.set((boundingBoxMm.min.x + boundingBoxMm.max.x) / 2, (boundingBoxMm.min.y + boundingBoxMm.max.y) / 2, layerView.heightMm);
+    sceneRefs.scene.add(capMesh);
+    sceneRefs.capMesh = capMesh;
+  }, [layerView, boundingBoxMm]);
 
   return <div ref={containerRef} className="h-full w-full" />;
 }

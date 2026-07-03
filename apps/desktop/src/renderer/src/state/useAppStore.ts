@@ -35,6 +35,9 @@ interface AppState {
   comparison: ComparisonMetrics | null;
   showAdvanced: boolean;
 
+  layerViewEnabled: boolean;
+  layerViewHeightMm: number;
+
   customProfiles: CustomProfile[];
 
   loadProfileDb: () => Promise<void>;
@@ -46,6 +49,8 @@ interface AppState {
   generateConfiguration: () => Promise<void>;
   toggleAdvanced: () => void;
   updateConfigValue: (key: string, value: string | number | boolean) => void;
+  toggleLayerView: () => void;
+  setLayerViewHeight: (heightMm: number) => void;
   exportThreeMf: () => Promise<void>;
   exportIni: () => Promise<void>;
   exportPdfReport: () => Promise<void>;
@@ -83,6 +88,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   explanations: null,
   comparison: null,
   showAdvanced: false,
+
+  layerViewEnabled: false,
+  layerViewHeightMm: 0,
 
   customProfiles: [],
   outcomeRecorded: false,
@@ -145,6 +153,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   toggleAdvanced: () => set((s) => ({ showAdvanced: !s.showAdvanced })),
+
+  toggleLayerView: () =>
+    set((s) => ({
+      layerViewEnabled: !s.layerViewEnabled,
+      layerViewHeightMm: s.analysis ? s.analysis.dimensionsMm.z / 2 : 0,
+    })),
+  setLayerViewHeight: (heightMm) => set({ layerViewHeightMm: heightMm }),
 
   updateConfigValue: (key, value) =>
     set((s) => {
@@ -215,6 +230,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       comparison: null,
       error: null,
       outcomeRecorded: false,
+      layerViewEnabled: false,
+      layerViewHeightMm: 0,
     }),
 
   loadCustomProfiles: async () => {

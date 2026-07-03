@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useAppStore } from "./state/useAppStore.js";
 import { Viewer3D } from "./components/viewer3d/Viewer3D.js";
+import { LayerViewControls } from "./components/viewer3d/LayerViewControls.js";
 import { ImportPanel } from "./app/ImportPanel.js";
 import { IntentPanel } from "./app/IntentPanel.js";
 import { ReviewPanel } from "./app/ReviewPanel.js";
@@ -14,6 +15,9 @@ export default function App(): React.JSX.Element {
   const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
   const geometry = useAppStore((s) => s.geometry);
   const analysis = useAppStore((s) => s.analysis);
+  const config = useAppStore((s) => s.config);
+  const layerViewEnabled = useAppStore((s) => s.layerViewEnabled);
+  const layerViewHeightMm = useAppStore((s) => s.layerViewHeightMm);
 
   useEffect(() => {
     void loadProfileDb();
@@ -21,6 +25,11 @@ export default function App(): React.JSX.Element {
   }, [loadProfileDb, loadCustomProfiles]);
 
   const printer = printers.find((p) => p.id === selectedPrinterId);
+  const fillPattern = config?.fill_pattern?.value;
+  const layerView =
+    layerViewEnabled && step === "review"
+      ? { heightMm: layerViewHeightMm, fillPattern: typeof fillPattern === "string" ? fillPattern : "grid" }
+      : null;
 
   return (
     <div className="flex h-full flex-col bg-surface-0">
@@ -34,12 +43,19 @@ export default function App(): React.JSX.Element {
 
       <main className="flex min-h-0 flex-1">
         <div className="relative flex-1">
-          <Viewer3D printer={printer} geometry={geometry} overhangFaces={analysis?.overhangFaces ?? []} />
+          <Viewer3D
+            printer={printer}
+            geometry={geometry}
+            overhangFaces={analysis?.overhangFaces ?? []}
+            boundingBoxMm={analysis?.boundingBoxMm ?? null}
+            layerView={layerView}
+          />
           {step === "analyzing" && (
             <div className="absolute inset-0 flex items-center justify-center bg-surface-0/70">
               <ProgressBar label="Analyse du modèle en cours…" />
             </div>
           )}
+          {step === "review" && <LayerViewControls />}
         </div>
 
         <aside className="w-[420px] shrink-0 border-l border-border-subtle bg-surface-0">
