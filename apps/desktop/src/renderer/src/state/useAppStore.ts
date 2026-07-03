@@ -47,6 +47,7 @@ interface AppState {
   updateConfigValue: (key: string, value: string | number | boolean) => void;
   exportThreeMf: () => Promise<void>;
   exportIni: () => Promise<void>;
+  exportPdfReport: () => Promise<void>;
   startOver: () => void;
 
   loadCustomProfiles: () => Promise<void>;
@@ -172,6 +173,25 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!config) return;
     try {
       await window.api.exportIni({ config, printerId: selectedPrinterId, filamentId: selectedFilamentId });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  exportPdfReport: async () => {
+    const { analysis, intentResult, config, explanations, comparison, selectedPrinterId, selectedFilamentId, importedFile } = get();
+    if (!analysis || !intentResult || !config || !explanations || !comparison) return;
+    try {
+      await window.api.exportPdfReport({
+        fileName: importedFile?.fileName ?? "modele.stl",
+        printerId: selectedPrinterId,
+        filamentId: selectedFilamentId,
+        analysis,
+        intent: intentResult,
+        config,
+        explanations,
+        comparison,
+      });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }

@@ -50,3 +50,16 @@ export interface ExportIniRequest {
 }
 
 export type ExportIniResponse = { saved: true; filePath: string } | { saved: false };
+
+export interface ExportPdfReportRequest {
+  fileName: string;
+  printerId: string;
+  filamentId: string;
+  analysis: AnalyzedMesh["analysis"];
+  intent: IntentResult;
+  config: GeneratedConfig;
+  explanations: ExplanationSet;
+  comparison: ComparisonMetrics;
+}
+
+export type ExportPdfReportResponse = { saved: true; filePath: string } | { saved: false };

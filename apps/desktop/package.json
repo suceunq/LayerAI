@@ -18,6 +18,7 @@
     "@layerai/explanation-engine": "workspace:*",
     "@layerai/intent-engine": "workspace:*",
     "@layerai/mesh-analysis": "workspace:*",
+    "@layerai/pdf-report": "workspace:*",
     "@layerai/prusa-profile-db": "workspace:*",
     "@layerai/shared-types": "workspace:*",
     "@layerai/threemf-writer": "workspace:*",

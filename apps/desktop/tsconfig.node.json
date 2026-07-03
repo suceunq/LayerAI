@@ -4,6 +4,7 @@
     "composite": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
     "types": ["electron-vite/node", "node"],
     "noEmit": true
   },

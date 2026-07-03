@@ -8,6 +8,8 @@ import type {
   ExportThreeMfResponse,
   ExportIniRequest,
   ExportIniResponse,
+  ExportPdfReportRequest,
+  ExportPdfReportResponse,
   CustomProfile,
   SaveCustomProfileRequest,
 } from "../shared/ipc-types.js";
@@ -27,7 +29,7 @@ export interface LayerAiApi {
   generateConfig: (request: ConfigGenerateRequest) => Promise<ConfigGenerateResponse>;
   exportThreeMf: (request: ExportThreeMfRequest) => Promise<ExportThreeMfResponse>;
   exportIni: (request: ExportIniRequest) => Promise<ExportIniResponse>;
-  exportPdfReport: (payload: unknown) => Promise<unknown>;
+  exportPdfReport: (request: ExportPdfReportRequest) => Promise<ExportPdfReportResponse>;
   recordOutcome: (payload: unknown) => Promise<unknown>;
   getCustomProfiles: () => Promise<CustomProfile[]>;
   saveCustomProfile: (request: SaveCustomProfileRequest) => Promise<CustomProfile>;

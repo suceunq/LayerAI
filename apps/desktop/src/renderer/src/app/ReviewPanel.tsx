@@ -11,6 +11,7 @@ export function ReviewPanel(): React.JSX.Element {
   const toggleAdvanced = useAppStore((s) => s.toggleAdvanced);
   const exportThreeMf = useAppStore((s) => s.exportThreeMf);
   const exportIni = useAppStore((s) => s.exportIni);
+  const exportPdfReport = useAppStore((s) => s.exportPdfReport);
   const saveCurrentAsProfile = useAppStore((s) => s.saveCurrentAsProfile);
   const startOver = useAppStore((s) => s.startOver);
   const error = useAppStore((s) => s.error);
@@ -71,9 +72,14 @@ export function ReviewPanel(): React.JSX.Element {
             Exporter le projet 3MF →
           </Button>
         </div>
-        <Button variant="ghost" onClick={() => void exportIni()}>
-          Exporter le profil PrusaSlicer (.ini)
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="ghost" onClick={() => void exportIni()} className="flex-1">
+            Exporter le profil (.ini)
+          </Button>
+          <Button variant="ghost" onClick={() => void exportPdfReport()} className="flex-1">
+            Rapport PDF
+          </Button>
+        </div>
       </div>
     </div>
   );
