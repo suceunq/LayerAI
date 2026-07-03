@@ -23,6 +23,7 @@
     "@layerai/prusa-profile-db": "workspace:*",
     "@layerai/shared-types": "workspace:*",
     "@layerai/threemf-writer": "workspace:*",
+    "electron-updater": "^6.8.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "three": "^0.185.1",

@@ -7,6 +7,7 @@ import { registerExportHandlers } from "./ipc/export.handlers.js";
 import { registerLearningHandlers } from "./ipc/learning.handlers.js";
 import { registerProfilesHandlers } from "./ipc/profiles.handlers.js";
 import { buildAppMenu } from "./menu.js";
+import { setupAutoUpdater } from "./autoUpdater.js";
 
 const isDev = !app.isPackaged;
 
@@ -65,6 +66,8 @@ app.whenReady().then(() => {
   registerProfilesHandlers();
 
   createMainWindow();
+
+  if (!isDev) setupAutoUpdater();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
