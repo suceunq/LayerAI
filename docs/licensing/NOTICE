@@ -1,0 +1,21 @@
+LayerAI
+Copyright (c) 2026 the LayerAI project authors.
+
+This product includes seed data derived from PrusaSlicer's official
+configuration bundle for Prusa Research printers ("PrusaResearch.ini"),
+Copyright (c) Prusa Research a.s. and contributors, licensed under the
+GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later).
+
+  Source:  https://github.com/prusa3d/PrusaSlicer
+  File:    resources/profiles/PrusaResearch.ini
+  License: https://www.gnu.org/licenses/agpl-3.0.html
+
+LayerAI does not embed, redistribute, or invoke the PrusaSlicer slicing
+engine. The printer and filament defaults bundled in
+`packages/prusa-profile-db/data/*.json` are generated at build time from
+the file above by `tooling/profile-ingest`; see
+docs/licensing/THIRD_PARTY_PRUSASLICER.md for details on what was taken
+from the source file versus authored by LayerAI.
+
+LayerAI is a standalone application and is not affiliated with, endorsed
+by, or sponsored by Prusa Research a.s.

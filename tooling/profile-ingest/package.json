@@ -1,0 +1,16 @@
+{
+  "name": "@layerai/profile-ingest",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "ingest": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo no-lint"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2"
+  }
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+out/
+release/
+.turbo/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.local
+*.tsbuildinfo
+packages/prusa-profile-db/data/*.json
+!packages/prusa-profile-db/data/.gitkeep
+apps/desktop/src/renderer/dist/
