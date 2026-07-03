@@ -89,3 +89,13 @@ export interface MeshAnalysisResult {
   /** 0..1, degraded by non-manifold/degenerate input. */
   analysisConfidence: number;
 }
+
+/**
+ * A mesh after import, best-orientation rotation and bed grounding have been applied, paired
+ * with the analysis computed against that final placement. Downstream consumers (viewer, 3MF
+ * export) render/write `geometry` as-is rather than re-deriving placement themselves.
+ */
+export interface AnalyzedMesh {
+  geometry: MeshGeometryData;
+  analysis: MeshAnalysisResult;
+}
