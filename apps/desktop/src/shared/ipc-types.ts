@@ -1,4 +1,4 @@
-import type { AnalyzedMesh, ExplanationSet, GeneratedConfig, IntentResult, MeshGeometryData } from "@layerai/shared-types";
+import type { AnalyzedMesh, ComparisonMetrics, ExplanationSet, GeneratedConfig, IntentResult, MeshGeometryData } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../preload/api.js";
 
 export interface AnalysisRunRequest {
@@ -19,6 +19,7 @@ export interface ConfigGenerateResponse {
   intent: IntentResult;
   config: GeneratedConfig;
   explanations: ExplanationSet;
+  comparison: ComparisonMetrics;
 }
 
 export interface ExportThreeMfRequest {
@@ -30,3 +31,22 @@ export interface ExportThreeMfRequest {
 }
 
 export type ExportThreeMfResponse = { saved: true; filePath: string } | { saved: false };
+
+export interface CustomProfile {
+  id: string;
+  name: string;
+  intentText: string;
+  printerId: string;
+  filamentId: string;
+  createdAt: string;
+}
+
+export type SaveCustomProfileRequest = Omit<CustomProfile, "id" | "createdAt">;
+
+export interface ExportIniRequest {
+  config: GeneratedConfig;
+  printerId: string;
+  filamentId: string;
+}
+
+export type ExportIniResponse = { saved: true; filePath: string } | { saved: false };

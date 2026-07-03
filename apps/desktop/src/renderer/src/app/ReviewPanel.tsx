@@ -3,16 +3,24 @@ import { Button } from "../components/ui/Button.js";
 import { Card } from "../components/ui/Card.js";
 import { ConfidenceBadge } from "../components/ui/ConfidenceBadge.js";
 import { AdvancedTable } from "./AdvancedTable.js";
+import { ComparisonView } from "./ComparisonView.js";
 
 export function ReviewPanel(): React.JSX.Element {
   const explanations = useAppStore((s) => s.explanations);
   const showAdvanced = useAppStore((s) => s.showAdvanced);
   const toggleAdvanced = useAppStore((s) => s.toggleAdvanced);
   const exportThreeMf = useAppStore((s) => s.exportThreeMf);
+  const exportIni = useAppStore((s) => s.exportIni);
+  const saveCurrentAsProfile = useAppStore((s) => s.saveCurrentAsProfile);
   const startOver = useAppStore((s) => s.startOver);
   const error = useAppStore((s) => s.error);
 
   if (!explanations) return <></>;
+
+  const handleSaveProfile = (): void => {
+    const name = window.prompt("Nom du profil personnalisé :");
+    if (name && name.trim()) void saveCurrentAsProfile(name.trim());
+  };
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
@@ -21,6 +29,8 @@ export function ReviewPanel(): React.JSX.Element {
         <ConfidenceBadge percent={explanations.overallConfidencePercent} />
       </div>
       <p className="text-sm text-text-secondary">{explanations.summary}</p>
+
+      <ComparisonView />
 
       <div className="flex flex-col gap-2">
         {explanations.parameters.map((p) => (
@@ -48,12 +58,21 @@ export function ReviewPanel(): React.JSX.Element {
 
       {error && <p className="text-sm text-confidence-low">{error}</p>}
 
-      <div className="mt-auto flex gap-3">
-        <Button variant="secondary" onClick={startOver}>
-          Recommencer
-        </Button>
-        <Button onClick={() => void exportThreeMf()} className="flex-1">
-          Exporter le projet 3MF →
+      <button onClick={handleSaveProfile} className="self-start text-xs text-text-muted hover:text-prusa-orange">
+        + Enregistrer comme profil personnalisé
+      </button>
+
+      <div className="mt-auto flex flex-col gap-2">
+        <div className="flex gap-3">
+          <Button variant="secondary" onClick={startOver}>
+            Recommencer
+          </Button>
+          <Button onClick={() => void exportThreeMf()} className="flex-1">
+            Exporter le projet 3MF →
+          </Button>
+        </div>
+        <Button variant="ghost" onClick={() => void exportIni()}>
+          Exporter le profil PrusaSlicer (.ini)
         </Button>
       </div>
     </div>

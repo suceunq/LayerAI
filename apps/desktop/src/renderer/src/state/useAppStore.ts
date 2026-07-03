@@ -7,8 +7,10 @@ import type {
   IntentResult,
   GeneratedConfig,
   ExplanationSet,
+  ComparisonMetrics,
 } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../../../preload/api.js";
+import type { CustomProfile } from "../../../shared/ipc-types.js";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
@@ -29,7 +31,10 @@ interface AppState {
   intentResult: IntentResult | null;
   config: GeneratedConfig | null;
   explanations: ExplanationSet | null;
+  comparison: ComparisonMetrics | null;
   showAdvanced: boolean;
+
+  customProfiles: CustomProfile[];
 
   loadProfileDb: () => Promise<void>;
   setPrinter: (id: string) => void;
@@ -41,7 +46,13 @@ interface AppState {
   toggleAdvanced: () => void;
   updateConfigValue: (key: string, value: string | number | boolean) => void;
   exportThreeMf: () => Promise<void>;
+  exportIni: () => Promise<void>;
   startOver: () => void;
+
+  loadCustomProfiles: () => Promise<void>;
+  saveCurrentAsProfile: (name: string) => Promise<void>;
+  applyCustomProfile: (profile: CustomProfile) => void;
+  deleteCustomProfile: (id: string) => Promise<void>;
 }
 
 async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry: MeshGeometryData; analysis: MeshAnalysisResult }> {
@@ -65,7 +76,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   intentResult: null,
   config: null,
   explanations: null,
+  comparison: null,
   showAdvanced: false,
+
+  customProfiles: [],
 
   loadProfileDb: async () => {
     try {
@@ -111,14 +125,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!geometry || !analysis) return;
     set({ step: "generating", error: null });
     try {
-      const { intent, config, explanations } = await window.api.generateConfig({
+      const { intent, config, explanations, comparison } = await window.api.generateConfig({
         geometry,
         analysis,
         intentText,
         printerId: selectedPrinterId,
         filamentId: selectedFilamentId,
       });
-      set({ intentResult: intent, config, explanations, step: "review" });
+      set({ intentResult: intent, config, explanations, comparison, step: "review" });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err), step: "intent" });
     }
@@ -153,6 +167,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  exportIni: async () => {
+    const { config, selectedPrinterId, selectedFilamentId } = get();
+    if (!config) return;
+    try {
+      await window.api.exportIni({ config, printerId: selectedPrinterId, filamentId: selectedFilamentId });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
   startOver: () =>
     set({
       step: "import",
@@ -163,8 +187,40 @@ export const useAppStore = create<AppState>((set, get) => ({
       intentResult: null,
       config: null,
       explanations: null,
+      comparison: null,
       error: null,
     }),
+
+  loadCustomProfiles: async () => {
+    try {
+      const customProfiles = await window.api.getCustomProfiles();
+      set({ customProfiles });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  saveCurrentAsProfile: async (name) => {
+    const { intentText, selectedPrinterId, selectedFilamentId } = get();
+    try {
+      const profile = await window.api.saveCustomProfile({ name, intentText, printerId: selectedPrinterId, filamentId: selectedFilamentId });
+      set((s) => ({ customProfiles: [...s.customProfiles, profile] }));
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  applyCustomProfile: (profile) =>
+    set({ intentText: profile.intentText, selectedPrinterId: profile.printerId, selectedFilamentId: profile.filamentId }),
+
+  deleteCustomProfile: async (id) => {
+    try {
+      await window.api.deleteCustomProfile(id);
+      set((s) => ({ customProfiles: s.customProfiles.filter((p) => p.id !== id) }));
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
 }));
 
 if (import.meta.env.DEV) {

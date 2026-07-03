@@ -5,6 +5,7 @@ import { registerImportHandlers } from "./ipc/import.handlers.js";
 import { registerAnalysisHandlers } from "./ipc/analysis.handlers.js";
 import { registerExportHandlers } from "./ipc/export.handlers.js";
 import { registerLearningHandlers } from "./ipc/learning.handlers.js";
+import { registerProfilesHandlers } from "./ipc/profiles.handlers.js";
 import { buildAppMenu } from "./menu.js";
 
 const isDev = !app.isPackaged;
@@ -61,6 +62,7 @@ app.whenReady().then(() => {
   registerAnalysisHandlers();
   registerExportHandlers();
   registerLearningHandlers();
+  registerProfilesHandlers();
 
   createMainWindow();
 

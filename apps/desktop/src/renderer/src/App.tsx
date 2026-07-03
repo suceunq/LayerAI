@@ -9,6 +9,7 @@ import { ProgressBar } from "./components/ui/ProgressBar.js";
 export default function App(): React.JSX.Element {
   const step = useAppStore((s) => s.step);
   const loadProfileDb = useAppStore((s) => s.loadProfileDb);
+  const loadCustomProfiles = useAppStore((s) => s.loadCustomProfiles);
   const printers = useAppStore((s) => s.printers);
   const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
   const geometry = useAppStore((s) => s.geometry);
@@ -16,7 +17,8 @@ export default function App(): React.JSX.Element {
 
   useEffect(() => {
     void loadProfileDb();
-  }, [loadProfileDb]);
+    void loadCustomProfiles();
+  }, [loadProfileDb, loadCustomProfiles]);
 
   const printer = printers.find((p) => p.id === selectedPrinterId);
 

@@ -10,8 +10,12 @@ const api: LayerAiApi = {
   runAnalysis: (request) => ipcRenderer.invoke(IpcChannels.analysisRun, request),
   generateConfig: (request) => ipcRenderer.invoke(IpcChannels.configGenerate, request),
   exportThreeMf: (request) => ipcRenderer.invoke(IpcChannels.exportThreeMf, request),
+  exportIni: (request) => ipcRenderer.invoke(IpcChannels.exportIni, request),
   exportPdfReport: (payload) => ipcRenderer.invoke(IpcChannels.exportPdfReport, payload),
   recordOutcome: (payload) => ipcRenderer.invoke(IpcChannels.learningRecordOutcome, payload),
+  getCustomProfiles: () => ipcRenderer.invoke(IpcChannels.customProfilesList),
+  saveCustomProfile: (request) => ipcRenderer.invoke(IpcChannels.customProfilesSave, request),
+  deleteCustomProfile: (id) => ipcRenderer.invoke(IpcChannels.customProfilesDelete, id),
 };
 
 contextBridge.exposeInMainWorld("api", api);

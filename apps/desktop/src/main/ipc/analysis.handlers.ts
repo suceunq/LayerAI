@@ -1,10 +1,10 @@
 import { ipcMain } from "electron";
 import { analyzeMesh, parseStl, parseObj, parseThreeMf } from "@layerai/mesh-analysis";
 import { resolveIntent } from "@layerai/intent-engine";
-import { generateConfig } from "@layerai/config-generator";
+import { generateConfig, computeComparisonMetrics } from "@layerai/config-generator";
 import { generateExplanations } from "@layerai/explanation-engine";
 import { getAllPrinters, getAllFilaments, getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
-import type { MeshGeometryData } from "@layerai/shared-types";
+import type { MeshGeometryData, IntentResult } from "@layerai/shared-types";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { AnalysisRunRequest, AnalysisRunResponse, ConfigGenerateRequest, ConfigGenerateResponse } from "../../shared/ipc-types.js";
 
@@ -36,7 +36,11 @@ export function registerAnalysisHandlers(): void {
     const config = generateConfig({ analysis: request.analysis, intent, printer, filament });
     const explanations = generateExplanations(config, intent, request.analysis);
 
-    return { intent, config, explanations };
+    const neutralIntent: IntentResult = { rawText: "", weights: [], unrecognized: true, languageDetected: "unknown" };
+    const baselineConfig = generateConfig({ analysis: request.analysis, intent: neutralIntent, printer, filament });
+    const comparison = computeComparisonMetrics(baselineConfig, config, request.analysis, filament);
+
+    return { intent, config, explanations, comparison };
   });
 
   ipcMain.handle(IpcChannels.profileDbGetPrinters, async () => getAllPrinters());
