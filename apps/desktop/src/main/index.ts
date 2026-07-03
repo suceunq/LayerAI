@@ -9,6 +9,10 @@ import { buildAppMenu } from "./menu.js";
 
 const isDev = !app.isPackaged;
 
+if (isDev) {
+  app.commandLine.appendSwitch("remote-debugging-port", "9222");
+}
+
 function resolveDevIconPath(): string | undefined {
   const iconPath = join(__dirname, "../../resources/icon.png");
   return existsSync(iconPath) ? iconPath : undefined;

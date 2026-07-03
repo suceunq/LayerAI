@@ -19,6 +19,7 @@ export const FAMILY_INTROS: Record<string, string> = {
   silence: "Vous avez demandé une impression silencieuse, donc pour réduire le bruit ",
   minimal_supports: "Vous avez demandé à limiter les supports, donc ",
   analysis: "Détecté automatiquement par l'analyse 3D du modèle : ",
+  manual: "Modifié manuellement : ",
 };
 
 export function familyOf(ruleId: string): string {

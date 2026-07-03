@@ -12,8 +12,13 @@
     "package:win": "electron-vite build && electron-builder --win"
   },
   "dependencies": {
+    "@layerai/config-generator": "workspace:*",
+    "@layerai/explanation-engine": "workspace:*",
+    "@layerai/intent-engine": "workspace:*",
+    "@layerai/mesh-analysis": "workspace:*",
     "@layerai/prusa-profile-db": "workspace:*",
     "@layerai/shared-types": "workspace:*",
+    "@layerai/threemf-writer": "workspace:*",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "three": "^0.185.1",

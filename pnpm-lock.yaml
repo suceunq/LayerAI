@@ -17,12 +17,27 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@layerai/config-generator':
+        specifier: workspace:*
+        version: link:../../packages/config-generator
+      '@layerai/explanation-engine':
+        specifier: workspace:*
+        version: link:../../packages/explanation-engine
+      '@layerai/intent-engine':
+        specifier: workspace:*
+        version: link:../../packages/intent-engine
+      '@layerai/mesh-analysis':
+        specifier: workspace:*
+        version: link:../../packages/mesh-analysis
       '@layerai/prusa-profile-db':
         specifier: workspace:*
         version: link:../../packages/prusa-profile-db
       '@layerai/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@layerai/threemf-writer':
+        specifier: workspace:*
+        version: link:../../packages/threemf-writer
       react:
         specifier: ^19.2.7
         version: 19.2.7
@@ -111,6 +126,9 @@ importers:
       '@layerai/shared-types':
         specifier: workspace:*
         version: link:../shared-types
+      jszip:
+        specifier: ^3.10.1
+        version: 3.10.1
       three:
         specifier: ^0.185.1
         version: 0.185.1

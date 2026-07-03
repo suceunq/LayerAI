@@ -1,18 +1,17 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IpcChannels } from "../shared/ipc-channels.js";
-import type { LayerAiApi, ImportedFilePayload } from "./api.js";
+import type { LayerAiApi } from "./api.js";
 
 const api: LayerAiApi = {
-  importOpenDialog: (): Promise<ImportedFilePayload | null> => ipcRenderer.invoke(IpcChannels.importOpenDialog),
-  importReadDropped: (filePath: string): Promise<ImportedFilePayload> =>
-    ipcRenderer.invoke(IpcChannels.importReadDropped, filePath),
-  getPrinters: (): Promise<unknown[]> => ipcRenderer.invoke(IpcChannels.profileDbGetPrinters),
-  getFilaments: (): Promise<unknown[]> => ipcRenderer.invoke(IpcChannels.profileDbGetFilaments),
-  runAnalysis: (payload: unknown): Promise<unknown> => ipcRenderer.invoke(IpcChannels.analysisRun, payload),
-  generateConfig: (payload: unknown): Promise<unknown> => ipcRenderer.invoke(IpcChannels.configGenerate, payload),
-  exportThreeMf: (payload: unknown): Promise<unknown> => ipcRenderer.invoke(IpcChannels.exportThreeMf, payload),
-  exportPdfReport: (payload: unknown): Promise<unknown> => ipcRenderer.invoke(IpcChannels.exportPdfReport, payload),
-  recordOutcome: (payload: unknown): Promise<unknown> => ipcRenderer.invoke(IpcChannels.learningRecordOutcome, payload),
+  importOpenDialog: () => ipcRenderer.invoke(IpcChannels.importOpenDialog),
+  importReadDropped: (filePath) => ipcRenderer.invoke(IpcChannels.importReadDropped, filePath),
+  getPrinters: () => ipcRenderer.invoke(IpcChannels.profileDbGetPrinters),
+  getFilaments: () => ipcRenderer.invoke(IpcChannels.profileDbGetFilaments),
+  runAnalysis: (request) => ipcRenderer.invoke(IpcChannels.analysisRun, request),
+  generateConfig: (request) => ipcRenderer.invoke(IpcChannels.configGenerate, request),
+  exportThreeMf: (request) => ipcRenderer.invoke(IpcChannels.exportThreeMf, request),
+  exportPdfReport: (payload) => ipcRenderer.invoke(IpcChannels.exportPdfReport, payload),
+  recordOutcome: (payload) => ipcRenderer.invoke(IpcChannels.learningRecordOutcome, payload),
 };
 
 contextBridge.exposeInMainWorld("api", api);

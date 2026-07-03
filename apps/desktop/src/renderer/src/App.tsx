@@ -1,41 +1,51 @@
-import { useEffect, useState } from "react";
-
-interface PrinterSummary {
-  id: string;
-  name: string;
-}
+import { useEffect } from "react";
+import { useAppStore } from "./state/useAppStore.js";
+import { Viewer3D } from "./components/viewer3d/Viewer3D.js";
+import { ImportPanel } from "./app/ImportPanel.js";
+import { IntentPanel } from "./app/IntentPanel.js";
+import { ReviewPanel } from "./app/ReviewPanel.js";
+import { ProgressBar } from "./components/ui/ProgressBar.js";
 
 export default function App(): React.JSX.Element {
-  const [printers, setPrinters] = useState<PrinterSummary[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const step = useAppStore((s) => s.step);
+  const loadProfileDb = useAppStore((s) => s.loadProfileDb);
+  const printers = useAppStore((s) => s.printers);
+  const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
+  const geometry = useAppStore((s) => s.geometry);
+  const analysis = useAppStore((s) => s.analysis);
 
   useEffect(() => {
-    window.api
-      .getPrinters()
-      .then((result) => setPrinters(result as PrinterSummary[]))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
-  }, []);
+    void loadProfileDb();
+  }, [loadProfileDb]);
+
+  const printer = printers.find((p) => p.id === selectedPrinterId);
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-6 bg-surface-0">
-      <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-prusa-orange text-xl font-bold text-surface-0">
-          L
-        </div>
-        <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+    <div className="flex h-full flex-col bg-surface-0">
+      <header className="flex items-center gap-3 border-b border-border-subtle px-5 py-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-prusa-orange text-sm font-bold text-surface-0">L</div>
+        <h1 className="text-base font-semibold tracking-tight text-text-primary">
           Layer<span className="text-prusa-orange">AI</span>
         </h1>
-      </div>
-      <p className="max-w-md text-center text-sm text-text-secondary">
-        Assistant IA de préparation d'impression 3D pour imprimantes Prusa.
-      </p>
-      <div className="rounded-full border border-border-subtle bg-surface-1 px-4 py-1.5 text-xs text-text-secondary">
-        {error && <span className="text-confidence-low">Erreur IPC : {error}</span>}
-        {!error && printers === null && <span>Chargement de la base imprimantes…</span>}
-        {!error && printers !== null && (
-          <span className="text-confidence-high">{printers.length} imprimantes Prusa chargées</span>
-        )}
-      </div>
+        {printer && <span className="ml-2 text-xs text-text-muted">{printer.name}</span>}
+      </header>
+
+      <main className="flex min-h-0 flex-1">
+        <div className="relative flex-1">
+          <Viewer3D printer={printer} geometry={geometry} overhangFaces={analysis?.overhangFaces ?? []} />
+          {step === "analyzing" && (
+            <div className="absolute inset-0 flex items-center justify-center bg-surface-0/70">
+              <ProgressBar label="Analyse du modèle en cours…" />
+            </div>
+          )}
+        </div>
+
+        <aside className="w-[420px] shrink-0 border-l border-border-subtle bg-surface-0">
+          {step === "import" && <ImportPanel />}
+          {(step === "intent" || step === "generating") && <IntentPanel />}
+          {step === "review" && <ReviewPanel />}
+        </aside>
+      </main>
     </div>
   );
 }
