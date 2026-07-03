@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "author": "LayerAI",
+  "description": "Assistant IA de preparation d'impression 3D pour imprimantes Prusa",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

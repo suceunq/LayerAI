@@ -1,0 +1,36 @@
+appId: com.layerai.app
+productName: LayerAI
+copyright: Copyright (c) 2026 LayerAI
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - out/**/*
+  - package.json
+  - "!node_modules/**"
+
+extraResources:
+  - from: ../../docs/licensing
+    to: licensing
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+  artifactName: LayerAI-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: LayerAI
+  uninstallDisplayName: LayerAI
+  deleteAppDataOnUninstall: false
+
+publish: null

@@ -6,7 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   main: {
     build: {
-      externalizeDeps: { include: ["electron"] },
+      externalizeDeps: false,
       rollupOptions: {
         external: ["electron"],
         input: {
@@ -17,7 +17,7 @@ export default defineConfig({
   },
   preload: {
     build: {
-      externalizeDeps: { include: ["electron"] },
+      externalizeDeps: false,
       rollupOptions: {
         external: ["electron"],
         input: {
