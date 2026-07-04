@@ -2,7 +2,7 @@ import JSZip from "jszip";
 import type { FilamentProfile, GeneratedConfig, MeshGeometryData, PrinterProfile } from "@layerai/shared-types";
 import { CONTENT_TYPES_XML, ROOT_RELS_XML } from "./opc-fixed-parts.js";
 import { buildModelXml } from "./model-xml.js";
-import { buildPrintConfigText } from "./config-writer.js";
+import { buildPrintConfigText, buildBambuPrintConfigText } from "./config-writer.js";
 import { weldGeometry } from "./weld.js";
 
 export interface BuildThreeMfInput {
@@ -28,7 +28,12 @@ export async function buildThreeMf(input: BuildThreeMfInput): Promise<Uint8Array
   zip.file("[Content_Types].xml", CONTENT_TYPES_XML);
   zip.file("_rels/.rels", ROOT_RELS_XML);
   zip.file("3D/3dmodel.model", buildModelXml(weldedGeometry, objectName, bedCenterOf(printer)));
-  zip.file("Metadata/Slic3r_PE.config", buildPrintConfigText(config, printer, filament));
+
+  if (printer.vendor === "Bambu Lab") {
+    zip.file("Metadata/print_profile.config", buildBambuPrintConfigText(config, printer, filament));
+  } else {
+    zip.file("Metadata/Slic3r_PE.config", buildPrintConfigText(config, printer, filament));
+  }
 
   return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
 }

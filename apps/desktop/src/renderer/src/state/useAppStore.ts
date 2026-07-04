@@ -109,7 +109,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  setPrinter: (id) => set({ selectedPrinterId: id }),
+  setPrinter: (id) =>
+    set((s) => {
+      const vendor = s.printers.find((p) => p.id === id)?.vendor;
+      const isBambu = vendor === "Bambu Lab";
+      const currentFilamentIsBambu = s.selectedFilamentId.startsWith("BAMBU_");
+      if (isBambu === currentFilamentIsBambu) return { selectedPrinterId: id };
+
+      const fallback = s.filaments.find((f) => f.id.startsWith("BAMBU_") === isBambu);
+      return { selectedPrinterId: id, selectedFilamentId: fallback?.id ?? s.selectedFilamentId };
+    }),
   setFilament: (id) => set({ selectedFilamentId: id }),
 
   importFromDialog: async () => {

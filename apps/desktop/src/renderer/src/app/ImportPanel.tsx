@@ -28,6 +28,17 @@ export function ImportPanel(): React.JSX.Element {
     void importDroppedPath(path);
   };
 
+  const printersByVendor = new Map<string, typeof printers>();
+  for (const p of printers) {
+    if (!printersByVendor.has(p.vendor)) printersByVendor.set(p.vendor, []);
+    printersByVendor.get(p.vendor)!.push(p);
+  }
+
+  const selectedVendor = printers.find((p) => p.id === selectedPrinterId)?.vendor;
+  const compatibleFilaments = filaments.filter((f) =>
+    selectedVendor === "Bambu Lab" ? f.id.startsWith("BAMBU_") : !f.id.startsWith("BAMBU_")
+  );
+
   return (
     <div className="flex h-full flex-col items-center justify-center gap-8 p-8">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -57,17 +68,21 @@ export function ImportPanel(): React.JSX.Element {
         <label className="flex min-w-0 flex-col gap-1">
           <span className="text-xs uppercase tracking-wide text-text-muted">Imprimante</span>
           <Select value={selectedPrinterId} onChange={(e) => setPrinter(e.target.value)} className="w-full">
-            {printers.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
+            {Array.from(printersByVendor.entries()).map(([vendor, vendorPrinters]) => (
+              <optgroup key={vendor} label={vendor}>
+                {vendorPrinters.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </Select>
         </label>
         <label className="flex min-w-0 flex-col gap-1">
           <span className="text-xs uppercase tracking-wide text-text-muted">Filament</span>
           <Select value={selectedFilamentId} onChange={(e) => setFilament(e.target.value)} className="w-full">
-            {filaments.map((f) => (
+            {compatibleFilaments.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.name}
               </option>
