@@ -6,6 +6,7 @@ import { registerAnalysisHandlers } from "./ipc/analysis.handlers.js";
 import { registerExportHandlers } from "./ipc/export.handlers.js";
 import { registerLearningHandlers } from "./ipc/learning.handlers.js";
 import { registerProfilesHandlers } from "./ipc/profiles.handlers.js";
+import { registerSettingsHandlers } from "./ipc/settings.handlers.js";
 import { buildAppMenu } from "./menu.js";
 import { setupAutoUpdater } from "./autoUpdater.js";
 
@@ -64,6 +65,7 @@ app.whenReady().then(() => {
   registerExportHandlers();
   registerLearningHandlers();
   registerProfilesHandlers();
+  registerSettingsHandlers();
 
   createMainWindow();
 

@@ -12,6 +12,8 @@ export const IpcChannels = {
   customProfilesList: "custom-profiles:list",
   customProfilesSave: "custom-profiles:save",
   customProfilesDelete: "custom-profiles:delete",
+  settingsGet: "settings:get",
+  settingsSetOnboardingCompleted: "settings:set-onboarding-completed",
 } as const;
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];

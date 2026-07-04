@@ -16,6 +16,8 @@ const api: LayerAiApi = {
   getCustomProfiles: () => ipcRenderer.invoke(IpcChannels.customProfilesList),
   saveCustomProfile: (request) => ipcRenderer.invoke(IpcChannels.customProfilesSave, request),
   deleteCustomProfile: (id) => ipcRenderer.invoke(IpcChannels.customProfilesDelete, id),
+  getSettings: () => ipcRenderer.invoke(IpcChannels.settingsGet),
+  setOnboardingCompleted: (completed) => ipcRenderer.invoke(IpcChannels.settingsSetOnboardingCompleted, completed),
 };
 
 contextBridge.exposeInMainWorld("api", api);

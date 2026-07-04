@@ -13,6 +13,7 @@ import type {
   CustomProfile,
   SaveCustomProfileRequest,
   RecordOutcomeRequest,
+  AppSettings,
 } from "../shared/ipc-types.js";
 
 export interface ImportedFilePayload {
@@ -35,4 +36,6 @@ export interface LayerAiApi {
   getCustomProfiles: () => Promise<CustomProfile[]>;
   saveCustomProfile: (request: SaveCustomProfileRequest) => Promise<CustomProfile>;
   deleteCustomProfile: (id: string) => Promise<void>;
+  getSettings: () => Promise<AppSettings>;
+  setOnboardingCompleted: (completed: boolean) => Promise<void>;
 }

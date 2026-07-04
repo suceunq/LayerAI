@@ -6,6 +6,7 @@ import { ImportPanel } from "./app/ImportPanel.js";
 import { IntentPanel } from "./app/IntentPanel.js";
 import { ReviewPanel } from "./app/ReviewPanel.js";
 import { AdvancedPanel } from "./app/AdvancedPanel.js";
+import { OnboardingTour } from "./app/OnboardingTour.js";
 import { ProgressBar } from "./components/ui/ProgressBar.js";
 
 export default function App(): React.JSX.Element {
@@ -20,11 +21,13 @@ export default function App(): React.JSX.Element {
   const layerViewEnabled = useAppStore((s) => s.layerViewEnabled);
   const layerViewHeightMm = useAppStore((s) => s.layerViewHeightMm);
   const toggleAdvancedPanel = useAppStore((s) => s.toggleAdvancedPanel);
+  const checkOnboarding = useAppStore((s) => s.checkOnboarding);
 
   useEffect(() => {
     void loadProfileDb();
     void loadCustomProfiles();
-  }, [loadProfileDb, loadCustomProfiles]);
+    void checkOnboarding();
+  }, [loadProfileDb, loadCustomProfiles, checkOnboarding]);
 
   const printer = printers.find((p) => p.id === selectedPrinterId);
   const fillPattern = config?.fill_pattern?.value;
@@ -74,6 +77,7 @@ export default function App(): React.JSX.Element {
         </aside>
 
         <AdvancedPanel />
+        <OnboardingTour />
       </main>
     </div>
   );

@@ -82,3 +82,7 @@ export interface RecordOutcomeRequest {
   outcome: PrintOutcomeId;
   notes?: string;
 }
+
+export interface AppSettings {
+  onboardingCompleted: boolean;
+}

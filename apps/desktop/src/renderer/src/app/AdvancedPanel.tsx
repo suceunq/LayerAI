@@ -15,12 +15,18 @@ export function AdvancedPanel(): React.JSX.Element | null {
   const config = useAppStore((s) => s.config);
   const exportIni = useAppStore((s) => s.exportIni);
   const step = useAppStore((s) => s.step);
+  const replayOnboarding = useAppStore((s) => s.replayOnboarding);
 
   if (!advancedPanelOpen) return null;
 
   const handleSaveProfile = (): void => {
     const name = window.prompt("Nom du profil personnalisé :");
     if (name && name.trim()) void saveCurrentAsProfile(name.trim());
+  };
+
+  const handleReplayOnboarding = (): void => {
+    toggleAdvancedPanel();
+    replayOnboarding();
   };
 
   return (
@@ -90,6 +96,17 @@ export function AdvancedPanel(): React.JSX.Element | null {
             </Button>
           </section>
         )}
+
+        <section className="mt-auto border-t border-border-subtle pt-4">
+          <h3 className="mb-2 text-xs uppercase tracking-wide text-text-muted">Général</h3>
+          <button
+            onClick={handleReplayOnboarding}
+            className="flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-left text-sm text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+          >
+            <span className="text-prusa-orange">↻</span>
+            Revoir la visite guidée
+          </button>
+        </section>
       </div>
     </div>
   );

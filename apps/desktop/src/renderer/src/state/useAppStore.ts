@@ -65,6 +65,11 @@ interface AppState {
 
   outcomeRecorded: boolean;
   recordOutcome: (outcome: PrintOutcomeId) => Promise<void>;
+
+  onboardingActive: boolean;
+  checkOnboarding: () => Promise<void>;
+  completeOnboarding: () => Promise<void>;
+  replayOnboarding: () => void;
 }
 
 async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry: MeshGeometryData; analysis: MeshAnalysisResult }> {
@@ -97,6 +102,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   customProfiles: [],
   outcomeRecorded: false,
+  onboardingActive: false,
 
   loadProfileDb: async () => {
     try {
@@ -296,6 +302,26 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ error: err instanceof Error ? err.message : String(err) });
     }
   },
+
+  checkOnboarding: async () => {
+    try {
+      const settings = await window.api.getSettings();
+      if (!settings.onboardingCompleted) set({ onboardingActive: true });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  completeOnboarding: async () => {
+    set({ onboardingActive: false });
+    try {
+      await window.api.setOnboardingCompleted(true);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  replayOnboarding: () => set({ onboardingActive: true }),
 }));
 
 if (import.meta.env.DEV) {
