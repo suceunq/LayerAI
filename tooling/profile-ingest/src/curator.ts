@@ -1,6 +1,19 @@
 import type { InheritResolver } from "./inherit-resolver.js";
 import type { SectionsByType } from "./ini-parser.js";
 
+/**
+ * PrusaSlicer's own display names carry legacy/marketing verbiage ("Original ", "i3 ") and a
+ * "&&"-joined alternate-name convention that reads poorly in a compact picker UI. Trimmed to a
+ * plain "Prusa <model>" form.
+ */
+function cleanPrinterName(rawName: string): string {
+  return rawName
+    .replace(/^Original\s+/, "")
+    .replace(/^Prusa\s+i3\s+/, "Prusa ")
+    .replace(/\s*&&\s*/g, " / ")
+    .trim();
+}
+
 export interface CuratedPrinter {
   id: string;
   name: string;
@@ -99,7 +112,7 @@ export function curatePrintersAndPresets(
 
     printers.push({
       id: modelName,
-      name: modelKeys.name ?? modelName,
+      name: cleanPrinterName(modelKeys.name ?? modelName),
       family: modelKeys.family ?? modelName,
       technology: modelKeys.technology ?? "FFF",
       bedShape: parseBedShape(chosen.bed_shape ?? "0x0,250x0,250x210,0x210"),

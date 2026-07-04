@@ -25,10 +25,19 @@ interface SceneRefs {
   camera: THREE.PerspectiveCamera;
   controls: OrbitControls;
   bedGroup: THREE.Group | null;
+  modelGroup: THREE.Group;
   meshObject: THREE.Mesh | null;
   capMesh: THREE.Mesh | null;
   clippingPlane: THREE.Plane;
   animationHandle: number;
+}
+
+function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
+  const minX = Math.min(...printer.bedShape.map((p) => p.x));
+  const maxX = Math.max(...printer.bedShape.map((p) => p.x));
+  const minY = Math.min(...printer.bedShape.map((p) => p.y));
+  const maxY = Math.max(...printer.bedShape.map((p) => p.y));
+  return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 }
 
 export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, layerView }: Viewer3DProps): React.JSX.Element {
@@ -61,12 +70,16 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
     dirLight.position.set(200, -300, 400);
     scene.add(dirLight);
 
+    const modelGroup = new THREE.Group();
+    scene.add(modelGroup);
+
     const sceneRefs: SceneRefs = {
       renderer,
       scene,
       camera,
       controls,
       bedGroup: null,
+      modelGroup,
       meshObject: null,
       capMesh: null,
       clippingPlane: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0),
@@ -113,9 +126,12 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
     sceneRefs.scene.add(bedGroup);
     sceneRefs.bedGroup = bedGroup;
 
+    const center = bedCenterOf(printer);
+    sceneRefs.modelGroup.position.set(center.x, center.y, 0);
+
     const bedWidth = Math.max(...printer.bedShape.map((p) => p.x));
     const bedDepth = Math.max(...printer.bedShape.map((p) => p.y));
-    sceneRefs.controls.target.set(bedWidth / 2, bedDepth / 2, printer.maxPrintHeightMm / 4);
+    sceneRefs.controls.target.set(center.x, center.y, printer.maxPrintHeightMm / 4);
     sceneRefs.camera.position.set(bedWidth * 1.1, -bedDepth * 1.1, bedWidth * 0.9);
   }, [printer]);
 
@@ -124,7 +140,7 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
     if (!sceneRefs) return;
 
     if (sceneRefs.meshObject) {
-      sceneRefs.scene.remove(sceneRefs.meshObject);
+      sceneRefs.modelGroup.remove(sceneRefs.meshObject);
       sceneRefs.meshObject.geometry.dispose();
       (sceneRefs.meshObject.material as THREE.Material).dispose();
       sceneRefs.meshObject = null;
@@ -135,7 +151,7 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
     const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0.05, side: THREE.DoubleSide });
     const mesh = new THREE.Mesh(displayGeometry, material);
     mesh.castShadow = true;
-    sceneRefs.scene.add(mesh);
+    sceneRefs.modelGroup.add(mesh);
     sceneRefs.meshObject = mesh;
   }, [geometry, overhangFaces]);
 
@@ -144,7 +160,7 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
     if (!sceneRefs) return;
 
     if (sceneRefs.capMesh) {
-      sceneRefs.scene.remove(sceneRefs.capMesh);
+      sceneRefs.modelGroup.remove(sceneRefs.capMesh);
       sceneRefs.capMesh.geometry.dispose();
       (sceneRefs.capMesh.material as THREE.Material).dispose();
       sceneRefs.capMesh = null;
@@ -157,7 +173,10 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
       return;
     }
 
-    sceneRefs.clippingPlane.constant = layerView.heightMm;
+    // The clipping plane clips in world space, but the model sits inside a translated group -
+    // offset the plane constant by the group's Z position (currently always 0, kept explicit
+    // for correctness if the model group ever gains a Z offset).
+    sceneRefs.clippingPlane.constant = layerView.heightMm + sceneRefs.modelGroup.position.z;
     meshMaterial.clippingPlanes = [sceneRefs.clippingPlane];
 
     const width = Math.max(1, boundingBoxMm.max.x - boundingBoxMm.min.x);
@@ -169,7 +188,7 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
     const capMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
     const capMesh = new THREE.Mesh(capGeometry, capMaterial);
     capMesh.position.set((boundingBoxMm.min.x + boundingBoxMm.max.x) / 2, (boundingBoxMm.min.y + boundingBoxMm.max.y) / 2, layerView.heightMm);
-    sceneRefs.scene.add(capMesh);
+    sceneRefs.modelGroup.add(capMesh);
     sceneRefs.capMesh = capMesh;
   }, [layerView, boundingBoxMm]);
 

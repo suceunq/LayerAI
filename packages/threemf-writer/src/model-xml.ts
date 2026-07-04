@@ -13,7 +13,11 @@ function escapeXml(value: string): string {
  * geometry without indices (e.g. STL triangle-soup) is emitted as vertices 0..N-1 taken in
  * order with sequential triangle indices - valid per the format even without deduplication.
  */
-export function buildModelXml(geometry: MeshGeometryData, objectName: string): string {
+export function buildModelXml(
+  geometry: MeshGeometryData,
+  objectName: string,
+  bedCenter: { x: number; y: number } = { x: 0, y: 0 }
+): string {
   const { positions, indices } = geometry;
   const vertexCount = positions.length / 3;
 
@@ -48,7 +52,7 @@ ${triangleLines.map((l) => "     " + l).join("\n")}
   </object>
  </resources>
  <build>
-  <item objectid="1" transform="1 0 0 0 1 0 0 0 1 0 0 0"/>
+  <item objectid="1" transform="1 0 0 0 1 0 0 0 1 ${fmtNum(bedCenter.x)} ${fmtNum(bedCenter.y)} 0"/>
  </build>
 </model>`;
 }

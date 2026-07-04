@@ -13,6 +13,12 @@ export interface BuildThreeMfInput {
   objectName?: string;
 }
 
+function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
+  const xs = printer.bedShape.map((p) => p.x);
+  const ys = printer.bedShape.map((p) => p.y);
+  return { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
+}
+
 export async function buildThreeMf(input: BuildThreeMfInput): Promise<Uint8Array> {
   const { geometry, config, printer, filament, objectName = "LayerAI part" } = input;
 
@@ -21,7 +27,7 @@ export async function buildThreeMf(input: BuildThreeMfInput): Promise<Uint8Array
   const zip = new JSZip();
   zip.file("[Content_Types].xml", CONTENT_TYPES_XML);
   zip.file("_rels/.rels", ROOT_RELS_XML);
-  zip.file("3D/3dmodel.model", buildModelXml(weldedGeometry, objectName));
+  zip.file("3D/3dmodel.model", buildModelXml(weldedGeometry, objectName, bedCenterOf(printer)));
   zip.file("Metadata/Slic3r_PE.config", buildPrintConfigText(config, printer, filament));
 
   return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });

@@ -2,7 +2,7 @@ import { Vector3, Quaternion, Euler } from "three";
 import type { MeshGeometryData, OrientationCandidate } from "@layerai/shared-types";
 import { computeBoundingBox, computeFootprintAreaMm2 } from "../geometry/bounds.js";
 import { detectOverhangs } from "../features/overhangs.js";
-import { groundMesh } from "./grounding.js";
+import { placeOnBed } from "./grounding.js";
 
 const CANDIDATE_AXES: { axis: Vector3; label: string }[] = [
   { axis: new Vector3(0, 0, 1), label: "face du dessus (orientation d'origine)" },
@@ -42,7 +42,7 @@ export function generateOrientationCandidates(geometry: MeshGeometryData): {
 
   for (const { axis, label } of CANDIDATE_AXES) {
     const quaternion = new Quaternion().setFromUnitVectors(axis.clone().normalize(), up);
-    const rotated = groundMesh(applyRotation(geometry, quaternion));
+    const rotated = placeOnBed(applyRotation(geometry, quaternion));
     const boundingBox = computeBoundingBox(rotated);
     const footprintAreaMm2 = computeFootprintAreaMm2(rotated);
     const { overhangAreaMm2, totalSurfaceAreaMm2 } = detectOverhangs(rotated, boundingBox);
