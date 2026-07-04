@@ -8,6 +8,7 @@ release/
 Thumbs.db
 .env
 .env.local
+.claude/
 *.tsbuildinfo
 packages/prusa-profile-db/data/*.json
 !packages/prusa-profile-db/data/.gitkeep
