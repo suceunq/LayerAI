@@ -4,6 +4,17 @@ import { computeBoundingBox, computeFootprintAreaMm2, computeBaseContactAreaMm2 
 import { detectOverhangs } from "../features/overhangs.js";
 import { placeOnBed } from "./grounding.js";
 import { dominantFaceNormals } from "./face-normals.js";
+import { rotateGeometry } from "./rotate.js";
+import { getTriangleCount } from "../geometry/triangles.js";
+
+/**
+ * Above this triangle count, the extra per-face candidate search (already ~4x the base cost of
+ * the 6 world axes) would take too long for an interactive import - each candidate re-scans the
+ * whole mesh several times. Very high-poly meshes (sculpted/scanned models) also rarely have a
+ * single genuinely flat face for this heuristic to find anyway; the manual "choose a face" tool
+ * is the right answer for those, so we fall back to the fast 6-axis search here.
+ */
+const HIGH_POLY_SKIP_THRESHOLD = 200_000;
 
 const CANDIDATE_AXES: { axis: Vector3; label: string }[] = [
   { axis: new Vector3(0, 0, 1), label: "face du dessus (orientation d'origine)" },
@@ -23,6 +34,7 @@ const WORLD_AXIS_DOT_DEDUPE_THRESHOLD = 0.996;
  * of X/Y/Z happen to match.
  */
 function meshFaceCandidateAxes(geometry: MeshGeometryData): { axis: Vector3; label: string }[] {
+  if (getTriangleCount(geometry) > HIGH_POLY_SKIP_THRESHOLD) return [];
   const normals = dominantFaceNormals(geometry, 20);
   const axes: { axis: Vector3; label: string }[] = [];
 
@@ -34,19 +46,6 @@ function meshFaceCandidateAxes(geometry: MeshGeometryData): { axis: Vector3; lab
   }
 
   return axes;
-}
-
-function applyRotation(geometry: MeshGeometryData, quaternion: Quaternion): MeshGeometryData {
-  const { positions } = geometry;
-  const rotated = new Array<number>(positions.length);
-  const v = new Vector3();
-  for (let i = 0; i < positions.length; i += 3) {
-    v.set(positions[i]!, positions[i + 1]!, positions[i + 2]!).applyQuaternion(quaternion);
-    rotated[i] = v.x;
-    rotated[i + 1] = v.y;
-    rotated[i + 2] = v.z;
-  }
-  return { positions: rotated, indices: geometry.indices };
 }
 
 /**
@@ -68,7 +67,7 @@ export function generateOrientationCandidates(geometry: MeshGeometryData): {
 
   for (const { axis, label } of allAxes) {
     const quaternion = new Quaternion().setFromUnitVectors(axis.clone().normalize(), up);
-    const rotated = placeOnBed(applyRotation(geometry, quaternion));
+    const rotated = placeOnBed(rotateGeometry(geometry, quaternion));
     const boundingBox = computeBoundingBox(rotated);
     const footprintAreaMm2 = computeFootprintAreaMm2(rotated);
     const baseContactAreaMm2 = computeBaseContactAreaMm2(rotated, boundingBox);

@@ -9,6 +9,7 @@ const api: LayerAiApi = {
   getFilaments: () => ipcRenderer.invoke(IpcChannels.profileDbGetFilaments),
   runAnalysis: (request) => ipcRenderer.invoke(IpcChannels.analysisRun, request),
   rescaleGeometry: (request) => ipcRenderer.invoke(IpcChannels.analysisRescale, request),
+  reorientGeometry: (request) => ipcRenderer.invoke(IpcChannels.analysisReorient, request),
   generateConfig: (request) => ipcRenderer.invoke(IpcChannels.configGenerate, request),
   exportThreeMf: (request) => ipcRenderer.invoke(IpcChannels.exportThreeMf, request),
   exportIni: (request) => ipcRenderer.invoke(IpcChannels.exportIni, request),

@@ -17,6 +17,8 @@ interface Viewer3DProps {
   overhangFaces: OverhangFace[];
   boundingBoxMm: BoundingBox3 | null;
   layerView: LayerViewState | null;
+  facePickModeActive?: boolean;
+  onFacePicked?: (normal: { x: number; y: number; z: number }) => void;
 }
 
 interface SceneRefs {
@@ -40,7 +42,15 @@ function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
   return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 }
 
-export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, layerView }: Viewer3DProps): React.JSX.Element {
+export function Viewer3D({
+  printer,
+  geometry,
+  overhangFaces,
+  boundingBoxMm,
+  layerView,
+  facePickModeActive = false,
+  onFacePicked,
+}: Viewer3DProps): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const refs = useRef<SceneRefs | null>(null);
 
@@ -191,6 +201,43 @@ export function Viewer3D({ printer, geometry, overhangFaces, boundingBoxMm, laye
     sceneRefs.modelGroup.add(capMesh);
     sceneRefs.capMesh = capMesh;
   }, [layerView, boundingBoxMm]);
+
+  useEffect(() => {
+    const sceneRefs = refs.current;
+    if (!sceneRefs) return;
+    const dom = sceneRefs.renderer.domElement;
+    dom.style.cursor = facePickModeActive ? "crosshair" : "default";
+    if (!facePickModeActive || !onFacePicked) return;
+
+    let downPos: { x: number; y: number } | null = null;
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+
+    const handlePointerDown = (e: PointerEvent): void => {
+      downPos = { x: e.clientX, y: e.clientY };
+    };
+
+    // A click that moved the pointer meaningfully is an orbit/pan drag, not a face pick.
+    const handlePointerUp = (e: PointerEvent): void => {
+      if (!downPos || Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const mesh = sceneRefs.meshObject;
+      if (!mesh) return;
+
+      const rect = dom.getBoundingClientRect();
+      ndc.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      raycaster.setFromCamera(ndc, sceneRefs.camera);
+      const intersects = raycaster.intersectObject(mesh);
+      const face = intersects[0]?.face;
+      if (face) onFacePicked({ x: face.normal.x, y: face.normal.y, z: face.normal.z });
+    };
+
+    dom.addEventListener("pointerdown", handlePointerDown);
+    dom.addEventListener("pointerup", handlePointerUp);
+    return () => {
+      dom.removeEventListener("pointerdown", handlePointerDown);
+      dom.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [facePickModeActive, onFacePicked]);
 
   return <div ref={containerRef} className="h-full w-full" />;
 }

@@ -6,3 +6,5 @@ export { parseThreeMf } from "./loaders/threemf.js";
 export { placeOnBed } from "./orientation/grounding.js";
 export { generateOrientationCandidates } from "./orientation/candidates.js";
 export { scaleGeometry } from "./orientation/scale.js";
+export { rotateGeometry, quaternionRestingFace } from "./orientation/rotate.js";
+export type { QuaternionLike } from "./orientation/rotate.js";

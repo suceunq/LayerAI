@@ -4,6 +4,8 @@ import type {
   AnalysisRunResponse,
   AnalysisRescaleRequest,
   AnalysisRescaleResponse,
+  AnalysisReorientRequest,
+  AnalysisReorientResponse,
   ConfigGenerateRequest,
   ConfigGenerateResponse,
   ExportThreeMfRequest,
@@ -39,6 +41,7 @@ export interface LayerAiApi {
   getFilaments: () => Promise<FilamentProfile[]>;
   runAnalysis: (request: AnalysisRunRequest) => Promise<AnalysisRunResponse>;
   rescaleGeometry: (request: AnalysisRescaleRequest) => Promise<AnalysisRescaleResponse>;
+  reorientGeometry: (request: AnalysisReorientRequest) => Promise<AnalysisReorientResponse>;
   generateConfig: (request: ConfigGenerateRequest) => Promise<ConfigGenerateResponse>;
   exportThreeMf: (request: ExportThreeMfRequest) => Promise<ExportThreeMfResponse>;
   exportIni: (request: ExportIniRequest) => Promise<ExportIniResponse>;

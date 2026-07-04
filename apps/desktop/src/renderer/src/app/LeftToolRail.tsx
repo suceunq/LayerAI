@@ -8,6 +8,8 @@ export function LeftToolRail(): React.JSX.Element | null {
   const printers = useAppStore((s) => s.printers);
   const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
   const toggleResizePanel = useAppStore((s) => s.toggleResizePanel);
+  const facePickModeActive = useAppStore((s) => s.facePickModeActive);
+  const toggleFacePickMode = useAppStore((s) => s.toggleFacePickMode);
 
   if (!analysis) return null;
 
@@ -23,6 +25,15 @@ export function LeftToolRail(): React.JSX.Element | null {
       >
         ⛶
         {!fits && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-confidence-low" />}
+      </button>
+      <button
+        onClick={toggleFacePickMode}
+        title={t("app.chooseFace")}
+        className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg ${
+          facePickModeActive ? "bg-prusa-orange text-surface-0" : "text-text-secondary hover:bg-surface-2 hover:text-prusa-orange"
+        }`}
+      >
+        ⤓
       </button>
     </div>
   );

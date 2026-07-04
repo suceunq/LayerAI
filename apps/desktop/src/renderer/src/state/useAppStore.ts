@@ -15,6 +15,7 @@ import type { CustomProfile } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
 import type { Language } from "../i18n/translations.js";
 import { translate } from "../i18n/useTranslation.js";
+import { quaternionRestingFace } from "@layerai/mesh-analysis";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
@@ -48,6 +49,8 @@ interface AppState {
   advancedPanelOpen: boolean;
   resizePanelOpen: boolean;
   isRescaling: boolean;
+  facePickModeActive: boolean;
+  isReorienting: boolean;
 
   layerViewEnabled: boolean;
   layerViewHeightMm: number;
@@ -66,6 +69,8 @@ interface AppState {
   toggleAdvancedPanel: () => void;
   toggleResizePanel: () => void;
   rescaleModel: (percent: number) => Promise<void>;
+  toggleFacePickMode: () => void;
+  applyManualFaceOrientation: (normal: { x: number; y: number; z: number }) => Promise<void>;
   updateConfigValue: (key: string, value: string | number | boolean) => void;
   toggleLayerView: () => void;
   setLayerViewHeight: (heightMm: number) => void;
@@ -132,6 +137,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   advancedPanelOpen: false,
   resizePanelOpen: false,
   isRescaling: false,
+  facePickModeActive: false,
+  isReorienting: false,
 
   layerViewEnabled: false,
   layerViewHeightMm: 0,
@@ -230,6 +237,22 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (step === "review" && intentText) await get().generateConfiguration();
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err), isRescaling: false });
+    }
+  },
+
+  toggleFacePickMode: () => set((s) => ({ facePickModeActive: !s.facePickModeActive })),
+
+  applyManualFaceOrientation: async (normal) => {
+    const { geometry, step, intentText } = get();
+    if (!geometry) return;
+    set({ facePickModeActive: false, isReorienting: true, error: null });
+    try {
+      const quaternion = quaternionRestingFace(normal);
+      const result = await window.api.reorientGeometry({ geometry, quaternion });
+      set({ geometry: result.geometry, analysis: result.analysis, isReorienting: false });
+      if (step === "review" && intentText) await get().generateConfiguration();
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), isReorienting: false });
     }
   },
 
@@ -339,6 +362,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       layerViewEnabled: false,
       layerViewHeightMm: 0,
       resizePanelOpen: false,
+      facePickModeActive: false,
     }),
 
   loadCustomProfiles: async () => {

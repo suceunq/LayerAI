@@ -3,6 +3,7 @@ export const IpcChannels = {
   importReadDropped: "import:read-dropped",
   analysisRun: "analysis:run",
   analysisRescale: "analysis:rescale",
+  analysisReorient: "analysis:reorient",
   configGenerate: "config:generate",
   profileDbGetPrinters: "profiledb:get-printers",
   profileDbGetFilaments: "profiledb:get-filaments",

@@ -1,4 +1,4 @@
-import type { AnalyzedMesh, MeshGeometryData } from "@layerai/shared-types";
+import type { AnalyzedMesh, MeshGeometryData, OrientationCandidate } from "@layerai/shared-types";
 import {
   computeBoundingBox,
   computeVolumeAndCenterOfMass,
@@ -14,15 +14,40 @@ import { detectBridges } from "./features/bridges.js";
 import { detectThinWalls } from "./features/thin-walls.js";
 import { computeRiskFlags } from "./features/risks.js";
 import { generateOrientationCandidates } from "./orientation/candidates.js";
+import { placeOnBed } from "./orientation/grounding.js";
 
 export interface AnalyzeMeshOptions {
   overhangThresholdDeg?: number;
   thinWallThresholdMm?: number;
+  /** Skip the (expensive, ~26-candidate) auto-orientation search and use the input geometry's
+   * placement as-is (still grounded/centered) - for when the user manually picked a resting face. */
+  skipOrientationSearch?: boolean;
 }
 
 export function analyzeMesh(rawGeometry: MeshGeometryData, options: AnalyzeMeshOptions = {}): AnalyzedMesh {
-  const { candidates, bestIndex, groundedGeometries } = generateOrientationCandidates(rawGeometry);
-  const geometry = groundedGeometries[bestIndex]!;
+  let geometry: MeshGeometryData;
+  let candidates: OrientationCandidate[];
+  let bestIndex: number;
+
+  if (options.skipOrientationSearch) {
+    geometry = placeOnBed(rawGeometry);
+    candidates = [
+      {
+        rotationDeg: { x: 0, y: 0, z: 0 },
+        score: 1,
+        restingFaceDescription: "orientation choisie manuellement",
+        overhangAreaEstimateMm2: 0,
+        footprintAreaEstimateMm2: 0,
+        heightMmEstimate: 0,
+      },
+    ];
+    bestIndex = 0;
+  } else {
+    const result = generateOrientationCandidates(rawGeometry);
+    geometry = result.groundedGeometries[result.bestIndex]!;
+    candidates = result.candidates;
+    bestIndex = result.bestIndex;
+  }
 
   const boundingBox = computeBoundingBox(geometry);
   const dimensionsMm = {

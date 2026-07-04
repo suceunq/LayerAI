@@ -24,6 +24,13 @@ export interface AnalysisRescaleRequest {
 
 export type AnalysisRescaleResponse = AnalyzedMesh;
 
+export interface AnalysisReorientRequest {
+  geometry: MeshGeometryData;
+  quaternion: { x: number; y: number; z: number; w: number };
+}
+
+export type AnalysisReorientResponse = AnalyzedMesh;
+
 export interface ConfigGenerateRequest {
   geometry: MeshGeometryData;
   analysis: AnalyzedMesh["analysis"];

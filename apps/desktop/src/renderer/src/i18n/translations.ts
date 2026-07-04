@@ -5,6 +5,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "app.settings": "Options avancées",
     "app.settingsAriaLabel": "Paramètres",
     "app.resize": "Redimensionner le modèle",
+    "app.chooseFace": "Choisir la face à poser sur le plateau",
+    "facePick.hint": "Cliquez sur une face du modèle pour la poser sur le plateau",
+    "facePick.cancel": "Annuler",
 
     "import.title": "Importer un modèle 3D",
     "import.subtitle": "Glissez-déposez un fichier STL, OBJ ou 3MF, ou parcourez vos fichiers.",
@@ -175,6 +178,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "app.settings": "Advanced options",
     "app.settingsAriaLabel": "Settings",
     "app.resize": "Resize the model",
+    "app.chooseFace": "Choose which face rests on the bed",
+    "facePick.hint": "Click a face of the model to place it on the bed",
+    "facePick.cancel": "Cancel",
 
     "import.title": "Import a 3D model",
     "import.subtitle": "Drag and drop an STL, OBJ or 3MF file, or browse your files.",

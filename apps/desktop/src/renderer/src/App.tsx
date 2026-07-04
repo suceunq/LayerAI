@@ -31,6 +31,9 @@ export default function App(): React.JSX.Element {
   const checkOnboarding = useAppStore((s) => s.checkOnboarding);
   const handleMenuAction = useAppStore((s) => s.handleMenuAction);
   const toolNotice = useAppStore((s) => s.toolNotice);
+  const facePickModeActive = useAppStore((s) => s.facePickModeActive);
+  const toggleFacePickMode = useAppStore((s) => s.toggleFacePickMode);
+  const applyManualFaceOrientation = useAppStore((s) => s.applyManualFaceOrientation);
 
   useEffect(() => {
     void loadProfileDb();
@@ -74,7 +77,17 @@ export default function App(): React.JSX.Element {
             overhangFaces={analysis?.overhangFaces ?? []}
             boundingBoxMm={analysis?.boundingBoxMm ?? null}
             layerView={layerView}
+            facePickModeActive={facePickModeActive}
+            onFacePicked={(normal) => void applyManualFaceOrientation(normal)}
           />
+          {facePickModeActive && (
+            <div className="absolute left-1/2 top-4 z-30 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-prusa-orange/50 bg-surface-1 px-4 py-2 text-sm text-text-primary shadow-xl">
+              {t("facePick.hint")}
+              <button onClick={toggleFacePickMode} className="text-xs text-text-muted hover:text-text-primary">
+                {t("facePick.cancel")}
+              </button>
+            </div>
+          )}
           {step === "analyzing" && (
             <div className="absolute inset-0 flex items-center justify-center bg-surface-0/70">
               <ProgressBar label={t("analyzing.label")} />

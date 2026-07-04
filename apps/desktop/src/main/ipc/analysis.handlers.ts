@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { analyzeMesh, parseStl, parseObj, parseThreeMf, scaleGeometry } from "@layerai/mesh-analysis";
+import { analyzeMesh, parseStl, parseObj, parseThreeMf, scaleGeometry, rotateGeometry } from "@layerai/mesh-analysis";
 import { generateConfig, computeComparisonMetrics } from "@layerai/config-generator";
 import { generateExplanations } from "@layerai/explanation-engine";
 import { getAllPrinters, getAllFilaments, getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
@@ -12,6 +12,8 @@ import type {
   AnalysisRunResponse,
   AnalysisRescaleRequest,
   AnalysisRescaleResponse,
+  AnalysisReorientRequest,
+  AnalysisReorientResponse,
   ConfigGenerateRequest,
   ConfigGenerateResponse,
 } from "../../shared/ipc-types.js";
@@ -55,6 +57,10 @@ export function registerAnalysisHandlers(): void {
 
   ipcMain.handle(IpcChannels.analysisRescale, async (_event, request: AnalysisRescaleRequest): Promise<AnalysisRescaleResponse> => {
     return analyzeMesh(scaleGeometry(request.geometry, request.scaleFactor));
+  });
+
+  ipcMain.handle(IpcChannels.analysisReorient, async (_event, request: AnalysisReorientRequest): Promise<AnalysisReorientResponse> => {
+    return analyzeMesh(rotateGeometry(request.geometry, request.quaternion), { skipOrientationSearch: true });
   });
 
   ipcMain.handle(IpcChannels.configGenerate, async (_event, request: ConfigGenerateRequest): Promise<ConfigGenerateResponse> => {
