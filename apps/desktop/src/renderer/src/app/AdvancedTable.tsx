@@ -1,8 +1,10 @@
 import { useAppStore } from "../state/useAppStore.js";
+import { useTranslation } from "../i18n/useTranslation.js";
 
 export function AdvancedTable(): React.JSX.Element {
   const config = useAppStore((s) => s.config);
   const updateConfigValue = useAppStore((s) => s.updateConfigValue);
+  const { t } = useTranslation();
 
   if (!config) return <></>;
 
@@ -12,9 +14,9 @@ export function AdvancedTable(): React.JSX.Element {
     <table className="w-full text-left text-xs">
       <thead>
         <tr className="text-text-muted">
-          <th className="py-1.5 font-normal">Paramètre</th>
-          <th className="py-1.5 font-normal">Valeur</th>
-          <th className="py-1.5 font-normal">Confiance</th>
+          <th className="py-1.5 font-normal">{t("advanced.tableParameter")}</th>
+          <th className="py-1.5 font-normal">{t("advanced.tableValue")}</th>
+          <th className="py-1.5 font-normal">{t("advanced.tableConfidence")}</th>
         </tr>
       </thead>
       <tbody>

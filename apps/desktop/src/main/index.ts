@@ -8,8 +8,10 @@ import { registerSlicerHandlers } from "./ipc/slicer.handlers.js";
 import { registerLearningHandlers } from "./ipc/learning.handlers.js";
 import { registerProfilesHandlers } from "./ipc/profiles.handlers.js";
 import { registerSettingsHandlers } from "./ipc/settings.handlers.js";
+import { registerAiHandlers } from "./ipc/ai.handlers.js";
 import { buildAppMenu } from "./menu.js";
 import { setupAutoUpdater } from "./autoUpdater.js";
+import { readSettings } from "./settings-store.js";
 
 const isDev = !app.isPackaged;
 
@@ -57,10 +59,11 @@ function createMainWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   if (process.platform === "win32") app.setAppUserModelId("com.layerai.app");
 
-  buildAppMenu();
+  const settings = await readSettings();
+  buildAppMenu(settings.language ?? "fr");
   registerImportHandlers();
   registerAnalysisHandlers();
   registerExportHandlers();
@@ -68,6 +71,7 @@ app.whenReady().then(() => {
   registerLearningHandlers();
   registerProfilesHandlers();
   registerSettingsHandlers();
+  registerAiHandlers();
 
   createMainWindow();
 

@@ -4,8 +4,10 @@ import { Card } from "../components/ui/Card.js";
 import { ConfidenceBadge } from "../components/ui/ConfidenceBadge.js";
 import { ComparisonView } from "./ComparisonView.js";
 import { OutcomeTagging } from "./OutcomeTagging.js";
+import { useTranslation } from "../i18n/useTranslation.js";
 
 export function ReviewPanel(): React.JSX.Element {
+  const { t } = useTranslation();
   const explanations = useAppStore((s) => s.explanations);
   const exportThreeMf = useAppStore((s) => s.exportThreeMf);
   const exportPdfReport = useAppStore((s) => s.exportPdfReport);
@@ -25,7 +27,7 @@ export function ReviewPanel(): React.JSX.Element {
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-text-primary">Configuration générée</h2>
+        <h2 className="text-lg font-semibold text-text-primary">{t("review.title")}</h2>
         <ConfidenceBadge percent={explanations.overallConfidencePercent} />
       </div>
       <p className="text-sm text-text-secondary">{explanations.summary}</p>
@@ -47,7 +49,7 @@ export function ReviewPanel(): React.JSX.Element {
       </div>
 
       <button onClick={toggleAdvancedPanel} className="self-start text-xs text-text-muted hover:text-prusa-orange">
-        ▸ Modifier les réglages avancés, sauvegarder un profil…
+        {t("review.advancedLink")}
       </button>
 
       {error && <p className="text-sm text-confidence-low">{error}</p>}
@@ -55,18 +57,18 @@ export function ReviewPanel(): React.JSX.Element {
 
       <div className="mt-auto flex flex-col gap-2">
         <Button onClick={() => void openInSlicer()} className="w-full">
-          Ouvrir dans {slicerName} →
+          {t("review.openInSlicer", { slicer: slicerName })}
         </Button>
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => void exportThreeMf()} className="flex-1">
-            Exporter en .3MF
+            {t("review.exportThreeMf")}
           </Button>
           <Button variant="secondary" onClick={() => void exportPdfReport()} className="flex-1">
-            Rapport PDF
+            {t("review.exportPdf")}
           </Button>
         </div>
         <button onClick={startOver} className="self-center text-xs text-text-muted hover:text-text-primary">
-          Recommencer avec un autre modèle
+          {t("review.startOver")}
         </button>
       </div>
 

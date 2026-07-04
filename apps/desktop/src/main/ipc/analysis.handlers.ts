@@ -1,12 +1,12 @@
 import { ipcMain } from "electron";
 import { analyzeMesh, parseStl, parseObj, parseThreeMf, scaleGeometry } from "@layerai/mesh-analysis";
-import { resolveIntent } from "@layerai/intent-engine";
 import { generateConfig, computeComparisonMetrics } from "@layerai/config-generator";
 import { generateExplanations } from "@layerai/explanation-engine";
 import { getAllPrinters, getAllFilaments, getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
 import { getOutcomeStats, computeAdjustments, type LearningAdjustment } from "@layerai/learning-store";
 import type { GeneratedConfig, IntentTag, MeshGeometryData, IntentResult } from "@layerai/shared-types";
 import { IpcChannels } from "../../shared/ipc-channels.js";
+import { resolveIntentWithOptionalCloud } from "../ai/cloud-intent.js";
 import type {
   AnalysisRunRequest,
   AnalysisRunResponse,
@@ -63,14 +63,14 @@ export function registerAnalysisHandlers(): void {
     if (!printer) throw new Error(`Imprimante inconnue : ${request.printerId}`);
     if (!filament) throw new Error(`Filament inconnu : ${request.filamentId}`);
 
-    const intent = resolveIntent(request.intentText);
+    const intent = await resolveIntentWithOptionalCloud(request.intentText);
     let config = generateConfig({ analysis: request.analysis, intent, printer, filament });
 
     const activeTags: IntentTag[] = intent.weights.filter((w) => w.weight >= INTENT_TAG_THRESHOLD).map((w) => w.tag);
     const stats = getOutcomeStats(getLearningDb(), request.printerId, request.filamentId, activeTags);
     config = applyLearningAdjustments(config, computeAdjustments(stats));
 
-    const explanations = generateExplanations(config, intent, request.analysis);
+    const explanations = generateExplanations(config, intent, request.analysis, request.language ?? "fr");
 
     const neutralIntent: IntentResult = { rawText: "", weights: [], unrecognized: true, languageDetected: "unknown" };
     const baselineConfig = generateConfig({ analysis: request.analysis, intent: neutralIntent, printer, filament });

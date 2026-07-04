@@ -10,12 +10,16 @@ import { OnboardingTour } from "./app/OnboardingTour.js";
 import { LeftToolRail } from "./app/LeftToolRail.js";
 import { ResizePanel } from "./app/ResizePanel.js";
 import { HelpAboutDialog } from "./app/HelpAboutDialog.js";
+import { SettingsDialog } from "./app/SettingsDialog.js";
 import { ProgressBar } from "./components/ui/ProgressBar.js";
+import { useTranslation } from "./i18n/useTranslation.js";
 
 export default function App(): React.JSX.Element {
+  const { t } = useTranslation();
   const step = useAppStore((s) => s.step);
   const loadProfileDb = useAppStore((s) => s.loadProfileDb);
   const loadCustomProfiles = useAppStore((s) => s.loadCustomProfiles);
+  const loadLanguage = useAppStore((s) => s.loadLanguage);
   const printers = useAppStore((s) => s.printers);
   const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
   const geometry = useAppStore((s) => s.geometry);
@@ -32,7 +36,8 @@ export default function App(): React.JSX.Element {
     void loadProfileDb();
     void loadCustomProfiles();
     void checkOnboarding();
-  }, [loadProfileDb, loadCustomProfiles, checkOnboarding]);
+    void loadLanguage();
+  }, [loadProfileDb, loadCustomProfiles, checkOnboarding, loadLanguage]);
 
   useEffect(() => window.api.onMenuAction(handleMenuAction), [handleMenuAction]);
 
@@ -53,7 +58,7 @@ export default function App(): React.JSX.Element {
         {printer && <span className="ml-2 text-xs text-text-muted">{printer.name}</span>}
         <button
           onClick={toggleAdvancedPanel}
-          title="Options avancées"
+          title={t("app.settings")}
           className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-2 hover:text-prusa-orange"
         >
           ⚙
@@ -72,7 +77,7 @@ export default function App(): React.JSX.Element {
           />
           {step === "analyzing" && (
             <div className="absolute inset-0 flex items-center justify-center bg-surface-0/70">
-              <ProgressBar label="Analyse du modèle en cours…" />
+              <ProgressBar label={t("analyzing.label")} />
             </div>
           )}
           {step === "review" && <LayerViewControls />}
@@ -87,6 +92,7 @@ export default function App(): React.JSX.Element {
         <AdvancedPanel />
         <ResizePanel />
         <HelpAboutDialog />
+        <SettingsDialog />
         <OnboardingTour />
 
         {toolNotice && (

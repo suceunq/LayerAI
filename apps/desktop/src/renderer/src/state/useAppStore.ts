@@ -13,6 +13,8 @@ import type {
 import type { ImportedFilePayload } from "../../../preload/api.js";
 import type { CustomProfile } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
+import type { Language } from "../i18n/translations.js";
+import { translate } from "../i18n/useTranslation.js";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
@@ -25,6 +27,8 @@ interface AppState {
   toolNotice: string | null;
   helpDialogOpen: boolean;
   helpDialogTab: HelpDialogTab;
+  language: Language;
+  settingsDialogOpen: boolean;
 
   printers: PrinterProfile[];
   filaments: FilamentProfile[];
@@ -90,6 +94,10 @@ interface AppState {
   openHelpDialog: (tab: HelpDialogTab) => void;
   closeHelpDialog: () => void;
   handleMenuAction: (action: string) => void;
+
+  loadLanguage: () => Promise<void>;
+  setLanguage: (language: Language) => Promise<void>;
+  toggleSettingsDialog: () => void;
 }
 
 async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry: MeshGeometryData; analysis: MeshAnalysisResult }> {
@@ -103,6 +111,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   toolNotice: null,
   helpDialogOpen: false,
   helpDialogTab: "aide",
+  language: "fr",
+  settingsDialogOpen: false,
 
   printers: [],
   filaments: [],
@@ -188,7 +198,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setIntentText: (text) => set({ intentText: text }),
 
   generateConfiguration: async () => {
-    const { geometry, analysis, intentText, selectedPrinterId, selectedFilamentId } = get();
+    const { geometry, analysis, intentText, selectedPrinterId, selectedFilamentId, language } = get();
     if (!geometry || !analysis) return;
     set({ step: "generating", error: null });
     try {
@@ -198,6 +208,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         intentText,
         printerId: selectedPrinterId,
         filamentId: selectedFilamentId,
+        language,
       });
       set({ intentResult: intent, config, explanations, comparison, step: "review" });
     } catch (err) {
@@ -298,9 +309,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         objectName: importedFile?.fileName.replace(/\.[^.]+$/, ""),
       });
       if (result.opened) {
-        set({ slicerNotice: `Ouverture dans ${result.slicerName}…` });
+        const notice = translate(get().language, "review.slicerOpening", { slicer: result.slicerName });
+        set({ slicerNotice: notice });
         setTimeout(() => {
-          if (get().slicerNotice === `Ouverture dans ${result.slicerName}…`) set({ slicerNotice: null });
+          if (get().slicerNotice === notice) set({ slicerNotice: null });
         }, 4000);
       } else if (!result.canceled) {
         set({ error: result.message });
@@ -399,6 +411,26 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   replayOnboarding: () => set({ onboardingActive: true }),
 
+  loadLanguage: async () => {
+    try {
+      const settings = await window.api.getSettings();
+      if (settings.language) set({ language: settings.language });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  setLanguage: async (language) => {
+    set({ language });
+    try {
+      await window.api.setLanguage(language);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  toggleSettingsDialog: () => set((s) => ({ settingsDialogOpen: !s.settingsDialogOpen })),
+
   showToolNotice: (message) => {
     set({ toolNotice: message });
     setTimeout(() => {
@@ -407,28 +439,26 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   autoOptimize: async () => {
-    const { geometry, analysis } = get();
+    const { geometry, analysis, language } = get();
     if (!geometry || !analysis) {
-      get().showToolNotice("Importez d'abord un modèle pour lancer l'optimisation automatique.");
+      get().showToolNotice(translate(language, "menuAction.noModel"));
       return;
     }
-    set({ intentText: "Trouve le meilleur compromis entre qualité, solidité et rapidité d'impression." });
+    set({ intentText: translate(language, "menuAction.autoOptimizeIntent") });
     await get().generateConfiguration();
   },
 
   checkModelHealth: () => {
-    const { analysis } = get();
+    const { analysis, language } = get();
     if (!analysis) {
-      get().showToolNotice("Importez d'abord un modèle pour vérifier son intégrité.");
+      get().showToolNotice(translate(language, "menuAction.noModelHealth"));
       return;
     }
-    const confidencePercent = Math.round(analysis.analysisConfidence * 100);
+    const confidence = Math.round(analysis.analysisConfidence * 100);
     if (analysis.isManifold) {
-      get().showToolNotice(`✓ Maillage valide, aucune réparation nécessaire (confiance d'analyse : ${confidencePercent}%).`);
+      get().showToolNotice(translate(language, "menuAction.meshValid", { confidence }));
     } else {
-      get().showToolNotice(
-        `⚠ Maillage non-manifold détecté (confiance d'analyse : ${confidencePercent}%). Utilisez l'outil de réparation intégré à PrusaSlicer ou Bambu Studio avant l'impression.`
-      );
+      get().showToolNotice(translate(language, "menuAction.meshInvalid", { confidence }));
     }
   },
 
@@ -454,7 +484,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         void s.exportIni();
         break;
       case "edit:preferences":
-        s.toggleAdvancedPanel();
+        s.toggleSettingsDialog();
         break;
       case "tools:auto-optimize":
         void s.autoOptimize();
@@ -463,7 +493,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         s.checkModelHealth();
         break;
       case "tools:scale":
-        if (!s.analysis) s.showToolNotice("Importez d'abord un modèle pour accéder à la mise à l'échelle.");
+        if (!s.analysis) s.showToolNotice(translate(s.language, "menuAction.noModelResize"));
         else s.toggleResizePanel();
         break;
       case "help:docs":

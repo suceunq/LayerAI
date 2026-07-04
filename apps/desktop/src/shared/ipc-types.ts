@@ -9,6 +9,7 @@ import type {
   PrintOutcomeId,
 } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../preload/api.js";
+import type { AiProviderId } from "./ai-providers.js";
 
 export interface AnalysisRunRequest {
   file: ImportedFilePayload;
@@ -29,6 +30,7 @@ export interface ConfigGenerateRequest {
   intentText: string;
   printerId: string;
   filamentId: string;
+  language?: SupportedLanguage;
 }
 
 export interface ConfigGenerateResponse {
@@ -103,8 +105,40 @@ export interface RecordOutcomeRequest {
   notes?: string;
 }
 
+export type SupportedLanguage = "fr" | "en";
+
 export interface AppSettings {
   onboardingCompleted: boolean;
   prusaSlicerPath?: string;
   bambuStudioPath?: string;
+  language?: SupportedLanguage;
 }
+
+export interface AiProviderPublic {
+  id: AiProviderId;
+  hasApiKey: boolean;
+  model?: string;
+  baseUrl?: string;
+}
+
+export interface AiSettingsPublic {
+  providers: AiProviderPublic[];
+  defaultProviderId: AiProviderId | null;
+  cloudIntentEnabled: boolean;
+}
+
+export interface SaveAiProviderRequest {
+  id: AiProviderId;
+  apiKey?: string;
+  model?: string;
+  baseUrl?: string;
+}
+
+export interface TestAiProviderRequest {
+  id: AiProviderId;
+  apiKey?: string;
+  model?: string;
+  baseUrl?: string;
+}
+
+export type TestAiProviderResponse = { success: true } | { success: false; message: string };

@@ -18,7 +18,13 @@ import type {
   SaveCustomProfileRequest,
   RecordOutcomeRequest,
   AppSettings,
+  SupportedLanguage,
+  AiSettingsPublic,
+  SaveAiProviderRequest,
+  TestAiProviderRequest,
+  TestAiProviderResponse,
 } from "../shared/ipc-types.js";
+import type { AiProviderId } from "../shared/ai-providers.js";
 
 export interface ImportedFilePayload {
   fileName: string;
@@ -44,6 +50,13 @@ export interface LayerAiApi {
   deleteCustomProfile: (id: string) => Promise<void>;
   getSettings: () => Promise<AppSettings>;
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
+  setLanguage: (language: SupportedLanguage) => Promise<void>;
   onMenuAction: (callback: (action: string) => void) => () => void;
   getAppVersion: () => Promise<string>;
+  getAiSettings: () => Promise<AiSettingsPublic>;
+  saveAiProvider: (request: SaveAiProviderRequest) => Promise<void>;
+  deleteAiProvider: (id: AiProviderId) => Promise<void>;
+  setDefaultAiProvider: (id: AiProviderId | null) => Promise<void>;
+  setCloudIntentEnabled: (enabled: boolean) => Promise<void>;
+  testAiProvider: (request: TestAiProviderRequest) => Promise<TestAiProviderResponse>;
 }

@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { ONBOARDING_STEPS } from "./onboarding-steps.js";
+import { useTranslation } from "../i18n/useTranslation.js";
 
 export function OnboardingTour(): React.JSX.Element | null {
   const onboardingActive = useAppStore((s) => s.onboardingActive);
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
+  const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
 
   if (!onboardingActive) return null;
@@ -24,8 +26,8 @@ export function OnboardingTour(): React.JSX.Element | null {
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-prusa-orange text-2xl font-bold text-surface-0">
           {step.icon}
         </div>
-        <h2 className="text-xl font-semibold text-text-primary">{step.title}</h2>
-        <p className="text-sm leading-relaxed text-text-secondary">{step.description}</p>
+        <h2 className="text-xl font-semibold text-text-primary">{t(step.titleKey)}</h2>
+        <p className="text-sm leading-relaxed text-text-secondary">{t(step.bodyKey)}</p>
 
         <div className="flex gap-1.5">
           {ONBOARDING_STEPS.map((_, i) => (
@@ -35,18 +37,18 @@ export function OnboardingTour(): React.JSX.Element | null {
 
         <div className="mt-2 flex w-full items-center justify-between">
           <button onClick={finish} className="text-xs text-text-muted hover:text-text-primary">
-            Passer
+            {t("onboarding.skip")}
           </button>
           <div className="flex gap-2">
             {stepIndex > 0 && (
               <Button variant="secondary" onClick={() => setStepIndex((i) => i - 1)}>
-                Précédent
+                {t("onboarding.previous")}
               </Button>
             )}
             {isLast ? (
-              <Button onClick={finish}>Commencer →</Button>
+              <Button onClick={finish}>{t("onboarding.start")}</Button>
             ) : (
-              <Button onClick={() => setStepIndex((i) => i + 1)}>Suivant</Button>
+              <Button onClick={() => setStepIndex((i) => i + 1)}>{t("onboarding.next")}</Button>
             )}
           </div>
         </div>

@@ -1,6 +1,8 @@
 import { useAppStore } from "../../state/useAppStore.js";
+import { useTranslation } from "../../i18n/useTranslation.js";
 
 export function LayerViewControls(): React.JSX.Element {
+  const { t } = useTranslation();
   const analysis = useAppStore((s) => s.analysis);
   const layerViewEnabled = useAppStore((s) => s.layerViewEnabled);
   const layerViewHeightMm = useAppStore((s) => s.layerViewHeightMm);
@@ -18,7 +20,7 @@ export function LayerViewControls(): React.JSX.Element {
           layerViewEnabled ? "bg-prusa-orange text-surface-0" : "border border-border-subtle text-text-secondary hover:text-text-primary"
         }`}
       >
-        Vue couches (estimation)
+        {t("layerView.toggle")}
       </button>
       {layerViewEnabled && (
         <>

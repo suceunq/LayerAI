@@ -16,8 +16,15 @@ export const IpcChannels = {
   customProfilesDelete: "custom-profiles:delete",
   settingsGet: "settings:get",
   settingsSetOnboardingCompleted: "settings:set-onboarding-completed",
+  settingsSetLanguage: "settings:set-language",
   menuAction: "menu:action",
   appGetVersion: "app:get-version",
+  aiGetSettings: "ai:get-settings",
+  aiSaveProvider: "ai:save-provider",
+  aiDeleteProvider: "ai:delete-provider",
+  aiSetDefaultProvider: "ai:set-default-provider",
+  aiSetCloudIntentEnabled: "ai:set-cloud-intent-enabled",
+  aiTestProvider: "ai:test-provider",
 } as const;
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];

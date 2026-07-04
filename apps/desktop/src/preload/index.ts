@@ -20,12 +20,19 @@ const api: LayerAiApi = {
   deleteCustomProfile: (id) => ipcRenderer.invoke(IpcChannels.customProfilesDelete, id),
   getSettings: () => ipcRenderer.invoke(IpcChannels.settingsGet),
   setOnboardingCompleted: (completed) => ipcRenderer.invoke(IpcChannels.settingsSetOnboardingCompleted, completed),
+  setLanguage: (language) => ipcRenderer.invoke(IpcChannels.settingsSetLanguage, language),
   onMenuAction: (callback) => {
     const listener = (_event: Electron.IpcRendererEvent, action: string): void => callback(action);
     ipcRenderer.on(IpcChannels.menuAction, listener);
     return () => ipcRenderer.removeListener(IpcChannels.menuAction, listener);
   },
   getAppVersion: () => ipcRenderer.invoke(IpcChannels.appGetVersion),
+  getAiSettings: () => ipcRenderer.invoke(IpcChannels.aiGetSettings),
+  saveAiProvider: (request) => ipcRenderer.invoke(IpcChannels.aiSaveProvider, request),
+  deleteAiProvider: (id) => ipcRenderer.invoke(IpcChannels.aiDeleteProvider, id),
+  setDefaultAiProvider: (id) => ipcRenderer.invoke(IpcChannels.aiSetDefaultProvider, id),
+  setCloudIntentEnabled: (enabled) => ipcRenderer.invoke(IpcChannels.aiSetCloudIntentEnabled, enabled),
+  testAiProvider: (request) => ipcRenderer.invoke(IpcChannels.aiTestProvider, request),
 };
 
 contextBridge.exposeInMainWorld("api", api);

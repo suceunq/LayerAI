@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "../state/useAppStore.js";
+import { useTranslation } from "../i18n/useTranslation.js";
 
 export function HelpAboutDialog(): React.JSX.Element | null {
   const helpDialogOpen = useAppStore((s) => s.helpDialogOpen);
@@ -7,6 +8,7 @@ export function HelpAboutDialog(): React.JSX.Element | null {
   const closeHelpDialog = useAppStore((s) => s.closeHelpDialog);
   const openHelpDialog = useAppStore((s) => s.openHelpDialog);
   const replayOnboarding = useAppStore((s) => s.replayOnboarding);
+  const { t } = useTranslation();
   const [version, setVersion] = useState("");
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export function HelpAboutDialog(): React.JSX.Element | null {
         className="flex max-h-[80vh] w-[520px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 className="text-base font-semibold text-text-primary">Aide &amp; À propos</h2>
+          <h2 className="text-base font-semibold text-text-primary">{t("help.title")}</h2>
           <button onClick={closeHelpDialog} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
@@ -33,13 +35,13 @@ export function HelpAboutDialog(): React.JSX.Element | null {
             onClick={() => openHelpDialog("aide")}
             className={`border-b-2 px-3 py-2 text-sm ${helpDialogTab === "aide" ? "border-prusa-orange text-prusa-orange" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
-            Aide
+            {t("help.tabHelp")}
           </button>
           <button
             onClick={() => openHelpDialog("apropos")}
             className={`border-b-2 px-3 py-2 text-sm ${helpDialogTab === "apropos" ? "border-prusa-orange text-prusa-orange" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
-            À propos
+            {t("help.tabAbout")}
           </button>
         </div>
 
@@ -47,29 +49,23 @@ export function HelpAboutDialog(): React.JSX.Element | null {
           {helpDialogTab === "aide" ? (
             <div className="flex flex-col gap-4 text-sm text-text-secondary">
               <section>
-                <h3 className="mb-1 font-medium text-text-primary">1. Importer</h3>
-                <p>Glissez-déposez un fichier STL, OBJ ou 3MF, ou parcourez vos fichiers. Choisissez ensuite votre imprimante et votre filament.</p>
+                <h3 className="mb-1 font-medium text-text-primary">{t("help.step1Title")}</h3>
+                <p>{t("help.step1Body")}</p>
               </section>
               <section>
-                <h3 className="mb-1 font-medium text-text-primary">2. Décrire l'objectif</h3>
-                <p>Décrivez ce que vous voulez en langage naturel (« pièce solide », « le plus rapide possible »…). L'IA locale traduit cela en réglages.</p>
+                <h3 className="mb-1 font-medium text-text-primary">{t("help.step2Title")}</h3>
+                <p>{t("help.step2Body")}</p>
               </section>
               <section>
-                <h3 className="mb-1 font-medium text-text-primary">3. Vérifier la taille</h3>
-                <p>
-                  Si le modèle dépasse le volume d'impression, un avertissement s'affiche automatiquement. L'icône ⛶ dans la barre latérale gauche
-                  permet de redimensionner à tout moment.
-                </p>
+                <h3 className="mb-1 font-medium text-text-primary">{t("help.step3Title")}</h3>
+                <p>{t("help.step3Body")}</p>
               </section>
               <section>
-                <h3 className="mb-1 font-medium text-text-primary">4. Réviser et exporter</h3>
-                <p>
-                  Chaque paramètre est expliqué avec un score de confiance. Ouvrez directement le projet dans PrusaSlicer ou Bambu Studio, ou
-                  exportez un .3mf, un rapport PDF ou un profil .ini.
-                </p>
+                <h3 className="mb-1 font-medium text-text-primary">{t("help.step4Title")}</h3>
+                <p>{t("help.step4Body")}</p>
               </section>
               <button onClick={replayOnboarding} className="self-start text-xs text-prusa-orange hover:text-prusa-orange-glow">
-                ▸ Revoir la visite guidée
+                {t("help.replayOnboarding")}
               </button>
             </div>
           ) : (
@@ -78,16 +74,22 @@ export function HelpAboutDialog(): React.JSX.Element | null {
                 <p className="text-base font-semibold text-text-primary">
                   Layer<span className="text-prusa-orange">AI</span>
                 </p>
-                <p className="text-xs text-text-muted">Version {version || "…"}</p>
+                <p className="text-xs text-text-muted">{t("help.aboutVersion", { version: version || "…" })}</p>
               </div>
+              <p>{t("help.aboutBody1")}</p>
               <p>
-                LayerAI est un assistant de préparation d'impression 3D. Il analyse votre modèle et génère automatiquement des réglages
-                d'impression pour PrusaSlicer et Bambu Studio, à partir d'une description en langage naturel — entièrement en local, sans envoi
-                de données à un service externe.
-              </p>
-              <p>
-                Les bases de profils imprimantes/filaments s'appuient sur les données publiques de PrusaSlicer et Bambu Studio (AGPLv3). Voir le
-                dossier <span className="font-mono text-text-primary">docs/licensing</span> pour le détail des attributions.
+                {t("help.aboutBody2")
+                  .split("docs/licensing")
+                  .map((part, i, arr) =>
+                    i < arr.length - 1 ? (
+                      <span key={i}>
+                        {part}
+                        <span className="font-mono text-text-primary">docs/licensing</span>
+                      </span>
+                    ) : (
+                      part
+                    )
+                  )}
               </p>
             </div>
           )}
