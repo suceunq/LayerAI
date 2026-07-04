@@ -9,8 +9,9 @@ import { registerLearningHandlers } from "./ipc/learning.handlers.js";
 import { registerProfilesHandlers } from "./ipc/profiles.handlers.js";
 import { registerSettingsHandlers } from "./ipc/settings.handlers.js";
 import { registerAiHandlers } from "./ipc/ai.handlers.js";
+import { registerUpdateHandlers } from "./ipc/update.handlers.js";
 import { buildAppMenu } from "./menu.js";
-import { setupAutoUpdater } from "./autoUpdater.js";
+import { setupAutoUpdater, checkForUpdates } from "./autoUpdater.js";
 import { readSettings } from "./settings-store.js";
 
 const isDev = !app.isPackaged;
@@ -72,10 +73,14 @@ app.whenReady().then(async () => {
   registerProfilesHandlers();
   registerSettingsHandlers();
   registerAiHandlers();
+  registerUpdateHandlers();
 
   createMainWindow();
 
-  if (!isDev) setupAutoUpdater();
+  if (!isDev) {
+    setupAutoUpdater();
+    if (settings.checkUpdatesOnStartup !== false) void checkForUpdates();
+  }
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

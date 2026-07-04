@@ -119,6 +119,8 @@ export interface AppSettings {
   prusaSlicerPath?: string;
   bambuStudioPath?: string;
   language?: SupportedLanguage;
+  checkUpdatesOnStartup?: boolean;
+  postponedUpdateVersion?: string;
 }
 
 export interface AiProviderPublic {
@@ -149,3 +151,25 @@ export interface TestAiProviderRequest {
 }
 
 export type TestAiProviderResponse = { success: true } | { success: false; message: string };
+
+export type UpdateStatus =
+  | "idle"
+  | "checking"
+  | "not-available"
+  | "available"
+  | "downloading"
+  | "downloaded"
+  | "error"
+  | "dev-unavailable";
+
+export interface UpdateState {
+  status: UpdateStatus;
+  currentVersion: string;
+  availableVersion?: string;
+  releaseNotes?: string;
+  progressPercent?: number;
+  bytesPerSecond?: number;
+  totalBytes?: number;
+  transferredBytes?: number;
+  errorMessage?: string;
+}

@@ -11,6 +11,7 @@ import { LeftToolRail } from "./app/LeftToolRail.js";
 import { ResizePanel } from "./app/ResizePanel.js";
 import { HelpAboutDialog } from "./app/HelpAboutDialog.js";
 import { SettingsDialog } from "./app/SettingsDialog.js";
+import { UpdateDialog } from "./app/UpdateDialog.js";
 import { ProgressBar } from "./components/ui/ProgressBar.js";
 import { useTranslation } from "./i18n/useTranslation.js";
 
@@ -34,6 +35,7 @@ export default function App(): React.JSX.Element {
   const facePickModeActive = useAppStore((s) => s.facePickModeActive);
   const toggleFacePickMode = useAppStore((s) => s.toggleFacePickMode);
   const applyManualFaceOrientation = useAppStore((s) => s.applyManualFaceOrientation);
+  const setUpdateState = useAppStore((s) => s.setUpdateState);
 
   useEffect(() => {
     void loadProfileDb();
@@ -43,6 +45,11 @@ export default function App(): React.JSX.Element {
   }, [loadProfileDb, loadCustomProfiles, checkOnboarding, loadLanguage]);
 
   useEffect(() => window.api.onMenuAction(handleMenuAction), [handleMenuAction]);
+
+  useEffect(() => {
+    void window.api.getUpdateState().then(setUpdateState);
+    return window.api.onUpdateStateChanged(setUpdateState);
+  }, [setUpdateState]);
 
   const printer = printers.find((p) => p.id === selectedPrinterId);
   const fillPattern = config?.fill_pattern?.value;
@@ -106,6 +113,7 @@ export default function App(): React.JSX.Element {
         <ResizePanel />
         <HelpAboutDialog />
         <SettingsDialog />
+        <UpdateDialog />
         <OnboardingTour />
 
         {toolNotice && (

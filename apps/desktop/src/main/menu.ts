@@ -1,26 +1,11 @@
-import { Menu, app, dialog, BrowserWindow } from "electron";
-import { autoUpdater } from "electron-updater";
+import { Menu, app, BrowserWindow } from "electron";
 import { IpcChannels } from "../shared/ipc-channels.js";
 import type { SupportedLanguage } from "../shared/ipc-types.js";
-import { MENU_TRANSLATIONS, type MenuLabels } from "../shared/menu-translations.js";
+import { MENU_TRANSLATIONS } from "../shared/menu-translations.js";
 
 function sendToRenderer(action: string): void {
   const window = BrowserWindow.getAllWindows()[0];
   window?.webContents.send(IpcChannels.menuAction, action);
-}
-
-function checkForUpdates(m: MenuLabels): void {
-  if (!app.isPackaged) {
-    void dialog.showMessageBox({
-      type: "info",
-      message: m.updatesUnavailableTitle,
-      detail: m.updatesUnavailableDetail,
-    });
-    return;
-  }
-  autoUpdater.checkForUpdatesAndNotify().catch(() => {
-    // No update feed configured yet, or network unavailable - fails harmlessly.
-  });
 }
 
 export function buildAppMenu(language: SupportedLanguage = "fr"): void {
@@ -78,7 +63,7 @@ export function buildAppMenu(language: SupportedLanguage = "fr"): void {
     {
       label: m.help,
       submenu: [
-        { label: m.helpCheckUpdates, click: () => checkForUpdates(m) },
+        { label: m.helpCheckUpdates, click: () => sendToRenderer("help:check-updates") },
         { label: m.helpDocs, click: () => sendToRenderer("help:docs") },
         { label: m.helpTutorials, click: () => sendToRenderer("help:tutorials") },
         { type: "separator" },

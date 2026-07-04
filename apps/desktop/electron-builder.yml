@@ -33,4 +33,8 @@ nsis:
   uninstallDisplayName: LayerAI
   deleteAppDataOnUninstall: false
 
-publish: null
+publish:
+  provider: github
+  owner: suceunq
+  repo: LayerAI
+  releaseType: release

@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IpcChannels } from "../shared/ipc-channels.js";
+import type { UpdateState } from "../shared/ipc-types.js";
 import type { LayerAiApi } from "./api.js";
 
 const api: LayerAiApi = {
@@ -22,6 +23,7 @@ const api: LayerAiApi = {
   getSettings: () => ipcRenderer.invoke(IpcChannels.settingsGet),
   setOnboardingCompleted: (completed) => ipcRenderer.invoke(IpcChannels.settingsSetOnboardingCompleted, completed),
   setLanguage: (language) => ipcRenderer.invoke(IpcChannels.settingsSetLanguage, language),
+  setCheckUpdatesOnStartup: (enabled) => ipcRenderer.invoke(IpcChannels.settingsSetCheckUpdatesOnStartup, enabled),
   onMenuAction: (callback) => {
     const listener = (_event: Electron.IpcRendererEvent, action: string): void => callback(action);
     ipcRenderer.on(IpcChannels.menuAction, listener);
@@ -34,6 +36,17 @@ const api: LayerAiApi = {
   setDefaultAiProvider: (id) => ipcRenderer.invoke(IpcChannels.aiSetDefaultProvider, id),
   setCloudIntentEnabled: (enabled) => ipcRenderer.invoke(IpcChannels.aiSetCloudIntentEnabled, enabled),
   testAiProvider: (request) => ipcRenderer.invoke(IpcChannels.aiTestProvider, request),
+  checkForUpdates: () => ipcRenderer.invoke(IpcChannels.updateCheck),
+  downloadUpdate: () => ipcRenderer.invoke(IpcChannels.updateDownload),
+  cancelUpdateDownload: () => ipcRenderer.invoke(IpcChannels.updateCancelDownload),
+  installUpdate: () => ipcRenderer.invoke(IpcChannels.updateInstall),
+  postponeUpdate: (version) => ipcRenderer.invoke(IpcChannels.updatePostpone, version),
+  getUpdateState: () => ipcRenderer.invoke(IpcChannels.updateGetState),
+  onUpdateStateChanged: (callback) => {
+    const listener = (_event: Electron.IpcRendererEvent, state: UpdateState): void => callback(state);
+    ipcRenderer.on(IpcChannels.updateStateChanged, listener);
+    return () => ipcRenderer.removeListener(IpcChannels.updateStateChanged, listener);
+  },
 };
 
 contextBridge.exposeInMainWorld("api", api);

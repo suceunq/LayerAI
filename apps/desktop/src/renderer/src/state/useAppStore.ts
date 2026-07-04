@@ -11,7 +11,7 @@ import type {
   PrintOutcomeId,
 } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../../../preload/api.js";
-import type { CustomProfile } from "../../../shared/ipc-types.js";
+import type { CustomProfile, UpdateState } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
 import type { Language } from "../i18n/translations.js";
 import { translate } from "../i18n/useTranslation.js";
@@ -30,6 +30,10 @@ interface AppState {
   helpDialogTab: HelpDialogTab;
   language: Language;
   settingsDialogOpen: boolean;
+  updateDialogOpen: boolean;
+  updateState: UpdateState | null;
+  checkUpdatesOnStartup: boolean;
+  postponedUpdateVersion: string | undefined;
 
   printers: PrinterProfile[];
   filaments: FilamentProfile[];
@@ -103,6 +107,12 @@ interface AppState {
   loadLanguage: () => Promise<void>;
   setLanguage: (language: Language) => Promise<void>;
   toggleSettingsDialog: () => void;
+
+  toggleUpdateDialog: () => void;
+  setUpdateState: (state: UpdateState) => void;
+  openUpdateDialogAndCheck: () => void;
+  setCheckUpdatesOnStartup: (enabled: boolean) => Promise<void>;
+  postponeAvailableUpdate: () => void;
 }
 
 async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry: MeshGeometryData; analysis: MeshAnalysisResult }> {
@@ -118,6 +128,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   helpDialogTab: "aide",
   language: "fr",
   settingsDialogOpen: false,
+  updateDialogOpen: false,
+  updateState: null,
+  checkUpdatesOnStartup: true,
+  postponedUpdateVersion: undefined,
 
   printers: [],
   filaments: [],
@@ -439,6 +453,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const settings = await window.api.getSettings();
       if (settings.language) set({ language: settings.language });
+      set({
+        checkUpdatesOnStartup: settings.checkUpdatesOnStartup ?? true,
+        postponedUpdateVersion: settings.postponedUpdateVersion,
+      });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }
@@ -529,7 +547,36 @@ export const useAppStore = create<AppState>((set, get) => ({
       case "help:about":
         s.openHelpDialog("apropos");
         break;
+      case "help:check-updates":
+        s.openUpdateDialogAndCheck();
+        break;
     }
+  },
+
+  toggleUpdateDialog: () => set((s) => ({ updateDialogOpen: !s.updateDialogOpen })),
+  setUpdateState: (state) => {
+    set({ updateState: state });
+    const s = get();
+    if (state.status === "available" && state.availableVersion && state.availableVersion !== s.postponedUpdateVersion) {
+      set({ updateDialogOpen: true });
+    }
+  },
+  openUpdateDialogAndCheck: () => {
+    set({ updateDialogOpen: true });
+    void window.api.checkForUpdates();
+  },
+  setCheckUpdatesOnStartup: async (enabled) => {
+    set({ checkUpdatesOnStartup: enabled });
+    try {
+      await window.api.setCheckUpdatesOnStartup(enabled);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+  postponeAvailableUpdate: () => {
+    const version = get().updateState?.availableVersion;
+    set({ updateDialogOpen: false, postponedUpdateVersion: version });
+    if (version) void window.api.postponeUpdate(version);
   },
 }));
 

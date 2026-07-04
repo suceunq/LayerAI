@@ -16,5 +16,9 @@ export function registerSettingsHandlers(): void {
     buildAppMenu(language);
   });
 
+  ipcMain.handle(IpcChannels.settingsSetCheckUpdatesOnStartup, async (_event, enabled: boolean): Promise<void> => {
+    await updateSettings({ checkUpdatesOnStartup: enabled });
+  });
+
   ipcMain.handle(IpcChannels.appGetVersion, (): string => app.getVersion());
 }

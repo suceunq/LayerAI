@@ -18,6 +18,7 @@ export const IpcChannels = {
   settingsGet: "settings:get",
   settingsSetOnboardingCompleted: "settings:set-onboarding-completed",
   settingsSetLanguage: "settings:set-language",
+  settingsSetCheckUpdatesOnStartup: "settings:set-check-updates-on-startup",
   menuAction: "menu:action",
   appGetVersion: "app:get-version",
   aiGetSettings: "ai:get-settings",
@@ -26,6 +27,13 @@ export const IpcChannels = {
   aiSetDefaultProvider: "ai:set-default-provider",
   aiSetCloudIntentEnabled: "ai:set-cloud-intent-enabled",
   aiTestProvider: "ai:test-provider",
+  updateCheck: "update:check",
+  updateDownload: "update:download",
+  updateCancelDownload: "update:cancel-download",
+  updateInstall: "update:install",
+  updatePostpone: "update:postpone",
+  updateGetState: "update:get-state",
+  updateStateChanged: "update:state-changed",
 } as const;
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];

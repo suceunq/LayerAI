@@ -25,9 +25,12 @@ export function SettingsDialog(): React.JSX.Element | null {
   const toggleOpen = useAppStore((s) => s.toggleSettingsDialog);
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);
+  const checkUpdatesOnStartup = useAppStore((s) => s.checkUpdatesOnStartup);
+  const setCheckUpdatesOnStartup = useAppStore((s) => s.setCheckUpdatesOnStartup);
+  const openUpdateDialogAndCheck = useAppStore((s) => s.openUpdateDialogAndCheck);
   const { t } = useTranslation();
 
-  const [tab, setTab] = useState<"apiKeys" | "language">("apiKeys");
+  const [tab, setTab] = useState<"apiKeys" | "language" | "updates">("apiKeys");
   const [providers, setProviders] = useState<EditableProvider[]>([]);
   const [defaultProviderId, setDefaultProviderId] = useState<AiProviderId | null>(null);
   const [cloudIntentEnabled, setCloudIntentEnabledState] = useState(false);
@@ -118,6 +121,12 @@ export function SettingsDialog(): React.JSX.Element | null {
           >
             {t("settings.tabLanguage")}
           </button>
+          <button
+            onClick={() => setTab("updates")}
+            className={`border-b-2 px-3 py-2 text-sm ${tab === "updates" ? "border-prusa-orange text-prusa-orange" : "border-transparent text-text-muted hover:text-text-primary"}`}
+          >
+            {t("settings.tabUpdates")}
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
@@ -135,6 +144,21 @@ export function SettingsDialog(): React.JSX.Element | null {
                   {language === lang && <span>✓</span>}
                 </button>
               ))}
+            </div>
+          ) : tab === "updates" ? (
+            <div className="flex flex-col gap-4">
+              <label className="flex items-start gap-2 rounded-lg border border-border-subtle bg-surface-1 p-3 text-xs text-text-muted">
+                <input
+                  type="checkbox"
+                  checked={checkUpdatesOnStartup}
+                  onChange={(e) => void setCheckUpdatesOnStartup(e.target.checked)}
+                  className="mt-0.5 accent-prusa-orange"
+                />
+                <span className="text-text-secondary">{t("settings.updates.checkOnStartup")}</span>
+              </label>
+              <Button variant="secondary" onClick={() => { toggleOpen(); openUpdateDialogAndCheck(); }}>
+                {t("settings.updates.checkNow")}
+              </Button>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
