@@ -5,6 +5,7 @@ import { LayerViewControls } from "./components/viewer3d/LayerViewControls.js";
 import { ImportPanel } from "./app/ImportPanel.js";
 import { IntentPanel } from "./app/IntentPanel.js";
 import { ReviewPanel } from "./app/ReviewPanel.js";
+import { AdvancedPanel } from "./app/AdvancedPanel.js";
 import { ProgressBar } from "./components/ui/ProgressBar.js";
 
 export default function App(): React.JSX.Element {
@@ -18,6 +19,7 @@ export default function App(): React.JSX.Element {
   const config = useAppStore((s) => s.config);
   const layerViewEnabled = useAppStore((s) => s.layerViewEnabled);
   const layerViewHeightMm = useAppStore((s) => s.layerViewHeightMm);
+  const toggleAdvancedPanel = useAppStore((s) => s.toggleAdvancedPanel);
 
   useEffect(() => {
     void loadProfileDb();
@@ -39,9 +41,16 @@ export default function App(): React.JSX.Element {
           Layer<span className="text-prusa-orange">AI</span>
         </h1>
         {printer && <span className="ml-2 text-xs text-text-muted">{printer.name}</span>}
+        <button
+          onClick={toggleAdvancedPanel}
+          title="Options avancées"
+          className="ml-auto flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-2 hover:text-prusa-orange"
+        >
+          ⚙
+        </button>
       </header>
 
-      <main className="flex min-h-0 flex-1">
+      <main className="relative flex min-h-0 flex-1">
         <div className="relative flex-1">
           <Viewer3D
             printer={printer}
@@ -63,6 +72,8 @@ export default function App(): React.JSX.Element {
           {(step === "intent" || step === "generating") && <IntentPanel />}
           {step === "review" && <ReviewPanel />}
         </aside>
+
+        <AdvancedPanel />
       </main>
     </div>
   );

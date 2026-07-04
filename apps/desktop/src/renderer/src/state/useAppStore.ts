@@ -34,6 +34,7 @@ interface AppState {
   explanations: ExplanationSet | null;
   comparison: ComparisonMetrics | null;
   showAdvanced: boolean;
+  advancedPanelOpen: boolean;
 
   layerViewEnabled: boolean;
   layerViewHeightMm: number;
@@ -48,6 +49,7 @@ interface AppState {
   setIntentText: (text: string) => void;
   generateConfiguration: () => Promise<void>;
   toggleAdvanced: () => void;
+  toggleAdvancedPanel: () => void;
   updateConfigValue: (key: string, value: string | number | boolean) => void;
   toggleLayerView: () => void;
   setLayerViewHeight: (heightMm: number) => void;
@@ -88,6 +90,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   explanations: null,
   comparison: null,
   showAdvanced: false,
+  advancedPanelOpen: false,
 
   layerViewEnabled: false,
   layerViewHeightMm: 0,
@@ -153,6 +156,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   toggleAdvanced: () => set((s) => ({ showAdvanced: !s.showAdvanced })),
+  toggleAdvancedPanel: () => set((s) => ({ advancedPanelOpen: !s.advancedPanelOpen })),
 
   toggleLayerView: () =>
     set((s) => ({

@@ -2,27 +2,18 @@ import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { Card } from "../components/ui/Card.js";
 import { ConfidenceBadge } from "../components/ui/ConfidenceBadge.js";
-import { AdvancedTable } from "./AdvancedTable.js";
 import { ComparisonView } from "./ComparisonView.js";
 import { OutcomeTagging } from "./OutcomeTagging.js";
 
 export function ReviewPanel(): React.JSX.Element {
   const explanations = useAppStore((s) => s.explanations);
-  const showAdvanced = useAppStore((s) => s.showAdvanced);
-  const toggleAdvanced = useAppStore((s) => s.toggleAdvanced);
   const exportThreeMf = useAppStore((s) => s.exportThreeMf);
-  const exportIni = useAppStore((s) => s.exportIni);
   const exportPdfReport = useAppStore((s) => s.exportPdfReport);
-  const saveCurrentAsProfile = useAppStore((s) => s.saveCurrentAsProfile);
+  const toggleAdvancedPanel = useAppStore((s) => s.toggleAdvancedPanel);
   const startOver = useAppStore((s) => s.startOver);
   const error = useAppStore((s) => s.error);
 
   if (!explanations) return <></>;
-
-  const handleSaveProfile = (): void => {
-    const name = window.prompt("Nom du profil personnalisé :");
-    if (name && name.trim()) void saveCurrentAsProfile(name.trim());
-  };
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
@@ -48,21 +39,11 @@ export function ReviewPanel(): React.JSX.Element {
         ))}
       </div>
 
-      <button onClick={toggleAdvanced} className="self-start text-xs text-text-muted hover:text-prusa-orange">
-        {showAdvanced ? "▾ Masquer les réglages avancés" : "▸ Afficher tous les réglages avancés (éditable)"}
+      <button onClick={toggleAdvancedPanel} className="self-start text-xs text-text-muted hover:text-prusa-orange">
+        ▸ Modifier les réglages avancés, sauvegarder un profil…
       </button>
-
-      {showAdvanced && (
-        <Card className="max-h-64 overflow-y-auto p-3">
-          <AdvancedTable />
-        </Card>
-      )}
 
       {error && <p className="text-sm text-confidence-low">{error}</p>}
-
-      <button onClick={handleSaveProfile} className="self-start text-xs text-text-muted hover:text-prusa-orange">
-        + Enregistrer comme profil personnalisé
-      </button>
 
       <div className="mt-auto flex flex-col gap-2">
         <div className="flex gap-3">
@@ -73,14 +54,9 @@ export function ReviewPanel(): React.JSX.Element {
             Exporter le projet 3MF →
           </Button>
         </div>
-        <div className="flex gap-3">
-          <Button variant="ghost" onClick={() => void exportIni()} className="flex-1">
-            Exporter le profil (.ini)
-          </Button>
-          <Button variant="ghost" onClick={() => void exportPdfReport()} className="flex-1">
-            Rapport PDF
-          </Button>
-        </div>
+        <Button variant="ghost" onClick={() => void exportPdfReport()}>
+          Rapport PDF
+        </Button>
       </div>
 
       <OutcomeTagging />

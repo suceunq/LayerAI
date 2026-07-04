@@ -2,7 +2,6 @@ import { estimateWeightG } from "@layerai/mesh-analysis";
 import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { Card } from "../components/ui/Card.js";
-import { AI_MODES } from "./ai-modes.js";
 
 const EXAMPLE_PROMPTS = [
   "Je veux une pièce très solide",
@@ -23,9 +22,6 @@ export function IntentPanel(): React.JSX.Element {
   const selectedFilamentId = useAppStore((s) => s.selectedFilamentId);
   const step = useAppStore((s) => s.step);
   const error = useAppStore((s) => s.error);
-  const customProfiles = useAppStore((s) => s.customProfiles);
-  const applyCustomProfile = useAppStore((s) => s.applyCustomProfile);
-  const deleteCustomProfile = useAppStore((s) => s.deleteCustomProfile);
 
   if (!analysis) return <></>;
 
@@ -36,42 +32,8 @@ export function IntentPanel(): React.JSX.Element {
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
       <div>
         <h2 className="text-lg font-semibold text-text-primary">Décrivez votre objectif</h2>
-        <p className="text-sm text-text-secondary">Choisissez un mode IA, un profil personnalisé, ou décrivez librement votre besoin.</p>
+        <p className="text-sm text-text-secondary">Exprimez ce que vous attendez de cette impression, en une phrase.</p>
       </div>
-
-      <div>
-        <h3 className="mb-2 text-xs uppercase tracking-wide text-text-muted">Modes IA</h3>
-        <div className="grid grid-cols-3 gap-2">
-          {AI_MODES.map((mode) => (
-            <button
-              key={mode.id}
-              onClick={() => setIntentText(mode.intentText)}
-              className="flex flex-col items-center gap-1 rounded-lg border border-border-subtle bg-surface-2 py-3 text-xs text-text-secondary hover:border-prusa-orange hover:text-text-primary"
-            >
-              <span className="text-lg text-prusa-orange">{mode.icon}</span>
-              {mode.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {customProfiles.length > 0 && (
-        <div>
-          <h3 className="mb-2 text-xs uppercase tracking-wide text-text-muted">Mes profils</h3>
-          <div className="flex flex-col gap-1.5">
-            {customProfiles.map((profile) => (
-              <div key={profile.id} className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-2 px-3 py-2">
-                <button onClick={() => applyCustomProfile(profile)} className="text-left text-sm text-text-primary hover:text-prusa-orange">
-                  {profile.name}
-                </button>
-                <button onClick={() => void deleteCustomProfile(profile.id)} className="text-xs text-text-muted hover:text-confidence-low">
-                  Supprimer
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       <textarea
         value={intentText}
@@ -92,6 +54,10 @@ export function IntentPanel(): React.JSX.Element {
           </button>
         ))}
       </div>
+
+      <p className="text-xs text-text-muted">
+        Besoin d'un modèle prédéfini (Ultra Qualité, Figurine…) ou d'un profil personnalisé ? Ouvrez les options avancées (icône ⚙ en haut).
+      </p>
 
       <Card className="p-4">
         <h3 className="mb-2 text-xs uppercase tracking-wide text-text-muted">Analyse du modèle</h3>
