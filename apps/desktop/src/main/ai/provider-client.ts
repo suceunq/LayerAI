@@ -59,6 +59,35 @@ async function openAiCompatibleChat(defaultBaseUrl: string, defaultModel: string
   return data.choices?.[0]?.message?.content ?? "";
 }
 
+/**
+ * LM Studio's local server has no API key and no fixed model name - whatever the user has
+ * loaded inside the LM Studio app is what's available. Sending a made-up model name (e.g.
+ * "local-model") silently mismatches and some LM Studio versions respond 200 with an empty
+ * completion rather than an error, which looked like a mysterious failure. Querying /v1/models
+ * first and using whatever is actually loaded avoids needing a model field at all.
+ */
+async function lmStudioChat({ model, baseUrl, prompt }: ChatParams): Promise<string> {
+  const base = (baseUrl || providerMeta("lmstudio").defaultBaseUrl || "http://localhost:1234/v1").replace(/\/$/, "");
+
+  let resolvedModel = model;
+  if (!resolvedModel) {
+    const modelsRes = await fetch(`${base}/models`);
+    if (!modelsRes.ok) throw new Error(await extractError(modelsRes));
+    const modelsData = (await modelsRes.json()) as { data?: { id?: string }[] };
+    resolvedModel = modelsData.data?.[0]?.id;
+    if (!resolvedModel) throw new Error("Aucun modèle chargé dans LM Studio. Chargez un modèle dans l'application LM Studio, puis réessayez.");
+  }
+
+  const res = await fetch(`${base}/chat/completions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ model: resolvedModel, messages: [{ role: "user", content: prompt }] }),
+  });
+  if (!res.ok) throw new Error(await extractError(res));
+  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  return data.choices?.[0]?.message?.content ?? "";
+}
+
 export async function chatComplete(id: AiProviderId, params: ChatParams): Promise<string> {
   switch (id) {
     case "anthropic":
@@ -72,7 +101,7 @@ export async function chatComplete(id: AiProviderId, params: ChatParams): Promis
     case "mistral":
       return openAiCompatibleChat("https://api.mistral.ai/v1", providerMeta("mistral").defaultModel, params);
     case "lmstudio":
-      return openAiCompatibleChat(providerMeta("lmstudio").defaultBaseUrl ?? "http://localhost:1234/v1", "local-model", params);
+      return lmStudioChat(params);
   }
 }
 

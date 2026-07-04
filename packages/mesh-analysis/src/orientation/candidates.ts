@@ -81,9 +81,12 @@ export function generateOrientationCandidates(geometry: MeshGeometryData): {
     const aspectRatio = footprintDiameterMm > 0 ? heightMm / footprintDiameterMm : heightMm;
     const stabilityScore = Math.max(0, 1 - aspectRatio / 6);
     // Flatness (how much of the footprint is actually flush against the bed, not just balanced on
-    // a point/edge with a wide footprint) is weighted highest - a genuinely flat resting face
-    // matters more than a merely low-overhang orientation that still only touches at one spot.
-    const score = Math.max(0, Math.min(1, flatnessRatio * 0.55 + (1 - overhangRatio) * 0.3 + stabilityScore * 0.15));
+    // a point/edge with a wide footprint) is the deciding factor, not just one weighted term among
+    // several - a candidate with meaningfully better flush contact must always win, even if it has
+    // somewhat more overhang elsewhere. Overhang/stability only break near-ties between two
+    // orientations that are both about equally flat (e.g. opposite faces of a symmetric part).
+    const secondaryScore = (1 - overhangRatio) * 0.7 + stabilityScore * 0.3;
+    const score = Math.max(0, Math.min(1, flatnessRatio * 0.99 + secondaryScore * 0.01));
 
     const euler = new Euler().setFromQuaternion(quaternion, "XYZ");
     candidates.push({

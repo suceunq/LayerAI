@@ -189,15 +189,17 @@ export function SettingsDialog(): React.JSX.Element | null {
                       </label>
                     )}
 
-                    <label className="mt-3 flex flex-col gap-1">
-                      <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.apiKeys.model")}</span>
-                      <input
-                        value={provider.model}
-                        onChange={(e) => updateProvider(provider.id, { model: e.target.value })}
-                        placeholder={meta.defaultModel ? t("settings.apiKeys.modelDefault", { model: meta.defaultModel }) : undefined}
-                        className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-prusa-orange"
-                      />
-                    </label>
+                    {provider.id !== "lmstudio" && (
+                      <label className="mt-3 flex flex-col gap-1">
+                        <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.apiKeys.model")}</span>
+                        <input
+                          value={provider.model}
+                          onChange={(e) => updateProvider(provider.id, { model: e.target.value })}
+                          placeholder={meta.defaultModel ? t("settings.apiKeys.modelDefault", { model: meta.defaultModel }) : undefined}
+                          className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-prusa-orange"
+                        />
+                      </label>
+                    )}
 
                     <div className="mt-3 flex items-center gap-3">
                       <Button variant="secondary" onClick={() => void testProvider(provider)} disabled={provider.testState === "testing"}>
