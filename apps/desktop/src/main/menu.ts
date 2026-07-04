@@ -1,4 +1,4 @@
-import { Menu, app, shell, dialog, BrowserWindow } from "electron";
+import { Menu, app, dialog, BrowserWindow } from "electron";
 import { autoUpdater } from "electron-updater";
 import { IpcChannels } from "../shared/ipc-channels.js";
 import type { SupportedLanguage } from "../shared/ipc-types.js";
@@ -65,14 +65,14 @@ export function buildAppMenu(language: SupportedLanguage = "fr"): void {
     {
       label: m.view,
       submenu: [
-        { role: "reload" },
-        { role: "toggleDevTools" },
+        { role: "reload", label: m.viewReload },
+        { role: "toggleDevTools", label: m.viewToggleDevTools },
         { type: "separator" },
-        { role: "resetZoom" },
-        { role: "zoomIn" },
-        { role: "zoomOut" },
+        { role: "resetZoom", label: m.viewActualSize },
+        { role: "zoomIn", label: m.viewZoomIn },
+        { role: "zoomOut", label: m.viewZoomOut },
         { type: "separator" },
-        { role: "togglefullscreen" },
+        { role: "togglefullscreen", label: m.viewToggleFullScreen },
       ],
     },
     {
@@ -81,10 +81,6 @@ export function buildAppMenu(language: SupportedLanguage = "fr"): void {
         { label: m.helpCheckUpdates, click: () => checkForUpdates(m) },
         { label: m.helpDocs, click: () => sendToRenderer("help:docs") },
         { label: m.helpTutorials, click: () => sendToRenderer("help:tutorials") },
-        {
-          label: m.helpReportIssue,
-          click: () => shell.openExternal("mailto:?subject=LayerAI%20%E2%80%94%20Signalement%20de%20probl%C3%A8me"),
-        },
         { type: "separator" },
         { label: m.helpAbout, click: () => sendToRenderer("help:about") },
       ],

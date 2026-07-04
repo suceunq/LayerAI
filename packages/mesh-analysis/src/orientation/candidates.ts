@@ -3,6 +3,7 @@ import type { MeshGeometryData, OrientationCandidate } from "@layerai/shared-typ
 import { computeBoundingBox, computeFootprintAreaMm2 } from "../geometry/bounds.js";
 import { detectOverhangs } from "../features/overhangs.js";
 import { placeOnBed } from "./grounding.js";
+import { dominantFaceNormals } from "./face-normals.js";
 
 const CANDIDATE_AXES: { axis: Vector3; label: string }[] = [
   { axis: new Vector3(0, 0, 1), label: "face du dessus (orientation d'origine)" },
@@ -12,6 +13,28 @@ const CANDIDATE_AXES: { axis: Vector3; label: string }[] = [
   { axis: new Vector3(0, 1, 0), label: "face +Y" },
   { axis: new Vector3(0, -1, 0), label: "face -Y" },
 ];
+
+const WORLD_AXIS_DOT_DEDUPE_THRESHOLD = 0.996;
+
+/**
+ * Beyond the 6 world axes, tests resting the mesh on its own dominant flat/curved surface
+ * directions - the only way to find a good orientation for a model imported at an arbitrary
+ * angle, or an organic/curved shape (e.g. a coil) that needs to lie on its side at an angle none
+ * of X/Y/Z happen to match.
+ */
+function meshFaceCandidateAxes(geometry: MeshGeometryData): { axis: Vector3; label: string }[] {
+  const normals = dominantFaceNormals(geometry, 12);
+  const axes: { axis: Vector3; label: string }[] = [];
+
+  for (const normal of normals) {
+    const axis = normal.clone().negate();
+    const isDuplicate = [...CANDIDATE_AXES, ...axes].some((existing) => existing.axis.dot(axis) > WORLD_AXIS_DOT_DEDUPE_THRESHOLD);
+    if (isDuplicate) continue;
+    axes.push({ axis, label: `face plane du modèle détectée #${axes.length + 1}` });
+  }
+
+  return axes;
+}
 
 function applyRotation(geometry: MeshGeometryData, quaternion: Quaternion): MeshGeometryData {
   const { positions } = geometry;
@@ -27,9 +50,10 @@ function applyRotation(geometry: MeshGeometryData, quaternion: Quaternion): Mesh
 }
 
 /**
- * Tests resting the mesh on each of its 6 axis-aligned directions (a pragmatic, bounded
- * heuristic - full arbitrary-orientation search via convex-hull face fitting is deferred).
- * Each candidate is scored by resulting overhang area and a height/footprint stability proxy.
+ * Tests resting the mesh on each of its 6 world-axis-aligned directions plus its own dominant
+ * surface directions (see meshFaceCandidateAxes) - a pragmatic, bounded heuristic (full
+ * arbitrary-orientation search via convex-hull face fitting is deferred). Each candidate is
+ * scored by resulting overhang area and a height/footprint stability proxy.
  */
 export function generateOrientationCandidates(geometry: MeshGeometryData): {
   candidates: OrientationCandidate[];
@@ -40,7 +64,9 @@ export function generateOrientationCandidates(geometry: MeshGeometryData): {
   const candidates: OrientationCandidate[] = [];
   const groundedGeometries: MeshGeometryData[] = [];
 
-  for (const { axis, label } of CANDIDATE_AXES) {
+  const allAxes = [...CANDIDATE_AXES, ...meshFaceCandidateAxes(geometry)];
+
+  for (const { axis, label } of allAxes) {
     const quaternion = new Quaternion().setFromUnitVectors(axis.clone().normalize(), up);
     const rotated = placeOnBed(applyRotation(geometry, quaternion));
     const boundingBox = computeBoundingBox(rotated);

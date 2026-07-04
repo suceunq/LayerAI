@@ -18,11 +18,16 @@ export interface MenuLabels {
   toolsRepair: string;
   toolsScale: string;
   view: string;
+  viewReload: string;
+  viewToggleDevTools: string;
+  viewActualSize: string;
+  viewZoomIn: string;
+  viewZoomOut: string;
+  viewToggleFullScreen: string;
   help: string;
   helpCheckUpdates: string;
   helpDocs: string;
   helpTutorials: string;
-  helpReportIssue: string;
   helpAbout: string;
   updatesUnavailableTitle: string;
   updatesUnavailableDetail: string;
@@ -47,11 +52,16 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     toolsRepair: "Réparation du modèle",
     toolsScale: "Mise à l'échelle…",
     view: "Affichage",
+    viewReload: "Recharger",
+    viewToggleDevTools: "Outils de développement",
+    viewActualSize: "Taille réelle",
+    viewZoomIn: "Zoomer",
+    viewZoomOut: "Dézoomer",
+    viewToggleFullScreen: "Plein écran",
     help: "Aide",
     helpCheckUpdates: "Vérifier les mises à jour",
     helpDocs: "Documentation",
     helpTutorials: "Tutoriels",
-    helpReportIssue: "Signaler un problème…",
     helpAbout: "À propos de LayerAI",
     updatesUnavailableTitle: "Vérification des mises à jour indisponible",
     updatesUnavailableDetail: "Cette fonctionnalité n'est disponible que dans la version installée de LayerAI.",
@@ -74,11 +84,16 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     toolsRepair: "Repair model",
     toolsScale: "Scale…",
     view: "View",
+    viewReload: "Reload",
+    viewToggleDevTools: "Toggle Developer Tools",
+    viewActualSize: "Actual Size",
+    viewZoomIn: "Zoom In",
+    viewZoomOut: "Zoom Out",
+    viewToggleFullScreen: "Toggle Full Screen",
     help: "Help",
     helpCheckUpdates: "Check for updates",
     helpDocs: "Documentation",
     helpTutorials: "Tutorials",
-    helpReportIssue: "Report an issue…",
     helpAbout: "About LayerAI",
     updatesUnavailableTitle: "Update check unavailable",
     updatesUnavailableDetail: "This feature is only available in the installed version of LayerAI.",
