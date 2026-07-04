@@ -5,6 +5,7 @@ import type { BoundingBox3, MeshGeometryData, OverhangFace, PrinterProfile } fro
 import { buildBedPlate } from "./build-bed-plate.js";
 import { buildDisplayGeometry } from "./build-display-geometry.js";
 import { buildInfillTexture } from "./infill-texture.js";
+import { computeSupportColumns, buildSupportPreviewMesh } from "./build-support-preview.js";
 
 export interface LayerViewState {
   heightMm: number;
@@ -19,6 +20,8 @@ interface Viewer3DProps {
   layerView: LayerViewState | null;
   facePickModeActive?: boolean;
   onFacePicked?: (normal: { x: number; y: number; z: number }) => void;
+  showSupportPreview?: boolean;
+  onSurfaceClicked?: (info: { x: number; y: number; overhang: { angleFromHorizontalDeg: number; areaMm2: number } | null }) => void;
 }
 
 interface SceneRefs {
@@ -30,6 +33,7 @@ interface SceneRefs {
   modelGroup: THREE.Group;
   meshObject: THREE.Mesh | null;
   capMesh: THREE.Mesh | null;
+  supportPreviewMesh: THREE.InstancedMesh | null;
   clippingPlane: THREE.Plane;
   animationHandle: number;
 }
@@ -42,6 +46,37 @@ function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
   return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 }
 
+/** World-space box covering the bed, expanded to also cover the model if it's larger than the bed - an oversized model must never be framed out of view. */
+function computeCombinedBounds(printer: PrinterProfile, boundingBoxMm: BoundingBox3 | null, modelCenter: { x: number; y: number }): { min: THREE.Vector3; max: THREE.Vector3 } {
+  const bedWidth = Math.max(...printer.bedShape.map((p) => p.x));
+  const bedDepth = Math.max(...printer.bedShape.map((p) => p.y));
+  const min = new THREE.Vector3(0, 0, 0);
+  const max = new THREE.Vector3(bedWidth, bedDepth, printer.maxPrintHeightMm);
+  if (boundingBoxMm) {
+    min.x = Math.min(min.x, modelCenter.x + boundingBoxMm.min.x);
+    min.y = Math.min(min.y, modelCenter.y + boundingBoxMm.min.y);
+    min.z = Math.min(min.z, boundingBoxMm.min.z);
+    max.x = Math.max(max.x, modelCenter.x + boundingBoxMm.max.x);
+    max.y = Math.max(max.y, modelCenter.y + boundingBoxMm.max.y);
+    max.z = Math.max(max.z, boundingBoxMm.max.z);
+  }
+  return { min, max };
+}
+
+/** Positions the camera so the whole given box is visible, using the smaller of the vertical/horizontal FOV so nothing gets clipped regardless of viewport aspect ratio. */
+function frameCameraToFit(sceneRefs: SceneRefs, min: THREE.Vector3, max: THREE.Vector3): void {
+  const center = min.clone().add(max).multiplyScalar(0.5);
+  const halfExtent = max.clone().sub(min).multiplyScalar(0.5).length();
+  const camera = sceneRefs.camera;
+  const vFov = (camera.fov * Math.PI) / 180;
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+  const effectiveFov = camera.aspect >= 1 ? vFov : hFov;
+  const distance = Math.max((halfExtent / Math.sin(effectiveFov / 2)) * 1.2, 50);
+  const direction = new THREE.Vector3(1.1, -1.1, 0.9).normalize();
+  camera.position.copy(center).addScaledVector(direction, distance);
+  sceneRefs.controls.target.copy(center);
+}
+
 export function Viewer3D({
   printer,
   geometry,
@@ -50,6 +85,8 @@ export function Viewer3D({
   layerView,
   facePickModeActive = false,
   onFacePicked,
+  showSupportPreview = false,
+  onSurfaceClicked,
 }: Viewer3DProps): React.JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const refs = useRef<SceneRefs | null>(null);
@@ -92,6 +129,7 @@ export function Viewer3D({
       modelGroup,
       meshObject: null,
       capMesh: null,
+      supportPreviewMesh: null,
       clippingPlane: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0),
       animationHandle: 0,
     };
@@ -138,12 +176,15 @@ export function Viewer3D({
 
     const center = bedCenterOf(printer);
     sceneRefs.modelGroup.position.set(center.x, center.y, 0);
-
-    const bedWidth = Math.max(...printer.bedShape.map((p) => p.x));
-    const bedDepth = Math.max(...printer.bedShape.map((p) => p.y));
-    sceneRefs.controls.target.set(center.x, center.y, printer.maxPrintHeightMm / 4);
-    sceneRefs.camera.position.set(bedWidth * 1.1, -bedDepth * 1.1, bedWidth * 0.9);
   }, [printer]);
+
+  useEffect(() => {
+    const sceneRefs = refs.current;
+    if (!sceneRefs || !printer) return;
+    const center = bedCenterOf(printer);
+    const { min, max } = computeCombinedBounds(printer, boundingBoxMm, center);
+    frameCameraToFit(sceneRefs, min, max);
+  }, [printer, boundingBoxMm]);
 
   useEffect(() => {
     const sceneRefs = refs.current;
@@ -164,6 +205,25 @@ export function Viewer3D({
     sceneRefs.modelGroup.add(mesh);
     sceneRefs.meshObject = mesh;
   }, [geometry, overhangFaces]);
+
+  useEffect(() => {
+    const sceneRefs = refs.current;
+    if (!sceneRefs) return;
+
+    if (sceneRefs.supportPreviewMesh) {
+      sceneRefs.modelGroup.remove(sceneRefs.supportPreviewMesh);
+      sceneRefs.supportPreviewMesh.geometry.dispose();
+      (sceneRefs.supportPreviewMesh.material as THREE.Material).dispose();
+      sceneRefs.supportPreviewMesh = null;
+    }
+    if (!showSupportPreview || !geometry) return;
+
+    const columns = computeSupportColumns(geometry, overhangFaces);
+    const mesh = buildSupportPreviewMesh(columns);
+    if (!mesh) return;
+    sceneRefs.modelGroup.add(mesh);
+    sceneRefs.supportPreviewMesh = mesh;
+  }, [geometry, overhangFaces, showSupportPreview]);
 
   useEffect(() => {
     const sceneRefs = refs.current;
@@ -238,6 +298,48 @@ export function Viewer3D({
       dom.removeEventListener("pointerup", handlePointerUp);
     };
   }, [facePickModeActive, onFacePicked]);
+
+  useEffect(() => {
+    const sceneRefs = refs.current;
+    if (!sceneRefs || facePickModeActive || !onSurfaceClicked) return;
+    const dom = sceneRefs.renderer.domElement;
+
+    const overhangByTriangle = new Map(overhangFaces.map((f) => [f.triangleIndex, f]));
+    let downPos: { x: number; y: number } | null = null;
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+
+    const handlePointerDown = (e: PointerEvent): void => {
+      downPos = { x: e.clientX, y: e.clientY };
+    };
+
+    // A click that moved the pointer meaningfully is an orbit/pan drag, not an inspection click.
+    const handlePointerUp = (e: PointerEvent): void => {
+      if (!downPos || Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y) > 5) return;
+      const mesh = sceneRefs.meshObject;
+      if (!mesh) return;
+
+      const rect = dom.getBoundingClientRect();
+      ndc.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+      raycaster.setFromCamera(ndc, sceneRefs.camera);
+      const hit = raycaster.intersectObject(mesh)[0];
+      if (!hit || hit.faceIndex == null) return;
+
+      const overhang = overhangByTriangle.get(hit.faceIndex);
+      onSurfaceClicked({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+        overhang: overhang ? { angleFromHorizontalDeg: overhang.angleFromHorizontalDeg, areaMm2: overhang.areaMm2 } : null,
+      });
+    };
+
+    dom.addEventListener("pointerdown", handlePointerDown);
+    dom.addEventListener("pointerup", handlePointerUp);
+    return () => {
+      dom.removeEventListener("pointerdown", handlePointerDown);
+      dom.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [facePickModeActive, onSurfaceClicked, overhangFaces]);
 
   return <div ref={containerRef} className="h-full w-full" />;
 }

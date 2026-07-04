@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "./state/useAppStore.js";
 import { Viewer3D } from "./components/viewer3d/Viewer3D.js";
 import { LayerViewControls } from "./components/viewer3d/LayerViewControls.js";
@@ -37,6 +37,12 @@ export default function App(): React.JSX.Element {
   const applyManualFaceOrientation = useAppStore((s) => s.applyManualFaceOrientation);
   const setUpdateState = useAppStore((s) => s.setUpdateState);
 
+  const [surfaceInspect, setSurfaceInspect] = useState<{
+    x: number;
+    y: number;
+    overhang: { angleFromHorizontalDeg: number; areaMm2: number } | null;
+  } | null>(null);
+
   useEffect(() => {
     void loadProfileDb();
     void loadCustomProfiles();
@@ -50,6 +56,8 @@ export default function App(): React.JSX.Element {
     void window.api.getUpdateState().then(setUpdateState);
     return window.api.onUpdateStateChanged(setUpdateState);
   }, [setUpdateState]);
+
+  useEffect(() => setSurfaceInspect(null), [step, geometry]);
 
   const printer = printers.find((p) => p.id === selectedPrinterId);
   const fillPattern = config?.fill_pattern?.value;
@@ -86,7 +94,32 @@ export default function App(): React.JSX.Element {
             layerView={layerView}
             facePickModeActive={facePickModeActive}
             onFacePicked={(normal) => void applyManualFaceOrientation(normal)}
+            showSupportPreview={step === "review" && config?.support_material?.value === true}
+            onSurfaceClicked={setSurfaceInspect}
           />
+          {surfaceInspect && (
+            <div
+              className="absolute z-30 max-w-xs rounded-lg border border-border-subtle bg-surface-1 px-3 py-2 text-xs text-text-secondary shadow-xl"
+              style={{ left: surfaceInspect.x + 12, top: surfaceInspect.y + 12 }}
+            >
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <span className="font-semibold text-text-primary">{t("supports.explainZoneTitle")}</span>
+                <button onClick={() => setSurfaceInspect(null)} className="text-text-muted hover:text-text-primary">
+                  ✕
+                </button>
+              </div>
+              {surfaceInspect.overhang ? (
+                <p>
+                  {t("supports.explainOverhang", {
+                    angle: Math.round(surfaceInspect.overhang.angleFromHorizontalDeg),
+                    area: Math.round(surfaceInspect.overhang.areaMm2),
+                  })}
+                </p>
+              ) : (
+                <p>{t("supports.explainNoOverhang")}</p>
+              )}
+            </div>
+          )}
           {facePickModeActive && (
             <div className="absolute left-1/2 top-4 z-30 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-prusa-orange/50 bg-surface-1 px-4 py-2 text-sm text-text-primary shadow-xl">
               {t("facePick.hint")}

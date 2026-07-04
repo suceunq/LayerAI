@@ -47,6 +47,16 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "risk.unsupported_overhang": "{value}% de la surface est en surplomb marqué - des supports sont probablement nécessaires.",
     "risk.instability": "Le centre de masse est proche du bord de l'empreinte au sol - risque de bascule pendant l'impression.",
 
+    "supports.title": "Supports",
+    "supports.styleGrid": "Grille",
+    "supports.styleOrganic": "Organique",
+    "supports.styleSnug": "Ajusté",
+    "supports.extraWeight": "+{weight} g avec supports",
+    "supports.extraTime": "+{time} min avec supports",
+    "supports.explainZoneTitle": "Pourquoi cette zone ?",
+    "supports.explainOverhang": "Surplomb à {angle}° depuis l'horizontale (≈{area} mm²).",
+    "supports.explainNoOverhang": "Pas de risque particulier détecté à cet endroit.",
+
     "review.title": "Configuration générée",
     "review.advancedLink": "▸ Modifier les réglages avancés, sauvegarder un profil…",
     "review.openInSlicer": "Ouvrir dans {slicer} →",
@@ -240,6 +250,16 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "risk.fragile_thin_wall": "Thin walls detected (down to {value} mm) - risk of breakage.",
     "risk.unsupported_overhang": "{value}% of the surface is a significant overhang - supports are likely needed.",
     "risk.instability": "The center of mass is close to the edge of the footprint - risk of tipping during printing.",
+
+    "supports.title": "Supports",
+    "supports.styleGrid": "Grid",
+    "supports.styleOrganic": "Organic",
+    "supports.styleSnug": "Snug",
+    "supports.extraWeight": "+{weight} g with supports",
+    "supports.extraTime": "+{time} min with supports",
+    "supports.explainZoneTitle": "Why this zone?",
+    "supports.explainOverhang": "Overhang at {angle}° from horizontal (≈{area} mm²).",
+    "supports.explainNoOverhang": "No particular risk detected here.",
 
     "review.title": "Generated configuration",
     "review.advancedLink": "▸ Edit advanced settings, save a profile…",

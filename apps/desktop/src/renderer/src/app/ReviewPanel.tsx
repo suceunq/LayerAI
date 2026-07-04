@@ -4,7 +4,10 @@ import { Card } from "../components/ui/Card.js";
 import { ConfidenceBadge } from "../components/ui/ConfidenceBadge.js";
 import { ComparisonView } from "./ComparisonView.js";
 import { OutcomeTagging } from "./OutcomeTagging.js";
+import { SupportsControl } from "./SupportsControl.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+
+const SUPPORTS_CONTROL_KEYS = new Set(["support_material", "support_material_style"]);
 
 export function ReviewPanel(): React.JSX.Element {
   const { t } = useTranslation();
@@ -34,8 +37,12 @@ export function ReviewPanel(): React.JSX.Element {
 
       <ComparisonView />
 
+      <SupportsControl />
+
       <div className="flex flex-col gap-2">
-        {explanations.parameters.map((p) => (
+        {explanations.parameters
+          .filter((p) => !SUPPORTS_CONTROL_KEYS.has(p.parameterKey))
+          .map((p) => (
           <Card key={p.parameterKey} className="p-3">
             <div className="flex items-center justify-between">
               <span className="font-mono text-sm text-text-primary">
