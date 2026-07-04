@@ -1,6 +1,6 @@
 import { Vector3 } from "three";
 import type { BoundingBox3, MeshGeometryData } from "@layerai/shared-types";
-import { forEachTriangle, getTriangleCount } from "./triangles.js";
+import { forEachTriangle, getTriangleCount, triangleNormal, triangleArea } from "./triangles.js";
 import { convexHull2d, polygonArea, type Point2 } from "./convex-hull-2d.js";
 
 export function computeBoundingBox(geometry: MeshGeometryData): BoundingBox3 {
@@ -99,6 +99,31 @@ export function estimateManifoldRatio(geometry: MeshGeometryData): number {
     if (count === 2) wellFormedEdges += 2;
   }
   return wellFormedEdges / edgeTotal;
+}
+
+/**
+ * Sums the area of downward-facing triangles that lie flush against the lowest point of the mesh
+ * (within a small tolerance) - i.e. how much of a genuinely flat face is actually touching the
+ * bed, as opposed to the mesh merely balancing on a point or edge with a large footprint hovering
+ * above. Used to score orientation candidates so the flattest available face is preferred over
+ * one that's merely low-overhang/stable overall without real flush contact.
+ */
+export function computeBaseContactAreaMm2(geometry: MeshGeometryData, boundingBox: BoundingBox3, epsilonMm = 0.2): number {
+  let areaSum = 0;
+  const down = new Vector3(0, 0, -1);
+  const normal = new Vector3();
+  const heightMm = Math.max(boundingBox.max.z - boundingBox.min.z, 1e-6);
+  const epsilon = Math.max(epsilonMm, heightMm * 0.01);
+  const ceilingZ = boundingBox.min.z + epsilon;
+
+  forEachTriangle(geometry, (v0, v1, v2) => {
+    if (v0.z > ceilingZ || v1.z > ceilingZ || v2.z > ceilingZ) return;
+    triangleNormal(v0, v1, v2, normal);
+    if (normal.dot(down) < 0.85) return;
+    areaSum += triangleArea(v0, v1, v2);
+  });
+
+  return areaSum;
 }
 
 export function computeComplexityScore(geometry: MeshGeometryData, footprintAreaMm2: number, boundingBox: BoundingBox3): number {

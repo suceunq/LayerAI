@@ -1,6 +1,6 @@
 import { Vector3, Quaternion, Euler } from "three";
 import type { MeshGeometryData, OrientationCandidate } from "@layerai/shared-types";
-import { computeBoundingBox, computeFootprintAreaMm2 } from "../geometry/bounds.js";
+import { computeBoundingBox, computeFootprintAreaMm2, computeBaseContactAreaMm2 } from "../geometry/bounds.js";
 import { detectOverhangs } from "../features/overhangs.js";
 import { placeOnBed } from "./grounding.js";
 import { dominantFaceNormals } from "./face-normals.js";
@@ -23,7 +23,7 @@ const WORLD_AXIS_DOT_DEDUPE_THRESHOLD = 0.996;
  * of X/Y/Z happen to match.
  */
 function meshFaceCandidateAxes(geometry: MeshGeometryData): { axis: Vector3; label: string }[] {
-  const normals = dominantFaceNormals(geometry, 12);
+  const normals = dominantFaceNormals(geometry, 20);
   const axes: { axis: Vector3; label: string }[] = [];
 
   for (const normal of normals) {
@@ -71,14 +71,19 @@ export function generateOrientationCandidates(geometry: MeshGeometryData): {
     const rotated = placeOnBed(applyRotation(geometry, quaternion));
     const boundingBox = computeBoundingBox(rotated);
     const footprintAreaMm2 = computeFootprintAreaMm2(rotated);
+    const baseContactAreaMm2 = computeBaseContactAreaMm2(rotated, boundingBox);
     const { overhangAreaMm2, totalSurfaceAreaMm2 } = detectOverhangs(rotated, boundingBox);
     const heightMm = boundingBox.max.z - boundingBox.min.z;
 
     const overhangRatio = totalSurfaceAreaMm2 > 0 ? overhangAreaMm2 / totalSurfaceAreaMm2 : 0;
+    const flatnessRatio = footprintAreaMm2 > 0 ? Math.min(1, baseContactAreaMm2 / footprintAreaMm2) : 0;
     const footprintDiameterMm = 2 * Math.sqrt(Math.max(footprintAreaMm2, 1e-6) / Math.PI);
     const aspectRatio = footprintDiameterMm > 0 ? heightMm / footprintDiameterMm : heightMm;
     const stabilityScore = Math.max(0, 1 - aspectRatio / 6);
-    const score = Math.max(0, Math.min(1, (1 - overhangRatio) * 0.7 + stabilityScore * 0.3));
+    // Flatness (how much of the footprint is actually flush against the bed, not just balanced on
+    // a point/edge with a wide footprint) is weighted highest - a genuinely flat resting face
+    // matters more than a merely low-overhang orientation that still only touches at one spot.
+    const score = Math.max(0, Math.min(1, flatnessRatio * 0.55 + (1 - overhangRatio) * 0.3 + stabilityScore * 0.15));
 
     const euler = new Euler().setFromQuaternion(quaternion, "XYZ");
     candidates.push({
