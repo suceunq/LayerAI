@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { InheritResolver } from "./inherit-resolver.js";
 import type { SectionsByType } from "./ini-parser.js";
 
@@ -17,6 +19,7 @@ function cleanPrinterName(rawName: string): string {
 export interface CuratedPrinter {
   id: string;
   name: string;
+  vendor: string;
   family: string;
   technology: string;
   bedShape: { x: number; y: number }[];
@@ -26,6 +29,8 @@ export interface CuratedPrinter {
   hasMmu: boolean;
   isInputShaper: boolean;
   thumbnail?: string;
+  /** Raw SVG markup of the official top-down bed texture, when available. Its viewBox maps 1:1 (stretched) onto the bed_shape bounding box - confirmed against PrusaSlicer's own SVGs (e.g. XL's texture is literally "360mm x 360mm" for a 360x360 bed). */
+  bedTextureSvg?: string;
 }
 
 export interface CuratedFilament {
@@ -73,9 +78,19 @@ function parseNozzleVariants(value: string): number[] {
 
 const STANDARD_LAYER_HEIGHTS_MM = [0.1, 0.15, 0.2, 0.25, 0.3];
 
+function readBedTextureSvg(assetsDir: string, fileName: string | undefined): string | undefined {
+  if (!fileName) return undefined;
+  try {
+    return readFileSync(join(assetsDir, fileName), "utf-8");
+  } catch {
+    return undefined;
+  }
+}
+
 export function curatePrintersAndPresets(
   resolver: InheritResolver,
-  sections: SectionsByType
+  sections: SectionsByType,
+  assetsDir: string
 ): { printers: CuratedPrinter[]; presets: CuratedPresetRange[] } {
   const printerModelNames = resolver.concreteNamesOfType("printer_model");
   const concretePrinterNames = resolver.concreteNamesOfType("printer");
@@ -113,6 +128,7 @@ export function curatePrintersAndPresets(
     printers.push({
       id: modelName,
       name: cleanPrinterName(modelKeys.name ?? modelName),
+      vendor: "Prusa Research",
       family: modelKeys.family ?? modelName,
       technology: modelKeys.technology ?? "FFF",
       bedShape: parseBedShape(chosen.bed_shape ?? "0x0,250x0,250x210,0x210"),
@@ -122,6 +138,7 @@ export function curatePrintersAndPresets(
       hasMmu: /MMU/.test(modelName),
       isInputShaper: /IS(MMU\d)?$/.test(modelName),
       thumbnail: modelKeys.thumbnail,
+      bedTextureSvg: readBedTextureSvg(assetsDir, modelKeys.bed_texture),
     });
 
     const minLayerHeightMm = parseFloat(chosen.min_layer_height ?? "0.05");

@@ -32,8 +32,9 @@ async function main(): Promise<void> {
 
   const sections = parseIni(text);
   const resolver = new InheritResolver(sections);
+  const assetsDir = path.join(path.dirname(iniPath), path.basename(iniPath, ".ini"));
 
-  const { printers, presets } = curatePrintersAndPresets(resolver, sections);
+  const { printers, presets } = curatePrintersAndPresets(resolver, sections, assetsDir);
   const filaments = curateFilaments(resolver);
 
   if (printers.length === 0) throw new Error("No printers curated - check the INI path and parser.");
