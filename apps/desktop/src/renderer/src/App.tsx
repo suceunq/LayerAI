@@ -7,6 +7,9 @@ import { IntentPanel } from "./app/IntentPanel.js";
 import { ReviewPanel } from "./app/ReviewPanel.js";
 import { AdvancedPanel } from "./app/AdvancedPanel.js";
 import { OnboardingTour } from "./app/OnboardingTour.js";
+import { LeftToolRail } from "./app/LeftToolRail.js";
+import { ResizePanel } from "./app/ResizePanel.js";
+import { HelpAboutDialog } from "./app/HelpAboutDialog.js";
 import { ProgressBar } from "./components/ui/ProgressBar.js";
 
 export default function App(): React.JSX.Element {
@@ -22,12 +25,16 @@ export default function App(): React.JSX.Element {
   const layerViewHeightMm = useAppStore((s) => s.layerViewHeightMm);
   const toggleAdvancedPanel = useAppStore((s) => s.toggleAdvancedPanel);
   const checkOnboarding = useAppStore((s) => s.checkOnboarding);
+  const handleMenuAction = useAppStore((s) => s.handleMenuAction);
+  const toolNotice = useAppStore((s) => s.toolNotice);
 
   useEffect(() => {
     void loadProfileDb();
     void loadCustomProfiles();
     void checkOnboarding();
   }, [loadProfileDb, loadCustomProfiles, checkOnboarding]);
+
+  useEffect(() => window.api.onMenuAction(handleMenuAction), [handleMenuAction]);
 
   const printer = printers.find((p) => p.id === selectedPrinterId);
   const fillPattern = config?.fill_pattern?.value;
@@ -54,6 +61,7 @@ export default function App(): React.JSX.Element {
       </header>
 
       <main className="relative flex min-h-0 flex-1">
+        <LeftToolRail />
         <div className="relative flex-1">
           <Viewer3D
             printer={printer}
@@ -77,7 +85,15 @@ export default function App(): React.JSX.Element {
         </aside>
 
         <AdvancedPanel />
+        <ResizePanel />
+        <HelpAboutDialog />
         <OnboardingTour />
+
+        {toolNotice && (
+          <div className="absolute left-1/2 top-4 z-50 max-w-md -translate-x-1/2 rounded-lg border border-border-subtle bg-surface-1 px-4 py-2 text-sm text-text-primary shadow-xl">
+            {toolNotice}
+          </div>
+        )}
       </main>
     </div>
   );

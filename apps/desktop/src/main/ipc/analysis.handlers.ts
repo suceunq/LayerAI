@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { analyzeMesh, parseStl, parseObj, parseThreeMf } from "@layerai/mesh-analysis";
+import { analyzeMesh, parseStl, parseObj, parseThreeMf, scaleGeometry } from "@layerai/mesh-analysis";
 import { resolveIntent } from "@layerai/intent-engine";
 import { generateConfig, computeComparisonMetrics } from "@layerai/config-generator";
 import { generateExplanations } from "@layerai/explanation-engine";
@@ -7,7 +7,14 @@ import { getAllPrinters, getAllFilaments, getPrinterModel, getFilamentBase } fro
 import { getOutcomeStats, computeAdjustments, type LearningAdjustment } from "@layerai/learning-store";
 import type { GeneratedConfig, IntentTag, MeshGeometryData, IntentResult } from "@layerai/shared-types";
 import { IpcChannels } from "../../shared/ipc-channels.js";
-import type { AnalysisRunRequest, AnalysisRunResponse, ConfigGenerateRequest, ConfigGenerateResponse } from "../../shared/ipc-types.js";
+import type {
+  AnalysisRunRequest,
+  AnalysisRunResponse,
+  AnalysisRescaleRequest,
+  AnalysisRescaleResponse,
+  ConfigGenerateRequest,
+  ConfigGenerateResponse,
+} from "../../shared/ipc-types.js";
 import { getLearningDb } from "./learning.handlers.js";
 
 const INTENT_TAG_THRESHOLD = 0.15;
@@ -44,6 +51,10 @@ export function registerAnalysisHandlers(): void {
   ipcMain.handle(IpcChannels.analysisRun, async (_event, request: AnalysisRunRequest): Promise<AnalysisRunResponse> => {
     const geometry = await parseImportedFile(request.file);
     return analyzeMesh(geometry);
+  });
+
+  ipcMain.handle(IpcChannels.analysisRescale, async (_event, request: AnalysisRescaleRequest): Promise<AnalysisRescaleResponse> => {
+    return analyzeMesh(scaleGeometry(request.geometry, request.scaleFactor));
   });
 
   ipcMain.handle(IpcChannels.configGenerate, async (_event, request: ConfigGenerateRequest): Promise<ConfigGenerateResponse> => {

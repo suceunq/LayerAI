@@ -2,6 +2,7 @@ export const IpcChannels = {
   importOpenDialog: "import:open-dialog",
   importReadDropped: "import:read-dropped",
   analysisRun: "analysis:run",
+  analysisRescale: "analysis:rescale",
   configGenerate: "config:generate",
   profileDbGetPrinters: "profiledb:get-printers",
   profileDbGetFilaments: "profiledb:get-filaments",
@@ -15,6 +16,8 @@ export const IpcChannels = {
   customProfilesDelete: "custom-profiles:delete",
   settingsGet: "settings:get",
   settingsSetOnboardingCompleted: "settings:set-onboarding-completed",
+  menuAction: "menu:action",
+  appGetVersion: "app:get-version",
 } as const;
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];

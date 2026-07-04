@@ -16,6 +16,13 @@ export interface AnalysisRunRequest {
 
 export type AnalysisRunResponse = AnalyzedMesh;
 
+export interface AnalysisRescaleRequest {
+  geometry: MeshGeometryData;
+  scaleFactor: number;
+}
+
+export type AnalysisRescaleResponse = AnalyzedMesh;
+
 export interface ConfigGenerateRequest {
   geometry: MeshGeometryData;
   analysis: AnalyzedMesh["analysis"];

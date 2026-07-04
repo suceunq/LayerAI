@@ -12,13 +12,19 @@ import type {
 } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../../../preload/api.js";
 import type { CustomProfile } from "../../../shared/ipc-types.js";
+import { computeSizeFit } from "../lib/size-fit.js";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
+
+export type HelpDialogTab = "aide" | "apropos";
 
 interface AppState {
   step: AppStep;
   error: string | null;
   slicerNotice: string | null;
+  toolNotice: string | null;
+  helpDialogOpen: boolean;
+  helpDialogTab: HelpDialogTab;
 
   printers: PrinterProfile[];
   filaments: FilamentProfile[];
@@ -36,6 +42,8 @@ interface AppState {
   comparison: ComparisonMetrics | null;
   showAdvanced: boolean;
   advancedPanelOpen: boolean;
+  resizePanelOpen: boolean;
+  isRescaling: boolean;
 
   layerViewEnabled: boolean;
   layerViewHeightMm: number;
@@ -47,10 +55,13 @@ interface AppState {
   setFilament: (id: string) => void;
   importFromDialog: () => Promise<void>;
   importDroppedPath: (filePath: string) => Promise<void>;
+  checkSizeFitAfterImport: () => void;
   setIntentText: (text: string) => void;
   generateConfiguration: () => Promise<void>;
   toggleAdvanced: () => void;
   toggleAdvancedPanel: () => void;
+  toggleResizePanel: () => void;
+  rescaleModel: (percent: number) => Promise<void>;
   updateConfigValue: (key: string, value: string | number | boolean) => void;
   toggleLayerView: () => void;
   setLayerViewHeight: (heightMm: number) => void;
@@ -72,6 +83,13 @@ interface AppState {
   checkOnboarding: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
   replayOnboarding: () => void;
+
+  showToolNotice: (message: string) => void;
+  autoOptimize: () => Promise<void>;
+  checkModelHealth: () => void;
+  openHelpDialog: (tab: HelpDialogTab) => void;
+  closeHelpDialog: () => void;
+  handleMenuAction: (action: string) => void;
 }
 
 async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry: MeshGeometryData; analysis: MeshAnalysisResult }> {
@@ -82,6 +100,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   step: "import",
   error: null,
   slicerNotice: null,
+  toolNotice: null,
+  helpDialogOpen: false,
+  helpDialogTab: "aide",
 
   printers: [],
   filaments: [],
@@ -99,6 +120,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   comparison: null,
   showAdvanced: false,
   advancedPanelOpen: false,
+  resizePanelOpen: false,
+  isRescaling: false,
 
   layerViewEnabled: false,
   layerViewHeightMm: 0,
@@ -137,6 +160,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ importedFile: file, step: "analyzing", error: null });
       const { geometry, analysis } = await runAnalysisForFile(file);
       set({ geometry, analysis, step: "intent" });
+      get().checkSizeFitAfterImport();
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err), step: "import" });
     }
@@ -148,9 +172,17 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ importedFile: file, step: "analyzing", error: null });
       const { geometry, analysis } = await runAnalysisForFile(file);
       set({ geometry, analysis, step: "intent" });
+      get().checkSizeFitAfterImport();
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err), step: "import" });
     }
+  },
+
+  checkSizeFitAfterImport: () => {
+    const { analysis, printers, selectedPrinterId } = get();
+    const printer = printers.find((p) => p.id === selectedPrinterId);
+    if (!analysis || !printer) return;
+    if (!computeSizeFit(analysis, printer).fits) set({ resizePanelOpen: true });
   },
 
   setIntentText: (text) => set({ intentText: text }),
@@ -175,6 +207,20 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   toggleAdvanced: () => set((s) => ({ showAdvanced: !s.showAdvanced })),
   toggleAdvancedPanel: () => set((s) => ({ advancedPanelOpen: !s.advancedPanelOpen })),
+  toggleResizePanel: () => set((s) => ({ resizePanelOpen: !s.resizePanelOpen })),
+
+  rescaleModel: async (percent) => {
+    const { geometry, step, intentText } = get();
+    if (!geometry) return;
+    set({ isRescaling: true, error: null });
+    try {
+      const result = await window.api.rescaleGeometry({ geometry, scaleFactor: percent / 100 });
+      set({ geometry: result.geometry, analysis: result.analysis, isRescaling: false, resizePanelOpen: false });
+      if (step === "review" && intentText) await get().generateConfiguration();
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), isRescaling: false });
+    }
+  },
 
   toggleLayerView: () =>
     set((s) => ({
@@ -280,6 +326,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       outcomeRecorded: false,
       layerViewEnabled: false,
       layerViewHeightMm: 0,
+      resizePanelOpen: false,
     }),
 
   loadCustomProfiles: async () => {
@@ -351,6 +398,85 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   replayOnboarding: () => set({ onboardingActive: true }),
+
+  showToolNotice: (message) => {
+    set({ toolNotice: message });
+    setTimeout(() => {
+      if (get().toolNotice === message) set({ toolNotice: null });
+    }, 5000);
+  },
+
+  autoOptimize: async () => {
+    const { geometry, analysis } = get();
+    if (!geometry || !analysis) {
+      get().showToolNotice("Importez d'abord un modèle pour lancer l'optimisation automatique.");
+      return;
+    }
+    set({ intentText: "Trouve le meilleur compromis entre qualité, solidité et rapidité d'impression." });
+    await get().generateConfiguration();
+  },
+
+  checkModelHealth: () => {
+    const { analysis } = get();
+    if (!analysis) {
+      get().showToolNotice("Importez d'abord un modèle pour vérifier son intégrité.");
+      return;
+    }
+    const confidencePercent = Math.round(analysis.analysisConfidence * 100);
+    if (analysis.isManifold) {
+      get().showToolNotice(`✓ Maillage valide, aucune réparation nécessaire (confiance d'analyse : ${confidencePercent}%).`);
+    } else {
+      get().showToolNotice(
+        `⚠ Maillage non-manifold détecté (confiance d'analyse : ${confidencePercent}%). Utilisez l'outil de réparation intégré à PrusaSlicer ou Bambu Studio avant l'impression.`
+      );
+    }
+  },
+
+  openHelpDialog: (tab) => set({ helpDialogOpen: true, helpDialogTab: tab }),
+  closeHelpDialog: () => set({ helpDialogOpen: false }),
+
+  handleMenuAction: (action) => {
+    const s = get();
+    switch (action) {
+      case "file:new":
+        s.startOver();
+        break;
+      case "file:open":
+        void s.importFromDialog();
+        break;
+      case "file:save":
+        void s.exportThreeMf();
+        break;
+      case "file:export-pdf":
+        void s.exportPdfReport();
+        break;
+      case "file:export-ini":
+        void s.exportIni();
+        break;
+      case "edit:preferences":
+        s.toggleAdvancedPanel();
+        break;
+      case "tools:auto-optimize":
+        void s.autoOptimize();
+        break;
+      case "tools:repair":
+        s.checkModelHealth();
+        break;
+      case "tools:scale":
+        if (!s.analysis) s.showToolNotice("Importez d'abord un modèle pour accéder à la mise à l'échelle.");
+        else s.toggleResizePanel();
+        break;
+      case "help:docs":
+        s.openHelpDialog("aide");
+        break;
+      case "help:tutorials":
+        s.replayOnboarding();
+        break;
+      case "help:about":
+        s.openHelpDialog("apropos");
+        break;
+    }
+  },
 }));
 
 if (import.meta.env.DEV) {

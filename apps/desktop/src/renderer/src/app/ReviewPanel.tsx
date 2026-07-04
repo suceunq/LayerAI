@@ -57,17 +57,17 @@ export function ReviewPanel(): React.JSX.Element {
         <Button onClick={() => void openInSlicer()} className="w-full">
           Ouvrir dans {slicerName} →
         </Button>
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={startOver}>
-            Recommencer
-          </Button>
+        <div className="flex gap-2">
           <Button variant="secondary" onClick={() => void exportThreeMf()} className="flex-1">
-            Exporter le projet 3MF
+            Exporter en .3MF
+          </Button>
+          <Button variant="secondary" onClick={() => void exportPdfReport()} className="flex-1">
+            Rapport PDF
           </Button>
         </div>
-        <Button variant="ghost" onClick={() => void exportPdfReport()}>
-          Rapport PDF
-        </Button>
+        <button onClick={startOver} className="self-center text-xs text-text-muted hover:text-text-primary">
+          Recommencer avec un autre modèle
+        </button>
       </div>
 
       <OutcomeTagging />

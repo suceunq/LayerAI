@@ -2,6 +2,8 @@ import type { PrinterProfile, FilamentProfile } from "@layerai/shared-types";
 import type {
   AnalysisRunRequest,
   AnalysisRunResponse,
+  AnalysisRescaleRequest,
+  AnalysisRescaleResponse,
   ConfigGenerateRequest,
   ConfigGenerateResponse,
   ExportThreeMfRequest,
@@ -30,6 +32,7 @@ export interface LayerAiApi {
   getPrinters: () => Promise<PrinterProfile[]>;
   getFilaments: () => Promise<FilamentProfile[]>;
   runAnalysis: (request: AnalysisRunRequest) => Promise<AnalysisRunResponse>;
+  rescaleGeometry: (request: AnalysisRescaleRequest) => Promise<AnalysisRescaleResponse>;
   generateConfig: (request: ConfigGenerateRequest) => Promise<ConfigGenerateResponse>;
   exportThreeMf: (request: ExportThreeMfRequest) => Promise<ExportThreeMfResponse>;
   exportIni: (request: ExportIniRequest) => Promise<ExportIniResponse>;
@@ -41,4 +44,6 @@ export interface LayerAiApi {
   deleteCustomProfile: (id: string) => Promise<void>;
   getSettings: () => Promise<AppSettings>;
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
+  onMenuAction: (callback: (action: string) => void) => () => void;
+  getAppVersion: () => Promise<string>;
 }

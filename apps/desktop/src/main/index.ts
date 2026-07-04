@@ -30,7 +30,7 @@ function createMainWindow(): void {
     minHeight: 700,
     show: false,
     backgroundColor: "#0B0B0D",
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     icon: isDev ? resolveDevIconPath() : undefined,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
