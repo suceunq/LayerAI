@@ -18,6 +18,7 @@ export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review
 interface AppState {
   step: AppStep;
   error: string | null;
+  slicerNotice: string | null;
 
   printers: PrinterProfile[];
   filaments: FilamentProfile[];
@@ -56,6 +57,7 @@ interface AppState {
   exportThreeMf: () => Promise<void>;
   exportIni: () => Promise<void>;
   exportPdfReport: () => Promise<void>;
+  openInSlicer: () => Promise<void>;
   startOver: () => void;
 
   loadCustomProfiles: () => Promise<void>;
@@ -79,6 +81,7 @@ async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry
 export const useAppStore = create<AppState>((set, get) => ({
   step: "import",
   error: null,
+  slicerNotice: null,
 
   printers: [],
   filaments: [],
@@ -236,6 +239,31 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  openInSlicer: async () => {
+    const { geometry, config, selectedPrinterId, selectedFilamentId, importedFile } = get();
+    if (!geometry || !config) return;
+    set({ error: null, slicerNotice: null });
+    try {
+      const result = await window.api.openInSlicer({
+        geometry,
+        config,
+        printerId: selectedPrinterId,
+        filamentId: selectedFilamentId,
+        objectName: importedFile?.fileName.replace(/\.[^.]+$/, ""),
+      });
+      if (result.opened) {
+        set({ slicerNotice: `Ouverture dans ${result.slicerName}…` });
+        setTimeout(() => {
+          if (get().slicerNotice === `Ouverture dans ${result.slicerName}…`) set({ slicerNotice: null });
+        }, 4000);
+      } else if (!result.canceled) {
+        set({ error: result.message });
+      }
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
   startOver: () =>
     set({
       step: "import",
@@ -244,6 +272,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       analysis: null,
       intentText: "",
       intentResult: null,
+      slicerNotice: null,
       config: null,
       explanations: null,
       comparison: null,

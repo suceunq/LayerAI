@@ -10,6 +10,8 @@ import type {
   ExportIniResponse,
   ExportPdfReportRequest,
   ExportPdfReportResponse,
+  OpenInSlicerRequest,
+  OpenInSlicerResponse,
   CustomProfile,
   SaveCustomProfileRequest,
   RecordOutcomeRequest,
@@ -32,6 +34,7 @@ export interface LayerAiApi {
   exportThreeMf: (request: ExportThreeMfRequest) => Promise<ExportThreeMfResponse>;
   exportIni: (request: ExportIniRequest) => Promise<ExportIniResponse>;
   exportPdfReport: (request: ExportPdfReportRequest) => Promise<ExportPdfReportResponse>;
+  openInSlicer: (request: OpenInSlicerRequest) => Promise<OpenInSlicerResponse>;
   recordOutcome: (request: RecordOutcomeRequest) => Promise<void>;
   getCustomProfiles: () => Promise<CustomProfile[]>;
   saveCustomProfile: (request: SaveCustomProfileRequest) => Promise<CustomProfile>;

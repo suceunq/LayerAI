@@ -8,6 +8,7 @@ export const IpcChannels = {
   exportThreeMf: "export:threemf",
   exportPdfReport: "export:pdf-report",
   exportIni: "export:ini",
+  slicerOpen: "slicer:open",
   learningRecordOutcome: "learning:record-outcome",
   customProfilesList: "custom-profiles:list",
   customProfilesSave: "custom-profiles:save",

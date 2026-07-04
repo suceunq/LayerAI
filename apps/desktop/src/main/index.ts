@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { registerImportHandlers } from "./ipc/import.handlers.js";
 import { registerAnalysisHandlers } from "./ipc/analysis.handlers.js";
 import { registerExportHandlers } from "./ipc/export.handlers.js";
+import { registerSlicerHandlers } from "./ipc/slicer.handlers.js";
 import { registerLearningHandlers } from "./ipc/learning.handlers.js";
 import { registerProfilesHandlers } from "./ipc/profiles.handlers.js";
 import { registerSettingsHandlers } from "./ipc/settings.handlers.js";
@@ -63,6 +64,7 @@ app.whenReady().then(() => {
   registerImportHandlers();
   registerAnalysisHandlers();
   registerExportHandlers();
+  registerSlicerHandlers();
   registerLearningHandlers();
   registerProfilesHandlers();
   registerSettingsHandlers();

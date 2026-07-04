@@ -12,6 +12,7 @@ const api: LayerAiApi = {
   exportThreeMf: (request) => ipcRenderer.invoke(IpcChannels.exportThreeMf, request),
   exportIni: (request) => ipcRenderer.invoke(IpcChannels.exportIni, request),
   exportPdfReport: (payload) => ipcRenderer.invoke(IpcChannels.exportPdfReport, payload),
+  openInSlicer: (payload) => ipcRenderer.invoke(IpcChannels.slicerOpen, payload),
   recordOutcome: (payload) => ipcRenderer.invoke(IpcChannels.learningRecordOutcome, payload),
   getCustomProfiles: () => ipcRenderer.invoke(IpcChannels.customProfilesList),
   saveCustomProfile: (request) => ipcRenderer.invoke(IpcChannels.customProfilesSave, request),

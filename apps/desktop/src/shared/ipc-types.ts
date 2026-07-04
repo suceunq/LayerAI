@@ -60,6 +60,19 @@ export interface ExportIniRequest {
 
 export type ExportIniResponse = { saved: true; filePath: string } | { saved: false };
 
+export interface OpenInSlicerRequest {
+  geometry: MeshGeometryData;
+  config: GeneratedConfig;
+  printerId: string;
+  filamentId: string;
+  objectName?: string;
+}
+
+export type OpenInSlicerResponse =
+  | { opened: true; slicerName: string }
+  | { opened: false; canceled: true }
+  | { opened: false; canceled: false; message: string };
+
 export interface ExportPdfReportRequest {
   fileName: string;
   printerId: string;
@@ -85,4 +98,6 @@ export interface RecordOutcomeRequest {
 
 export interface AppSettings {
   onboardingCompleted: boolean;
+  prusaSlicerPath?: string;
+  bambuStudioPath?: string;
 }

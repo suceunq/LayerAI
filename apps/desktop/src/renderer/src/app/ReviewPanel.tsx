@@ -9,11 +9,18 @@ export function ReviewPanel(): React.JSX.Element {
   const explanations = useAppStore((s) => s.explanations);
   const exportThreeMf = useAppStore((s) => s.exportThreeMf);
   const exportPdfReport = useAppStore((s) => s.exportPdfReport);
+  const openInSlicer = useAppStore((s) => s.openInSlicer);
   const toggleAdvancedPanel = useAppStore((s) => s.toggleAdvancedPanel);
   const startOver = useAppStore((s) => s.startOver);
   const error = useAppStore((s) => s.error);
+  const slicerNotice = useAppStore((s) => s.slicerNotice);
+  const printers = useAppStore((s) => s.printers);
+  const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
 
   if (!explanations) return <></>;
+
+  const printer = printers.find((p) => p.id === selectedPrinterId);
+  const slicerName = printer?.vendor === "Bambu Lab" ? "Bambu Studio" : "PrusaSlicer";
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-6">
@@ -44,14 +51,18 @@ export function ReviewPanel(): React.JSX.Element {
       </button>
 
       {error && <p className="text-sm text-confidence-low">{error}</p>}
+      {slicerNotice && <p className="text-sm text-prusa-orange">{slicerNotice}</p>}
 
       <div className="mt-auto flex flex-col gap-2">
+        <Button onClick={() => void openInSlicer()} className="w-full">
+          Ouvrir dans {slicerName} →
+        </Button>
         <div className="flex gap-3">
           <Button variant="secondary" onClick={startOver}>
             Recommencer
           </Button>
-          <Button onClick={() => void exportThreeMf()} className="flex-1">
-            Exporter le projet 3MF →
+          <Button variant="secondary" onClick={() => void exportThreeMf()} className="flex-1">
+            Exporter le projet 3MF
           </Button>
         </div>
         <Button variant="ghost" onClick={() => void exportPdfReport()}>
