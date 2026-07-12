@@ -1,4 +1,10 @@
-# LayerAI 1.7.17
+# LayerAI 1.7.18
+
+## Nouvelle icône LayerAI
+- Nouvelle identité visuelle métallique commune à la suite Bob59.
+- Une buse d’impression dépose trois couches lumineuses violet/cyan, accompagnées d’une étincelle IA.
+- Silhouette simplifiée et contrastée pour rester identifiable dans le bureau, la barre des tâches et les petites tailles Windows.
+- Les formats PNG et ICO multi-résolutions de l’application et du gestionnaire de mise à jour ont été régénérés.
 
 ## Placement intelligent des supports
 - Les supports sont désormais réglés sur « plateau uniquement » par défaut afin de limiter les marques sur la pièce et la matière consommée.
