@@ -19,6 +19,7 @@ import type {
   PhotoDiagnosisResult,
   RecentProject,
   SupportedTheme,
+  SupportedInterfaceMode,
   UpdateState,
 } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
@@ -41,6 +42,7 @@ interface AppState {
   helpDialogTab: HelpDialogTab;
   language: Language;
   theme: SupportedTheme;
+  interfaceMode: SupportedInterfaceMode;
   settingsDialogOpen: boolean;
   updateDialogOpen: boolean;
   updateState: UpdateState | null;
@@ -148,6 +150,7 @@ interface AppState {
   loadLanguage: () => Promise<void>;
   setLanguage: (language: Language) => Promise<void>;
   setTheme: (theme: SupportedTheme) => Promise<void>;
+  setInterfaceMode: (mode: SupportedInterfaceMode) => Promise<void>;
   toggleSettingsDialog: () => void;
 
   toggleUpdateDialog: () => void;
@@ -227,6 +230,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   helpDialogTab: "aide",
   language: "fr",
   theme: "dark",
+  interfaceMode: "simple",
   settingsDialogOpen: false,
   updateDialogOpen: false,
   updateState: null,
@@ -677,6 +681,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const settings = await window.api.getSettings();
       if (settings.language) set({ language: settings.language });
       if (settings.theme) set({ theme: settings.theme });
+      if (settings.interfaceMode) set({ interfaceMode: settings.interfaceMode });
       set({
         checkUpdatesOnStartup: settings.checkUpdatesOnStartup ?? true,
         postponedUpdateVersion: settings.postponedUpdateVersion,
@@ -783,6 +788,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ theme });
     try {
       await window.api.setTheme(theme);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  setInterfaceMode: async (interfaceMode) => {
+    set({ interfaceMode });
+    try {
+      await window.api.setInterfaceMode(interfaceMode);
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }

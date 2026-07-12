@@ -1,4 +1,11 @@
-# LayerAI 1.7.8
+# LayerAI 1.7.9
+
+## Modes Simple et Expert
+- Nouveau mode Simple activé par défaut : seules les actions essentielles restent visibles.
+- Le mode Expert restaure instantanément les diagnostics, la vue couches, les options avancées, le diagnostic photo et les outils de transformation.
+- Le choix Simple/Expert est mémorisé entre les sessions.
+- Les paramètres généraux et le formulaire de suggestion restent accessibles en mode Simple.
+- Aucun réglage généré ni aucune capacité d’export n’est supprimé : les deux modes utilisent le même moteur.
 
 ## Fiabilité des exports
 - Validation des géométries avant génération : coordonnées, triangles et indices sont contrôlés.

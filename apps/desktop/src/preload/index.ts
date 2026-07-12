@@ -29,6 +29,7 @@ const api: LayerAiApi = {
   setOnboardingCompleted: (completed) => ipcRenderer.invoke(IpcChannels.settingsSetOnboardingCompleted, completed),
   setLanguage: (language) => ipcRenderer.invoke(IpcChannels.settingsSetLanguage, language),
   setTheme: (theme) => ipcRenderer.invoke(IpcChannels.settingsSetTheme, theme),
+  setInterfaceMode: (mode) => ipcRenderer.invoke(IpcChannels.settingsSetInterfaceMode, mode),
   setCheckUpdatesOnStartup: (enabled) => ipcRenderer.invoke(IpcChannels.settingsSetCheckUpdatesOnStartup, enabled),
   setCostSettings: (costs) => ipcRenderer.invoke(IpcChannels.settingsSetCosts, costs),
   setLastSelection: (request) => ipcRenderer.invoke(IpcChannels.settingsSetLastSelection, request),

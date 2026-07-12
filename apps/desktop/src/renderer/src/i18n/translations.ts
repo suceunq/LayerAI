@@ -4,6 +4,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
   fr: {
     "app.settings": "Options avancées",
     "app.settingsAriaLabel": "Paramètres",
+    "app.modeSimple": "Simple",
+    "app.modeExpert": "Expert",
+    "app.modeTitle": "Niveau d’interface",
     "app.resize": "Redimensionner le modèle",
     "app.chooseFace": "Choisir la face à poser sur le plateau",
     "facePick.hint": "Cliquez sur une face du modèle pour la poser sur le plateau",
@@ -365,6 +368,9 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "update.eta": "Temps restant estimé : {eta}",
   },
   en: {
+    "app.modeSimple": "Simple",
+    "app.modeExpert": "Expert",
+    "app.modeTitle": "Interface level",
     "app.settings": "Advanced options",
     "app.settingsAriaLabel": "Settings",
     "app.resize": "Resize the model",

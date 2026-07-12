@@ -24,6 +24,7 @@ export const IpcChannels = {
   settingsSetOnboardingCompleted: "settings:set-onboarding-completed",
   settingsSetLanguage: "settings:set-language",
   settingsSetTheme: "settings:set-theme",
+  settingsSetInterfaceMode: "settings:set-interface-mode",
   settingsSetCheckUpdatesOnStartup: "settings:set-check-updates-on-startup",
   settingsSetCosts: "settings:set-costs",
   settingsSetLastSelection: "settings:set-last-selection",

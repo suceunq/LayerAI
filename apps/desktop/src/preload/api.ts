@@ -77,6 +77,7 @@ export interface LayerAiApi {
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
   setLanguage: (language: SupportedLanguage) => Promise<void>;
   setTheme: (theme: SupportedTheme) => Promise<void>;
+  setInterfaceMode: (mode: import("../shared/ipc-types.js").SupportedInterfaceMode) => Promise<void>;
   setCheckUpdatesOnStartup: (enabled: boolean) => Promise<void>;
   setCostSettings: (costs: CostSettings) => Promise<void>;
   setLastSelection: (request: LastSelectionRequest) => Promise<void>;

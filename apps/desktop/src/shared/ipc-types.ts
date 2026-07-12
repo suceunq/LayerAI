@@ -194,6 +194,7 @@ export interface RecordOutcomeRequest {
 export type SupportedLanguage = "fr" | "en";
 
 export type SupportedTheme = "dark" | "light";
+export type SupportedInterfaceMode = "simple" | "expert";
 
 export interface CostSettings {
   currency: string;
@@ -209,6 +210,7 @@ export interface AppSettings {
   crealityPrintPath?: string;
   language?: SupportedLanguage;
   theme?: SupportedTheme;
+  interfaceMode?: SupportedInterfaceMode;
   checkUpdatesOnStartup?: boolean;
   postponedUpdateVersion?: string;
   costs?: CostSettings;

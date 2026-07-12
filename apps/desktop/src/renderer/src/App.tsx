@@ -27,6 +27,9 @@ export default function App(): React.JSX.Element {
   const loadLanguage = useAppStore((s) => s.loadLanguage);
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
+  const interfaceMode = useAppStore((s) => s.interfaceMode);
+  const setInterfaceMode = useAppStore((s) => s.setInterfaceMode);
+  const toggleSettingsDialog = useAppStore((s) => s.toggleSettingsDialog);
   const printers = useAppStore((s) => s.printers);
   const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
   const geometry = useAppStore((s) => s.geometry);
@@ -124,7 +127,7 @@ export default function App(): React.JSX.Element {
           Layer<span className="text-accent">AI</span>
         </h1>
         {printer && <span className="ml-2 mr-1 text-xs text-text-muted">{printer.name}</span>}
-        <div className="flex items-center gap-2">
+        {interfaceMode === "expert" && <div className="flex items-center gap-2">
           <button
             onClick={toggleLayerView}
             disabled={!analysis}
@@ -166,8 +169,35 @@ export default function App(): React.JSX.Element {
           >
             ✉ {t("app.feedback")}
           </button>
+        </div>}
+        <button
+          onClick={toggleFeedbackDialog}
+          title={t("app.feedback")}
+          className={`${interfaceMode === "simple" ? "ml-1" : "hidden"} rounded-full border border-accent/50 px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent hover:bg-accent hover:text-surface-0`}
+        >
+          ✉ {t("app.feedback")}
+        </button>
+        {interfaceMode === "simple" && (
+          <button
+            onClick={toggleSettingsDialog}
+            title={t("app.settingsAriaLabel")}
+            aria-label={t("app.settingsAriaLabel")}
+            className="rounded-full border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-text-primary"
+          >
+            ⚙
+          </button>
+        )}
+        <div className="ml-auto flex items-center gap-1 rounded-full border border-border-subtle p-0.5" title={t("app.modeTitle")}>
+          <button
+            onClick={() => void setInterfaceMode("simple")}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${interfaceMode === "simple" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"}`}
+          >{t("app.modeSimple")}</button>
+          <button
+            onClick={() => void setInterfaceMode("expert")}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${interfaceMode === "expert" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"}`}
+          >{t("app.modeExpert")}</button>
         </div>
-        <div className="ml-auto flex items-center gap-1 rounded-full border border-border-subtle p-0.5">
+        <div className="flex items-center gap-1 rounded-full border border-border-subtle p-0.5">
           <button
             onClick={() => void setTheme("dark")}
             title={t("settings.theme.dark")}
@@ -189,10 +219,10 @@ export default function App(): React.JSX.Element {
         </div>
       </header>
 
-      <LayerViewControls />
+      {interfaceMode === "expert" && <LayerViewControls />}
 
       <main className="layerai-workspace relative flex min-h-0 flex-1">
-        <LeftToolRail />
+        {interfaceMode === "expert" && <LeftToolRail />}
         <div className="relative flex-1">
           <Viewer3D
             ref={viewerRef}

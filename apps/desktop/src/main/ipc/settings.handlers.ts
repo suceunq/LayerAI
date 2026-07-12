@@ -7,6 +7,7 @@ import type {
   LastSelectionRequest,
   SupportedLanguage,
   SupportedTheme,
+  SupportedInterfaceMode,
 } from "../../shared/ipc-types.js";
 import { readSettings, updateSettings } from "../settings-store.js";
 import { buildAppMenu } from "../menu.js";
@@ -26,6 +27,10 @@ export function registerSettingsHandlers(): void {
   ipcMain.handle(IpcChannels.settingsSetTheme, async (_event, theme: SupportedTheme): Promise<void> => {
     await updateSettings({ theme });
     nativeTheme.themeSource = theme;
+  });
+
+  ipcMain.handle(IpcChannels.settingsSetInterfaceMode, async (_event, interfaceMode: SupportedInterfaceMode): Promise<void> => {
+    await updateSettings({ interfaceMode });
   });
 
   ipcMain.handle(IpcChannels.settingsSetCheckUpdatesOnStartup, async (_event, enabled: boolean): Promise<void> => {
