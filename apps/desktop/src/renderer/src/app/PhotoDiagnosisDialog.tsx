@@ -92,7 +92,7 @@ export function PhotoDiagnosisDialog(): React.JSX.Element | null {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             className="hidden"
             onChange={(e) => void handleFile(e.target.files?.[0])}
           />
@@ -112,6 +112,9 @@ export function PhotoDiagnosisDialog(): React.JSX.Element | null {
               </div>
 
               <p className="rounded-lg bg-surface-1 px-3 py-2 text-xs text-text-muted">💡 {t("diagnosis.hint")}</p>
+              <p className="rounded-lg border border-confidence-medium/40 bg-confidence-medium/10 px-3 py-2 text-xs text-text-secondary">
+                {t("diagnosis.privacyNotice")}
+              </p>
 
               {!result && !loading && (
                 <div className="flex gap-2">

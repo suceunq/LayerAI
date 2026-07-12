@@ -463,6 +463,9 @@ export function SettingsDialog(): React.JSX.Element | null {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
+              <p className="rounded-lg border border-accent/30 bg-accent/10 p-3 text-xs text-text-secondary">
+                {t("settings.apiKeys.privacyNotice")}
+              </p>
               {providers.map((provider) => {
                 const meta = providerMeta(provider.id);
                 return (

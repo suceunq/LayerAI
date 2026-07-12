@@ -1,4 +1,16 @@
 import { providerMeta, type AiProviderId } from "../../shared/ai-providers.js";
+import { validateProviderBaseUrl } from "../security/input-policy.js";
+
+const REQUEST_TIMEOUT_MS = 30_000;
+const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
+
+async function readJson<T>(res: Response): Promise<T> {
+  const declared = Number(res.headers.get("content-length") ?? 0);
+  if (declared > MAX_RESPONSE_BYTES) throw new Error("Réponse du fournisseur anormalement volumineuse.");
+  const text = await res.text();
+  if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) throw new Error("Réponse du fournisseur anormalement volumineuse.");
+  return JSON.parse(text) as T;
+}
 
 interface ChatImage {
   base64: string;
@@ -15,7 +27,7 @@ interface ChatParams {
 
 async function extractError(res: Response): Promise<string> {
   try {
-    const data = (await res.json()) as { error?: { message?: string }; message?: string };
+    const data = await readJson<{ error?: { message?: string }; message?: string }>(res);
     return data.error?.message ?? data.message ?? `HTTP ${res.status}`;
   } catch {
     return `HTTP ${res.status}`;
@@ -35,9 +47,10 @@ async function anthropicChat({ apiKey, model, prompt, image }: ChatParams): Prom
       max_tokens: 512,
       messages: [{ role: "user", content }],
     }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(await extractError(res));
-  const data = (await res.json()) as { content?: { text?: string }[] };
+  const data = await readJson<{ content?: { text?: string }[] }>(res);
   return data.content?.[0]?.text ?? "";
 }
 
@@ -45,13 +58,14 @@ async function geminiChat({ apiKey, model, prompt, image }: ChatParams): Promise
   if (!apiKey) throw new Error("Clé API manquante");
   const modelName = model || providerMeta("gemini").defaultModel;
   const parts = image ? [{ text: prompt }, { inline_data: { mime_type: image.mimeType, data: image.base64 } }] : [{ text: prompt }];
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ contents: [{ parts }] }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(await extractError(res));
-  const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+  const data = await readJson<{ candidates?: { content?: { parts?: { text?: string }[] } }[] }>(res);
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
@@ -60,7 +74,8 @@ async function openAiCompatibleChat(
   defaultModel: string,
   { apiKey, model, baseUrl, prompt, image }: ChatParams
 ): Promise<string> {
-  const url = `${(baseUrl || defaultBaseUrl).replace(/\/$/, "")}/chat/completions`;
+  const base = validateProviderBaseUrl("openai", baseUrl || defaultBaseUrl)!;
+  const url = `${base}/chat/completions`;
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (apiKey) headers["authorization"] = `Bearer ${apiKey}`;
   const content = image
@@ -70,9 +85,10 @@ async function openAiCompatibleChat(
     method: "POST",
     headers,
     body: JSON.stringify({ model: model || defaultModel, messages: [{ role: "user", content }] }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(await extractError(res));
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const data = await readJson<{ choices?: { message?: { content?: string } }[] }>(res);
   return data.choices?.[0]?.message?.content ?? "";
 }
 
@@ -84,13 +100,13 @@ async function openAiCompatibleChat(
  * first and using whatever is actually loaded avoids needing a model field at all.
  */
 async function lmStudioChat({ model, baseUrl, prompt, image }: ChatParams): Promise<string> {
-  const base = (baseUrl || providerMeta("lmstudio").defaultBaseUrl || "http://localhost:1234/v1").replace(/\/$/, "");
+  const base = validateProviderBaseUrl("lmstudio", baseUrl || providerMeta("lmstudio").defaultBaseUrl || "http://localhost:1234/v1")!;
 
   let resolvedModel = model;
   if (!resolvedModel) {
-    const modelsRes = await fetch(`${base}/models`);
+    const modelsRes = await fetch(`${base}/models`, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
     if (!modelsRes.ok) throw new Error(await extractError(modelsRes));
-    const modelsData = (await modelsRes.json()) as { data?: { id?: string }[] };
+    const modelsData = await readJson<{ data?: { id?: string }[] }>(modelsRes);
     resolvedModel = modelsData.data?.[0]?.id;
     if (!resolvedModel) throw new Error("Aucun modèle chargé dans LM Studio. Chargez un modèle dans l'application LM Studio, puis réessayez.");
   }
@@ -102,9 +118,10 @@ async function lmStudioChat({ model, baseUrl, prompt, image }: ChatParams): Prom
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ model: resolvedModel, messages: [{ role: "user", content }] }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(await extractError(res));
-  const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const data = await readJson<{ choices?: { message?: { content?: string } }[] }>(res);
   return data.choices?.[0]?.message?.content ?? "";
 }
 

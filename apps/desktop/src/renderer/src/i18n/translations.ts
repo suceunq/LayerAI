@@ -173,6 +173,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "diagnosis.analyze": "Analyser la photo",
     "diagnosis.analyzing": "Analyse en cours…",
     "diagnosis.hint": "Pour une analyse fiable : cadrez la zone du défaut, bonne lumière, fond neutre, photo nette.",
+    "diagnosis.privacyNotice": "Confidentialité : en cliquant sur « Analyser », cette photo est envoyée uniquement au fournisseur IA que vous avez choisi. Elle n’est pas envoyée à Bob59 et LayerAI n’en conserve aucune copie.",
     "diagnosis.resultTitle": "Résultat d'analyse",
     "diagnosis.correctionsTitle": "Corrections recommandées",
     "diagnosis.useCorrections": "Utiliser ces corrections",
@@ -374,6 +375,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "settings.apiKeys.cloudModeToggle": "Utiliser un fournisseur IA cloud pour interpréter l'intention",
     "settings.apiKeys.cloudModeHint": "Par défaut, LayerAI utilise son moteur de règles 100% local (gratuit, hors-ligne). Activez ceci pour laisser un des fournisseurs ci-dessus interpréter votre texte à la place — utile pour des formulations plus complexes. En cas d'échec, LayerAI revient automatiquement au moteur local.",
     "settings.apiKeys.noProviders": "Aucun fournisseur configuré. Ajoutez-en un ci-dessus pour activer l'IA cloud (optionnelle).",
+    "settings.apiKeys.privacyNotice": "Vos clés API sont chiffrées avec la protection sécurisée de Windows et ne sont jamais affichées ni envoyées à Bob59. Le texte ou les photos ne quittent votre ordinateur que lorsque vous activez volontairement une fonction IA cloud ; ils sont alors transmis directement au fournisseur choisi.",
 
     "menuAction.noModel": "Importez d'abord un modèle pour lancer l'optimisation automatique.",
     "menuAction.noModelResize": "Importez d'abord un modèle pour accéder à la mise à l'échelle.",
@@ -574,6 +576,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "diagnosis.analyze": "Analyze photo",
     "diagnosis.analyzing": "Analyzing…",
     "diagnosis.hint": "For a reliable analysis: frame the defect area, good lighting, neutral background, sharp photo.",
+    "diagnosis.privacyNotice": "Privacy: when you click “Analyze”, this photo is sent only to your selected AI provider. It is not sent to Bob59 and LayerAI does not retain a copy.",
     "diagnosis.resultTitle": "Analysis result",
     "diagnosis.correctionsTitle": "Recommended corrections",
     "diagnosis.useCorrections": "Use these corrections",
@@ -775,6 +778,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "settings.apiKeys.cloudModeToggle": "Use a cloud AI provider to interpret intent",
     "settings.apiKeys.cloudModeHint": "By default, LayerAI uses its 100% local rule engine (free, offline). Enable this to let one of the providers above interpret your text instead — useful for more complex phrasing. On failure, LayerAI automatically falls back to the local engine.",
     "settings.apiKeys.noProviders": "No provider configured. Add one above to enable optional cloud AI.",
+    "settings.apiKeys.privacyNotice": "Your API keys are encrypted with Windows secure protection and are never displayed or sent to Bob59. Text or photos leave your computer only when you deliberately enable a cloud AI feature; they are then sent directly to the selected provider.",
 
     "menuAction.noModel": "Import a model first to run automatic optimization.",
     "menuAction.noModelResize": "Import a model first to access resizing.",

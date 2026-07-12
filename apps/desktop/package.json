@@ -1,6 +1,6 @@
 {
   "name": "@layerai/desktop",
-  "version": "1.7.12",
+  "version": "1.7.13",
   "private": true,
   "type": "module",
   "author": "LayerAI",
@@ -11,7 +11,7 @@
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "echo no-lint",
-    "test": "electron-vite build && node --test scripts/analysis-worker.test.mjs",
+    "test": "electron-vite build && node --test scripts/analysis-worker.test.mjs && tsx --test src/main/security/*.test.ts",
     "package:win": "electron-vite build && electron-builder --win && node scripts/generate-release-manifest.mjs"
   },
   "dependencies": {
@@ -42,6 +42,7 @@
     "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
     "tailwindcss": "^4.3.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^8.1.3"
   }

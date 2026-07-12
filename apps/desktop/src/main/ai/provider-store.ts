@@ -1,5 +1,5 @@
 import { safeStorage, app } from "electron";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rename, rm } from "node:fs/promises";
 import { join } from "node:path";
 import type { AiProviderId } from "../../shared/ai-providers.js";
 import type { AiProviderPublic, SaveAiProviderRequest } from "../../shared/ipc-types.js";
@@ -34,18 +34,21 @@ async function readStore(): Promise<AiStoreFile> {
 
 async function writeStore(store: AiStoreFile): Promise<void> {
   await mkdir(app.getPath("userData"), { recursive: true });
-  await writeFile(filePath(), JSON.stringify(store, null, 2), "utf-8");
+  const temporary = `${filePath()}.tmp`;
+  await writeFile(temporary, JSON.stringify(store, null, 2), { encoding: "utf-8", mode: 0o600 });
+  await rm(filePath(), { force: true });
+  await rename(temporary, filePath());
 }
 
-/** OS-level encryption (DPAPI on Windows) via Electron safeStorage. Falls back to plain base64 (NOT secure, just avoids crashing) if unavailable on this machine. */
+/** OS-level encryption (DPAPI on Windows) via Electron safeStorage. A key is never persisted if secure encryption is unavailable. */
 function encryptKey(plain: string): string {
-  if (!safeStorage.isEncryptionAvailable()) return Buffer.from(plain, "utf-8").toString("base64");
+  if (!safeStorage.isEncryptionAvailable()) throw new Error("Le stockage sécurisé du système n’est pas disponible : la clé API n’a pas été enregistrée.");
   return safeStorage.encryptString(plain).toString("base64");
 }
 
 function decryptKey(encryptedBase64: string): string {
   const buf = Buffer.from(encryptedBase64, "base64");
-  if (!safeStorage.isEncryptionAvailable()) return buf.toString("utf-8");
+  if (!safeStorage.isEncryptionAvailable()) throw new Error("Le stockage sécurisé du système n’est pas disponible.");
   return safeStorage.decryptString(buf);
 }
 

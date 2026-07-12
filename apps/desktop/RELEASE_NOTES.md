@@ -1,4 +1,18 @@
-# LayerAI 1.7.12
+# LayerAI 1.7.13
+
+## Sécurité et confidentialité
+- Le renderer Electron fonctionne désormais dans un bac à sable, en plus de l’isolation de contexte et de l’absence d’accès Node.js.
+- Toute navigation intégrée et toute demande de permission navigateur sont bloquées ; seuls les liens HTTP(S) explicitement ouverts sont transmis au navigateur système.
+- Les clés API ne sont plus jamais enregistrées si le chiffrement sécurisé Windows est indisponible.
+- Le fichier contenant les fournisseurs IA est écrit atomiquement avec des permissions privées.
+- Les serveurs IA cloud personnalisés exigent HTTPS, sans identifiants intégrés dans l’adresse.
+- LM Studio est strictement limité à localhost afin qu’une photo ou un texte présenté comme « local » ne puisse pas partir vers un serveur distant.
+- Les requêtes IA expirent après 30 secondes et les réponses anormalement volumineuses sont refusées.
+- Les noms de modèles, clés, adresses, formats, signatures et tailles des photos sont validés côté processus principal.
+- Les modèles importés sont limités à 250 Mo et doivent être de vrais fichiers STL, OBJ ou 3MF.
+- L’interface explique maintenant précisément quelles données quittent l’ordinateur et confirme que Bob59 ne reçoit ni les clés, ni les textes, ni les photos.
+- Audit des dépendances de production : aucune vulnérabilité connue détectée.
+- Trois tests automatisés couvrent les destinations réseau et les entrées photo interdites.
 
 ## Performances et fluidité
 - L’analyse géométrique lourde s’exécute maintenant dans un processus de travail séparé.

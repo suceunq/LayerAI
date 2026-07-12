@@ -1,8 +1,9 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { extname, basename } from "node:path";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { ImportedFilePayload } from "../../preload/api.js";
+import { MAX_MODEL_FILE_BYTES } from "../security/input-policy.js";
 
 const SUPPORTED_EXTENSIONS = new Set(["stl", "obj", "3mf"]);
 
@@ -14,6 +15,9 @@ function detectFormat(filePath: string): ImportedFilePayload["format"] | null {
 async function readModelFile(filePath: string): Promise<ImportedFilePayload> {
   const format = detectFormat(filePath);
   if (!format) throw new Error(`Format de fichier non supporté : ${filePath}`);
+  const info = await stat(filePath);
+  if (!info.isFile()) throw new Error("Le chemin sélectionné n’est pas un fichier.");
+  if (info.size <= 0 || info.size > MAX_MODEL_FILE_BYTES) throw new Error("Le modèle doit peser moins de 250 Mo.");
   const data = await readFile(filePath);
   return { fileName: basename(filePath), filePath, format, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
 }
