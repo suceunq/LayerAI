@@ -1,5 +1,6 @@
 import type { ConfigPrimitive, FilamentProfile, GeneratedConfig, PrinterProfile } from "@layerai/shared-types";
 import { BAMBU_PARAM_MAP, BAMBU_UNMAPPED_KEYS } from "./bambu-param-map.js";
+import { validateStandaloneBambuJsonText, validateStandaloneIniText } from "./validation.js";
 
 const PERCENT_KEYS = new Set(["fill_density"]);
 
@@ -88,7 +89,9 @@ export function buildStandaloneIniText(config: GeneratedConfig, printer: Printer
     lines.push(`${key} = ${serializeValue(key, entry.value)}`);
   }
 
-  return lines.join("\n") + "\n";
+  const text = lines.join("\n") + "\n";
+  validateStandaloneIniText(text);
+  return text;
 }
 
 /**
@@ -118,5 +121,7 @@ export function buildStandaloneBambuJsonText(config: GeneratedConfig, printer: P
     profile[bambuKey] = serializeValue(key, entry.value);
   }
 
-  return JSON.stringify(profile, null, 4) + "\n";
+  const text = JSON.stringify(profile, null, 4) + "\n";
+  validateStandaloneBambuJsonText(text);
+  return text;
 }

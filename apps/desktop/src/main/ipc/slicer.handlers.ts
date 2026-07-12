@@ -1,10 +1,10 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
-import { writeFile, mkdir } from "node:fs/promises";
+import { writeFile, mkdir, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildThreeMf } from "@layerai/threemf-writer";
+import { buildThreeMf, validateThreeMf } from "@layerai/threemf-writer";
 import { getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { OpenInSlicerRequest, OpenInSlicerResponse, AppSettings } from "../../shared/ipc-types.js";
@@ -106,6 +106,7 @@ export function registerSlicerHandlers(): void {
       await mkdir(tempDir, { recursive: true });
       const tempFilePath = join(tempDir, `${(request.objectName ?? "projet-layerai").replace(/[^a-z0-9_-]+/gi, "_")}.3mf`);
       await writeFile(tempFilePath, bytes);
+      await validateThreeMf(new Uint8Array(await readFile(tempFilePath)));
 
       const child = spawn(executablePath, [tempFilePath], { detached: true, stdio: "ignore" });
       child.on("error", () => {});

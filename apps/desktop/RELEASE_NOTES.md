@@ -1,4 +1,12 @@
-# LayerAI 1.7.7
+# LayerAI 1.7.8
+
+## Fiabilité des exports
+- Validation des géométries avant génération : coordonnées, triangles et indices sont contrôlés.
+- Relecture complète des archives 3MF avec vérification CRC et contrôle des fichiers obligatoires.
+- Validation des profils PrusaSlicer INI et Bambu Studio / Creality Print JSON.
+- Chaque fichier 3MF, INI, JSON, PDF ou PNG est relu depuis le disque après écriture avant d’être annoncé comme enregistré.
+- Les projets temporaires envoyés aux slicers sont eux aussi validés avant ouverture.
+- Première suite de tests dédiée aux exports valides, corrompus et incomplets.
 
 ## Nouvelle identité visuelle
 - Interface redessinée pour distinguer clairement LayerAI de SauvegardePro.

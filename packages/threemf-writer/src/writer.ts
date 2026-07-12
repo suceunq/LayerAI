@@ -4,6 +4,7 @@ import { CONTENT_TYPES_XML, ROOT_RELS_XML } from "./opc-fixed-parts.js";
 import { buildModelXml } from "./model-xml.js";
 import { buildPrintConfigText, buildBambuPrintConfigText } from "./config-writer.js";
 import { weldGeometry } from "./weld.js";
+import { validateMeshGeometry, validateThreeMf } from "./validation.js";
 
 export interface BuildThreeMfInput {
   geometry: MeshGeometryData;
@@ -24,6 +25,11 @@ function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
 export async function buildThreeMf(input: BuildThreeMfInput): Promise<Uint8Array> {
   const { geometry, config, printer, filament, objectName = "LayerAI part", positions = [bedCenterOf(printer)] } = input;
 
+  validateMeshGeometry(geometry);
+  if (positions.length === 0 || positions.some((position) => !Number.isFinite(position.x) || !Number.isFinite(position.y))) {
+    throw new Error("Placement invalide : au moins une position XY finie est requise.");
+  }
+
   const weldedGeometry = weldGeometry(geometry);
 
   const zip = new JSZip();
@@ -37,5 +43,7 @@ export async function buildThreeMf(input: BuildThreeMfInput): Promise<Uint8Array
     zip.file("Metadata/Slic3r_PE.config", buildPrintConfigText(config, printer, filament));
   }
 
-  return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+  const bytes = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
+  await validateThreeMf(bytes);
+  return bytes;
 }

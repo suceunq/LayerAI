@@ -1,6 +1,13 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
-import { writeFile } from "node:fs/promises";
-import { buildThreeMf, buildStandaloneIniText, buildStandaloneBambuJsonText } from "@layerai/threemf-writer";
+import { readFile, writeFile } from "node:fs/promises";
+import {
+  buildThreeMf,
+  buildStandaloneIniText,
+  buildStandaloneBambuJsonText,
+  validateThreeMf,
+  validateStandaloneIniText,
+  validateStandaloneBambuJsonText,
+} from "@layerai/threemf-writer";
 import { generatePdfReport } from "@layerai/pdf-report";
 import { getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
 import { IpcChannels } from "../../shared/ipc-channels.js";
@@ -18,6 +25,33 @@ import type {
 } from "../../shared/ipc-types.js";
 
 const PNG_DATA_URL_PREFIX = "data:image/png;base64,";
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+async function writeAndVerifyThreeMf(path: string, bytes: Uint8Array): Promise<void> {
+  await writeFile(path, bytes);
+  await validateThreeMf(new Uint8Array(await readFile(path)));
+}
+
+async function writeAndVerifyText(path: string, text: string, validate: (value: string) => void): Promise<void> {
+  await writeFile(path, text, "utf-8");
+  validate(await readFile(path, "utf-8"));
+}
+
+async function writeAndVerifyPdf(path: string, bytes: Uint8Array): Promise<void> {
+  await writeFile(path, bytes);
+  const written = await readFile(path);
+  if (written.byteLength < 100 || written.subarray(0, 5).toString("ascii") !== "%PDF-") {
+    throw new Error("Le rapport PDF écrit est vide ou invalide.");
+  }
+}
+
+async function writeAndVerifyPng(path: string, bytes: Uint8Array): Promise<void> {
+  await writeFile(path, bytes);
+  const written = await readFile(path);
+  if (written.byteLength < PNG_SIGNATURE.length || !written.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
+    throw new Error("La capture PNG écrite est vide ou invalide.");
+  }
+}
 
 function resolvePrinterAndFilament(printerId: string, filamentId: string) {
   const printer = getPrinterModel(printerId);
@@ -48,7 +82,7 @@ export function registerExportHandlers(): void {
       objectName: request.objectName,
       positions: request.positions,
     });
-    await writeFile(result.filePath, bytes);
+    await writeAndVerifyThreeMf(result.filePath, bytes);
     return { saved: true, filePath: result.filePath };
   });
 
@@ -64,7 +98,7 @@ export function registerExportHandlers(): void {
     const result = window ? await dialog.showSaveDialog(window, dialogOptions) : await dialog.showSaveDialog(dialogOptions);
     if (result.canceled || !result.filePath) return { saved: false };
 
-    await writeFile(result.filePath, buildStandaloneIniText(request.config, printer, filament), "utf-8");
+    await writeAndVerifyText(result.filePath, buildStandaloneIniText(request.config, printer, filament), validateStandaloneIniText);
     return { saved: true, filePath: result.filePath };
   });
 
@@ -81,7 +115,11 @@ export function registerExportHandlers(): void {
     const result = window ? await dialog.showSaveDialog(window, dialogOptions) : await dialog.showSaveDialog(dialogOptions);
     if (result.canceled || !result.filePath) return { saved: false };
 
-    await writeFile(result.filePath, buildStandaloneBambuJsonText(request.config, printer, filament), "utf-8");
+    await writeAndVerifyText(
+      result.filePath,
+      buildStandaloneBambuJsonText(request.config, printer, filament),
+      validateStandaloneBambuJsonText,
+    );
     return { saved: true, filePath: result.filePath };
   });
 
@@ -98,7 +136,7 @@ export function registerExportHandlers(): void {
     const result = window ? await dialog.showSaveDialog(window, dialogOptions) : await dialog.showSaveDialog(dialogOptions);
     if (result.canceled || !result.filePath) return { saved: false };
 
-    await writeFile(result.filePath, buffer);
+    await writeAndVerifyPng(result.filePath, buffer);
     return { saved: true, filePath: result.filePath };
   });
 
@@ -126,7 +164,7 @@ export function registerExportHandlers(): void {
       generatedAt: new Date().toISOString(),
       quantity: request.quantity,
     });
-    await writeFile(result.filePath, pdf);
+    await writeAndVerifyPdf(result.filePath, pdf);
     return { saved: true, filePath: result.filePath };
   });
 }
