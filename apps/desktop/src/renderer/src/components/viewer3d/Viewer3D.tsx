@@ -29,6 +29,7 @@ interface Viewer3DProps {
   /** Which entry of allPlatesPositions gets the real interactive mesh; the rest render as ghost-only ("full ghost") plates. */
   activePlateIndex?: number;
   theme?: "dark" | "light";
+  ariaLabel?: string;
 }
 
 const VIEWER_BACKGROUND: Record<"dark" | "light", string> = { dark: "#0b0b0d", light: "#f4f4f6" };
@@ -153,11 +154,28 @@ export const Viewer3D = forwardRef<Viewer3DHandle, Viewer3DProps>(function Viewe
     allPlatesPositions,
     activePlateIndex = 0,
     theme = "dark",
+    ariaLabel,
   },
   ref
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const refs = useRef<SceneRefs | null>(null);
+
+  const handleKeyboardView = (event: React.KeyboardEvent<HTMLDivElement>): void => {
+    const sceneRefs = refs.current;
+    if (!sceneRefs || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "+", "=", "-"].includes(event.key)) return;
+    event.preventDefault();
+    const spherical = new THREE.Spherical().setFromVector3(sceneRefs.camera.position.clone().sub(sceneRefs.controls.target));
+    if (event.key === "ArrowLeft") spherical.theta -= 0.12;
+    if (event.key === "ArrowRight") spherical.theta += 0.12;
+    if (event.key === "ArrowUp") spherical.phi = Math.max(0.1, spherical.phi - 0.1);
+    if (event.key === "ArrowDown") spherical.phi = Math.min(Math.PI - 0.1, spherical.phi + 0.1);
+    if (event.key === "+" || event.key === "=") spherical.radius = Math.max(5, spherical.radius * 0.9);
+    if (event.key === "-") spherical.radius = Math.min(5000, spherical.radius * 1.1);
+    sceneRefs.camera.position.copy(sceneRefs.controls.target).add(new THREE.Vector3().setFromSpherical(spherical));
+    sceneRefs.camera.lookAt(sceneRefs.controls.target);
+    sceneRefs.controls.update();
+  };
 
   useImperativeHandle(
     ref,
@@ -190,7 +208,7 @@ export const Viewer3D = forwardRef<Viewer3DHandle, Viewer3DProps>(function Viewe
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 0, 0);
-    controls.enableDamping = true;
+    controls.enableDamping = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const hemiLight = new THREE.HemisphereLight("#ffffff", "#22222a", 1.1);
     scene.add(hemiLight);
@@ -492,5 +510,5 @@ export const Viewer3D = forwardRef<Viewer3DHandle, Viewer3DProps>(function Viewe
     };
   }, [facePickModeActive, onSurfaceClicked, overhangFaces]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return <div ref={containerRef} role="img" tabIndex={0} aria-label={ariaLabel} onKeyDown={handleKeyboardView} className="h-full w-full" />;
 });

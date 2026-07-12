@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "../state/useAppStore.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 export function HelpAboutDialog(): React.JSX.Element | null {
   const helpDialogOpen = useAppStore((s) => s.helpDialogOpen);
@@ -10,6 +11,7 @@ export function HelpAboutDialog(): React.JSX.Element | null {
   const replayOnboarding = useAppStore((s) => s.replayOnboarding);
   const { t } = useTranslation();
   const [version, setVersion] = useState("");
+  const dialogRef = useModalAccessibility(helpDialogOpen, closeHelpDialog);
 
   useEffect(() => {
     if (helpDialogOpen) void window.api.getAppVersion().then(setVersion);
@@ -19,25 +21,27 @@ export function HelpAboutDialog(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={closeHelpDialog}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="help-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[80vh] w-[520px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 className="text-base font-semibold text-text-primary">{t("help.title")}</h2>
-          <button onClick={closeHelpDialog} className="text-text-muted hover:text-text-primary">
+          <h2 id="help-dialog-title" className="text-base font-semibold text-text-primary">{t("help.title")}</h2>
+          <button onClick={closeHelpDialog} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>
 
-        <div className="flex border-b border-border-subtle px-5">
+        <div className="flex border-b border-border-subtle px-5" role="tablist" aria-label={t("help.title")}>
           <button
+            role="tab" aria-selected={helpDialogTab === "aide"} aria-controls="help-tabpanel"
             onClick={() => openHelpDialog("aide")}
             className={`border-b-2 px-3 py-2 text-sm ${helpDialogTab === "aide" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("help.tabHelp")}
           </button>
           <button
+            role="tab" aria-selected={helpDialogTab === "apropos"} aria-controls="help-tabpanel"
             onClick={() => openHelpDialog("apropos")}
             className={`border-b-2 px-3 py-2 text-sm ${helpDialogTab === "apropos" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
@@ -45,7 +49,7 @@ export function HelpAboutDialog(): React.JSX.Element | null {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div id="help-tabpanel" role="tabpanel" className="flex-1 overflow-y-auto p-5">
           {helpDialogTab === "aide" ? (
             <div className="flex flex-col gap-4 text-sm text-text-secondary">
               <section>

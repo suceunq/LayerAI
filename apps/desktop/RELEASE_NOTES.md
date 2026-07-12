@@ -1,4 +1,19 @@
-# LayerAI 1.7.13
+# LayerAI 1.7.14
+
+## Accessibilité
+- Toutes les fenêtres modales et tous les panneaux latéraux gèrent maintenant la touche Échap, le piégeage du focus et le retour vers l’action d’origine.
+- Les fenêtres, titres, onglets et panneaux disposent de rôles et relations ARIA explicites pour les lecteurs d’écran.
+- Un lien d’évitement permet d’aller directement au contenu principal.
+- Le viewer 3D devient accessible au clavier : flèches pour tourner, touches plus et moins pour zoomer.
+- Les boutons uniquement représentés par une icône possèdent maintenant un nom accessible et les sélecteurs de mode/thème exposent leur état.
+- Les erreurs, notifications, analyses en cours et états de mise à jour sont annoncés automatiquement.
+- Les barres de progression exposent leur libellé et leur valeur aux technologies d’assistance.
+- La langue du document suit désormais réellement le choix français/anglais.
+- Le contraste des textes discrets atteint WCAG AA dans les thèmes sombre et clair.
+- Les contours de focus couvrent boutons, liens, champs, listes, zones de texte et éléments interactifs personnalisés.
+- La préférence système « réduire les animations » est respectée, avec prise en charge du mode de contraste forcé de Windows.
+- Les commandes invisibles au repos deviennent visibles dès qu’elles reçoivent le focus clavier.
+- Deux tests automatisés protègent les ratios de contraste et les mécanismes clavier/mouvement.
 
 ## Sécurité et confidentialité
 - Le renderer Electron fonctionne désormais dans un bac à sable, en plus de l’isolation de contexte et de l’absence d’accès Node.js.

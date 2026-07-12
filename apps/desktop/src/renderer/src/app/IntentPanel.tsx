@@ -39,6 +39,7 @@ export function IntentPanel(): React.JSX.Element {
       </div>
 
       <textarea
+        aria-label={t("intent.title")}
         value={intentText}
         onChange={(e) => setIntentText(e.target.value)}
         placeholder={t("intent.placeholder")}
@@ -86,7 +87,7 @@ export function IntentPanel(): React.JSX.Element {
 
       <RiskOverview />
 
-      {error && <p className="text-sm text-confidence-low">{error}</p>}
+      {error && <p role="alert" className="text-sm text-confidence-low">{error}</p>}
 
       <Button onClick={() => void generateConfiguration()} disabled={step === "generating"} className="mt-auto">
         {step === "generating" ? t("intent.generating") : t("intent.generate")}

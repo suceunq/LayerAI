@@ -3,6 +3,7 @@ import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { ConfidenceBadge } from "../components/ui/ConfidenceBadge.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 const MAX_DIMENSION = 1024;
 
@@ -52,6 +53,7 @@ export function PhotoDiagnosisDialog(): React.JSX.Element | null {
   const resetPhotoDiagnosis = useAppStore((s) => s.resetPhotoDiagnosis);
   const config = useAppStore((s) => s.config);
   const { t } = useTranslation();
+  const dialogRef = useModalAccessibility(open, toggleOpen);
 
   const [preview, setPreview] = useState<{ base64: string; mimeType: string; previewUrl: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,13 +77,13 @@ export function PhotoDiagnosisDialog(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="diagnosis-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[85vh] w-[480px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 className="text-base font-semibold text-text-primary">{t("diagnosis.title")}</h2>
-          <button onClick={toggleOpen} className="text-text-muted hover:text-text-primary">
+          <h2 id="diagnosis-dialog-title" className="text-base font-semibold text-text-primary">{t("diagnosis.title")}</h2>
+          <button onClick={toggleOpen} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>
@@ -130,7 +132,7 @@ export function PhotoDiagnosisDialog(): React.JSX.Element | null {
               {loading && <p className="text-center text-sm text-text-secondary">{t("diagnosis.analyzing")}</p>}
 
               {error && (
-                <div className="flex flex-col gap-2 rounded-lg border border-confidence-low/40 bg-confidence-low/10 p-3 text-xs text-confidence-low">
+                <div role="alert" className="flex flex-col gap-2 rounded-lg border border-confidence-low/40 bg-confidence-low/10 p-3 text-xs text-confidence-low">
                   <span>{error}</span>
                   <Button variant="secondary" onClick={handleNewPhoto} className="self-start">
                     {t("diagnosis.newPhoto")}

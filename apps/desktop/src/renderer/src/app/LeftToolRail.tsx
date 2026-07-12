@@ -21,6 +21,7 @@ export function LeftToolRail(): React.JSX.Element | null {
       <button
         onClick={toggleResizePanel}
         title={t("app.resize")}
+        aria-label={`${t("app.resize")}${!fits ? ` — ${t("accessibility.modelDoesNotFit")}` : ""}`}
         className="relative flex h-10 w-10 items-center justify-center rounded-lg text-lg text-text-secondary hover:bg-surface-2 hover:text-accent"
       >
         ⛶
@@ -29,6 +30,8 @@ export function LeftToolRail(): React.JSX.Element | null {
       <button
         onClick={toggleFacePickMode}
         title={t("app.chooseFace")}
+        aria-label={t("app.chooseFace")}
+        aria-pressed={facePickModeActive}
         className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg ${
           facePickModeActive ? "bg-accent text-surface-0" : "text-text-secondary hover:bg-surface-2 hover:text-accent"
         }`}

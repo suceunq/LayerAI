@@ -4,6 +4,7 @@ import { useTranslation } from "../i18n/useTranslation.js";
 import { Button } from "../components/ui/Button.js";
 import { AI_PROVIDERS, providerMeta, type AiProviderId } from "../../../shared/ai-providers.js";
 import type { AiSettingsPublic, CompanyLegalStatus, CompanySettings } from "../../../shared/ipc-types.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 type TestState = "idle" | "testing" | "success" | { error: string };
 
@@ -55,6 +56,7 @@ export function SettingsDialog(): React.JSX.Element | null {
   const companySettings = useAppStore((s) => s.companySettings);
   const setCompanySettings = useAppStore((s) => s.setCompanySettings);
   const { t } = useTranslation();
+  const dialogRef = useModalAccessibility(open, toggleOpen);
 
   const [tab, setTab] = useState<"apiKeys" | "language" | "updates" | "costs" | "company">("apiKeys");
   const [costsForm, setCostsForm] = useState(costSettings);
@@ -134,43 +136,48 @@ export function SettingsDialog(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[85vh] w-[560px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 className="text-base font-semibold text-text-primary">{t("settings.title")}</h2>
-          <button onClick={toggleOpen} className="text-text-muted hover:text-text-primary">
+          <h2 id="settings-dialog-title" className="text-base font-semibold text-text-primary">{t("settings.title")}</h2>
+          <button onClick={toggleOpen} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>
 
-        <div className="flex border-b border-border-subtle px-5">
+        <div className="flex border-b border-border-subtle px-5" role="tablist" aria-label={t("settings.title")}>
           <button
+            role="tab" aria-selected={tab === "apiKeys"} aria-controls="settings-tabpanel"
             onClick={() => setTab("apiKeys")}
             className={`border-b-2 px-3 py-2 text-sm ${tab === "apiKeys" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("settings.tabApiKeys")}
           </button>
           <button
+            role="tab" aria-selected={tab === "language"} aria-controls="settings-tabpanel"
             onClick={() => setTab("language")}
             className={`border-b-2 px-3 py-2 text-sm ${tab === "language" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("settings.tabLanguage")}
           </button>
           <button
+            role="tab" aria-selected={tab === "updates"} aria-controls="settings-tabpanel"
             onClick={() => setTab("updates")}
             className={`border-b-2 px-3 py-2 text-sm ${tab === "updates" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("settings.tabUpdates")}
           </button>
           <button
+            role="tab" aria-selected={tab === "costs"} aria-controls="settings-tabpanel"
             onClick={() => setTab("costs")}
             className={`border-b-2 px-3 py-2 text-sm ${tab === "costs" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("settings.tabCosts")}
           </button>
           <button
+            role="tab" aria-selected={tab === "company"} aria-controls="settings-tabpanel"
             onClick={() => setTab("company")}
             className={`border-b-2 px-3 py-2 text-sm ${tab === "company" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
@@ -178,7 +185,7 @@ export function SettingsDialog(): React.JSX.Element | null {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div id="settings-tabpanel" role="tabpanel" className="flex-1 overflow-y-auto p-5">
           {tab === "company" ? (
             <div className="flex flex-col gap-4">
               <p className="text-xs text-text-muted">{t("settings.company.intro")}</p>

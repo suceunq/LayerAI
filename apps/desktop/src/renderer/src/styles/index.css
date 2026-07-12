@@ -11,7 +11,7 @@
   --color-border-subtle: #293653;
   --color-text-primary: #f4f7ff;
   --color-text-secondary: #a8b4cb;
-  --color-text-muted: #697894;
+  --color-text-muted: #8492ad;
   --color-confidence-high: #34d9b0;
   --color-confidence-medium: #ffbe55;
   --color-confidence-low: #ff6b89;
@@ -29,7 +29,7 @@
   --color-border-subtle: #cbd4e7;
   --color-text-primary: #172033;
   --color-text-secondary: #526079;
-  --color-text-muted: #7d8aa2;
+  --color-text-muted: #5f6b80;
 }
 
 html,
@@ -131,9 +131,44 @@ body {
 
 .layerai-shell button:focus-visible,
 .layerai-shell input:focus-visible,
-.layerai-shell select:focus-visible {
+.layerai-shell select:focus-visible,
+.layerai-shell textarea:focus-visible,
+.layerai-shell a:focus-visible,
+.layerai-shell [tabindex]:focus-visible {
   outline: 2px solid var(--color-accent-glow);
   outline-offset: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 0.5rem;
+  background: var(--color-accent);
+  color: var(--color-surface-0);
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+}
+
+.skip-link:focus { transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .layerai-shell button:focus-visible,
+  .layerai-shell input:focus-visible,
+  .layerai-shell select:focus-visible,
+  .layerai-shell textarea:focus-visible,
+  .layerai-shell a:focus-visible { outline: 3px solid Highlight; }
 }
 
 * {

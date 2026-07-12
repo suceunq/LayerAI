@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 interface LineItemForm {
   description: string;
@@ -33,6 +34,7 @@ export function InvoiceDialog(): React.JSX.Element | null {
   const comparison = useAppStore((s) => s.comparison);
   const costSettings = useAppStore((s) => s.costSettings);
   const { t } = useTranslation();
+  const dialogRef = useModalAccessibility(open, toggleOpen);
 
   const [client, setClient] = useState({ name: "", addressLine1: "", addressLine2: "", postalCode: "", city: "" });
   const [lineItems, setLineItems] = useState<LineItemForm[]>([]);
@@ -72,13 +74,13 @@ export function InvoiceDialog(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="invoice-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[85vh] w-[600px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 className="text-base font-semibold text-text-primary">{t("invoice.title")}</h2>
-          <button onClick={toggleOpen} className="text-text-muted hover:text-text-primary">
+          <h2 id="invoice-dialog-title" className="text-base font-semibold text-text-primary">{t("invoice.title")}</h2>
+          <button onClick={toggleOpen} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>
@@ -195,7 +197,7 @@ export function InvoiceDialog(): React.JSX.Element | null {
                 />
               </label>
 
-              {invoiceError && <p className="text-sm text-confidence-low">{invoiceError}</p>}
+              {invoiceError && <p role="alert" className="text-sm text-confidence-low">{invoiceError}</p>}
             </div>
           )}
         </div>

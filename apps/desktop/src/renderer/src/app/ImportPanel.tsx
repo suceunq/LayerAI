@@ -72,7 +72,7 @@ export function ImportPanel(): React.JSX.Element {
         <Button onClick={() => void importFromDialog()}>{t("import.browse")}</Button>
       </div>
 
-      {error && <p className="max-w-md text-center text-sm text-confidence-low">{error}</p>}
+      {error && <p role="alert" className="max-w-md text-center text-sm text-confidence-low">{error}</p>}
 
       <RecentProjectsList />
 

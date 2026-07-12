@@ -3,6 +3,7 @@ import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { computeSizeFit } from "../lib/size-fit.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 const PRESET_PERCENTS = [95, 90, 85, 75, 50];
 
@@ -15,6 +16,7 @@ export function ResizePanel(): React.JSX.Element | null {
   const selectedPrinterId = useAppStore((s) => s.selectedPrinterId);
   const rescaleModel = useAppStore((s) => s.rescaleModel);
   const isRescaling = useAppStore((s) => s.isRescaling);
+  const dialogRef = useModalAccessibility(resizePanelOpen, toggleResizePanel);
 
   const printer = printers.find((p) => p.id === selectedPrinterId);
   const fit = analysis && printer ? computeSizeFit(analysis, printer) : null;
@@ -42,13 +44,13 @@ export function ResizePanel(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-20 flex justify-start bg-black/50" onClick={toggleResizePanel}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="resize-panel-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex h-full w-[400px] flex-col gap-5 overflow-y-auto border-r border-border-subtle bg-surface-0 p-6"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-text-primary">{t("resize.title")}</h2>
-          <button onClick={toggleResizePanel} className="text-text-muted hover:text-text-primary">
+          <h2 id="resize-panel-title" className="text-lg font-semibold text-text-primary">{t("resize.title")}</h2>
+          <button onClick={toggleResizePanel} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 const FEEDBACK_EMAIL = "bob62138@gmail.com";
 
@@ -10,6 +11,7 @@ export function FeedbackDialog(): React.JSX.Element | null {
   const toggleOpen = useAppStore((s) => s.toggleFeedbackDialog);
   const showToolNotice = useAppStore((s) => s.showToolNotice);
   const { t } = useTranslation();
+  const dialogRef = useModalAccessibility(open, toggleOpen);
 
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -43,13 +45,13 @@ export function FeedbackDialog(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="feedback-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex max-h-[80vh] w-[520px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 className="text-base font-semibold text-text-primary">{t("feedback.title")}</h2>
-          <button onClick={toggleOpen} className="text-text-muted hover:text-text-primary">
+          <h2 id="feedback-dialog-title" className="text-base font-semibold text-text-primary">{t("feedback.title")}</h2>
+          <button onClick={toggleOpen} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>

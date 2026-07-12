@@ -87,7 +87,7 @@ export function ReviewPanel(): React.JSX.Element {
         {t("review.advancedLink")}
       </button>
 
-      {error && <p className="text-sm text-confidence-low">{error}</p>}
+      {error && <p role="alert" className="text-sm text-confidence-low">{error}</p>}
       {slicerNotice && <p className="text-sm text-accent">{slicerNotice}</p>}
 
       <div className="mt-auto flex flex-col gap-2">

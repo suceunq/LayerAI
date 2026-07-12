@@ -1,6 +1,7 @@
 import { useAppStore } from "../state/useAppStore.js";
 import { useTranslation } from "../i18n/useTranslation.js";
 import { Button } from "../components/ui/Button.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 function formatBytesPerSecond(bytesPerSecond: number): string {
   const kb = bytesPerSecond / 1024;
@@ -51,6 +52,7 @@ export function UpdateDialog(): React.JSX.Element | null {
   const updateState = useAppStore((s) => s.updateState);
   const postponeAvailableUpdate = useAppStore((s) => s.postponeAvailableUpdate);
   const { t } = useTranslation();
+  const dialogRef = useModalAccessibility(open, toggleOpen);
 
   if (!open) return null;
 
@@ -64,18 +66,18 @@ export function UpdateDialog(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="update-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex w-[460px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 className="text-base font-semibold text-text-primary">{t("update.title")}</h2>
-          <button onClick={toggleOpen} className="text-text-muted hover:text-text-primary">
+          <h2 id="update-dialog-title" className="text-base font-semibold text-text-primary">{t("update.title")}</h2>
+          <button onClick={toggleOpen} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>
 
-        <div className="flex flex-col gap-3 p-5">
+        <div className="flex flex-col gap-3 p-5" aria-live="polite">
           <p className="text-xs text-text-muted">{t("update.currentVersion", { version: currentVersion })}</p>
 
           {status === "checking" && <p className="text-sm text-text-secondary">{t("update.checking")}</p>}
@@ -84,7 +86,7 @@ export function UpdateDialog(): React.JSX.Element | null {
 
           {status === "dev-unavailable" && <p className="text-sm text-text-secondary">{t("update.devUnavailable")}</p>}
 
-          {status === "error" && <p className="text-sm text-confidence-low">{t("update.error", { message: updateState?.errorMessage ?? "" })}</p>}
+          {status === "error" && <p role="alert" className="text-sm text-confidence-low">{t("update.error", { message: updateState?.errorMessage ?? "" })}</p>}
 
           {(status === "available" || status === "downloading" || status === "downloaded") && (
             <div className="flex flex-col gap-2">
@@ -106,7 +108,7 @@ export function UpdateDialog(): React.JSX.Element | null {
           {status === "downloading" && (
             <div className="flex flex-col gap-2">
               <p className="text-sm text-text-secondary">{t("update.downloading")}</p>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+              <div role="progressbar" aria-label={t("update.downloading")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(updateState?.progressPercent ?? 0)} className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
                 <div
                   className="h-full rounded-full bg-accent transition-all"
                   style={{ width: `${Math.round(updateState?.progressPercent ?? 0)}%` }}

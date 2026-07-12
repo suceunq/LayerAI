@@ -40,7 +40,8 @@ export function RecentProjectsList(): React.JSX.Element | null {
               <button
                 onClick={() => void removeRecentProject(project.id)}
                 title={t("recent.remove")}
-                className="text-text-muted opacity-0 hover:text-confidence-low group-hover:opacity-100"
+                aria-label={`${t("recent.remove")} : ${project.fileName}`}
+                className="text-text-muted opacity-0 hover:text-confidence-low focus:opacity-100 group-hover:opacity-100 group-focus-within:opacity-100"
               >
                 ✕
               </button>

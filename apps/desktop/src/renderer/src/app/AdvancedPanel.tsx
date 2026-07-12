@@ -3,6 +3,7 @@ import { Button } from "../components/ui/Button.js";
 import { AI_MODES } from "./ai-modes.js";
 import { AdvancedTable } from "./AdvancedTable.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 export function AdvancedPanel(): React.JSX.Element | null {
   const advancedPanelOpen = useAppStore((s) => s.advancedPanelOpen);
@@ -20,6 +21,7 @@ export function AdvancedPanel(): React.JSX.Element | null {
   const replayOnboarding = useAppStore((s) => s.replayOnboarding);
   const toggleSettingsDialog = useAppStore((s) => s.toggleSettingsDialog);
   const { t, language } = useTranslation();
+  const dialogRef = useModalAccessibility(advancedPanelOpen, toggleAdvancedPanel);
 
   if (!advancedPanelOpen) return null;
 
@@ -40,13 +42,13 @@ export function AdvancedPanel(): React.JSX.Element | null {
 
   return (
     <div className="absolute inset-0 z-20 flex justify-end bg-black/50" onClick={toggleAdvancedPanel}>
-      <div
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="advanced-panel-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex h-full w-[440px] flex-col gap-5 overflow-y-auto border-l border-border-subtle bg-surface-0 p-6"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-text-primary">{t("advanced.title")}</h2>
-          <button onClick={toggleAdvancedPanel} className="text-text-muted hover:text-text-primary">
+          <h2 id="advanced-panel-title" className="text-lg font-semibold text-text-primary">{t("advanced.title")}</h2>
+          <button onClick={toggleAdvancedPanel} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>

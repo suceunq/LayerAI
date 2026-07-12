@@ -21,6 +21,8 @@ export function LayerViewControls(): React.JSX.Element | null {
         max={maxHeight}
         step={maxHeight / 100}
         value={layerViewHeightMm}
+        aria-label={t("layerView.heightLabel")}
+        aria-valuetext={`${layerViewHeightMm.toFixed(1)} mm`}
         onChange={(e) => setLayerViewHeight(Number(e.target.value))}
         className="w-full max-w-md accent-accent"
       />

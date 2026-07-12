@@ -20,7 +20,7 @@ import { ProgressBar } from "./components/ui/ProgressBar.js";
 import { useTranslation } from "./i18n/useTranslation.js";
 
 export default function App(): React.JSX.Element {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const step = useAppStore((s) => s.step);
   const loadProfileDb = useAppStore((s) => s.loadProfileDb);
   const loadCustomProfiles = useAppStore((s) => s.loadCustomProfiles);
@@ -110,6 +110,10 @@ export default function App(): React.JSX.Element {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   useEffect(() => window.api.onMenuAction(handleMenuAction), [handleMenuAction]);
 
   useEffect(() => {
@@ -144,6 +148,7 @@ export default function App(): React.JSX.Element {
 
   return (
     <div className="layerai-shell flex h-full flex-col bg-surface-0">
+      <a href="#main-content" className="skip-link">{t("accessibility.skipToContent")}</a>
       <header className="layerai-header flex items-center gap-3 border-b border-border-subtle px-5 py-3">
         <div className="layerai-logo flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-sm font-black text-surface-0">L</div>
         <h1 className="text-base font-semibold tracking-tight text-text-primary">
@@ -210,19 +215,22 @@ export default function App(): React.JSX.Element {
             ⚙
           </button>
         )}
-        <div className="ml-auto flex items-center gap-1 rounded-full border border-border-subtle p-0.5" title={t("app.modeTitle")}>
+        <div className="ml-auto flex items-center gap-1 rounded-full border border-border-subtle p-0.5" role="group" aria-label={t("app.modeTitle")}>
           <button
             onClick={() => void setInterfaceMode("simple")}
+            aria-pressed={interfaceMode === "simple"}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${interfaceMode === "simple" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"}`}
           >{t("app.modeSimple")}</button>
           <button
             onClick={() => void setInterfaceMode("expert")}
+            aria-pressed={interfaceMode === "expert"}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${interfaceMode === "expert" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"}`}
           >{t("app.modeExpert")}</button>
         </div>
-        <div className="flex items-center gap-1 rounded-full border border-border-subtle p-0.5">
+        <div className="flex items-center gap-1 rounded-full border border-border-subtle p-0.5" role="group" aria-label={t("settings.theme.title")}>
           <button
             onClick={() => void setTheme("dark")}
+            aria-pressed={theme === "dark"}
             title={t("settings.theme.dark")}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               theme === "dark" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"
@@ -232,6 +240,7 @@ export default function App(): React.JSX.Element {
           </button>
           <button
             onClick={() => void setTheme("light")}
+            aria-pressed={theme === "light"}
             title={t("settings.theme.light")}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
               theme === "light" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"
@@ -244,7 +253,7 @@ export default function App(): React.JSX.Element {
 
       {interfaceMode === "expert" && <LayerViewControls />}
 
-      <main className="layerai-workspace relative flex min-h-0 flex-1">
+      <main id="main-content" tabIndex={-1} aria-busy={step === "analyzing" || step === "generating"} className="layerai-workspace relative flex min-h-0 flex-1">
         {interfaceMode === "expert" && <LeftToolRail />}
         <div className="relative flex-1">
           <Viewer3D
@@ -262,11 +271,13 @@ export default function App(): React.JSX.Element {
             allPlatesPositions={allPlatesPositions}
             activePlateIndex={currentPlateIndex}
             theme={theme}
+            ariaLabel={t("accessibility.viewerInstructions")}
           />
           {step === "review" && (
             <button
               onClick={() => void handleCaptureImage()}
               title={t("capture.button")}
+              aria-label={t("capture.button")}
               className="absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-surface-1/80 text-text-secondary shadow-lg hover:border-accent hover:text-accent"
             >
               📷
@@ -279,7 +290,7 @@ export default function App(): React.JSX.Element {
             >
               <div className="mb-1 flex items-center justify-between gap-3">
                 <span className="font-semibold text-text-primary">{t("supports.explainZoneTitle")}</span>
-                <button onClick={() => setSurfaceInspect(null)} className="text-text-muted hover:text-text-primary">
+                <button onClick={() => setSurfaceInspect(null)} aria-label={t("accessibility.closePopover")} className="text-text-muted hover:text-text-primary">
                   ✕
                 </button>
               </div>
@@ -304,13 +315,13 @@ export default function App(): React.JSX.Element {
             </div>
           )}
           {step === "analyzing" && (
-            <div className="absolute inset-0 flex items-center justify-center bg-surface-0/70">
+            <div className="absolute inset-0 flex items-center justify-center bg-surface-0/70" role="status" aria-live="polite">
               <ProgressBar label={t("analyzing.label")} />
             </div>
           )}
         </div>
 
-        <aside className="layerai-panel w-[420px] shrink-0 border-l border-border-subtle bg-surface-0">
+        <aside aria-label={t("accessibility.assistantPanel")} className="layerai-panel w-[420px] shrink-0 border-l border-border-subtle bg-surface-0">
           {step === "import" && <ImportPanel />}
           {(step === "intent" || step === "generating") && <IntentPanel />}
           {step === "review" && <ReviewPanel />}
@@ -328,7 +339,7 @@ export default function App(): React.JSX.Element {
         <OnboardingTour />
 
         {toolNotice && (
-          <div className="absolute left-1/2 top-4 z-50 max-w-md -translate-x-1/2 rounded-lg border border-border-subtle bg-surface-1 px-4 py-2 text-sm text-text-primary shadow-xl">
+          <div role="status" aria-live="polite" className="absolute left-1/2 top-4 z-50 max-w-md -translate-x-1/2 rounded-lg border border-border-subtle bg-surface-1 px-4 py-2 text-sm text-text-primary shadow-xl">
             {toolNotice}
           </div>
         )}
