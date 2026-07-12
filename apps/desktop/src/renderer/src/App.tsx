@@ -117,9 +117,9 @@ export default function App(): React.JSX.Element {
       : null;
 
   return (
-    <div className="flex h-full flex-col bg-surface-0">
-      <header className="flex items-center gap-3 border-b border-border-subtle px-5 py-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-sm font-bold text-surface-0">L</div>
+    <div className="layerai-shell flex h-full flex-col bg-surface-0">
+      <header className="layerai-header flex items-center gap-3 border-b border-border-subtle px-5 py-3">
+        <div className="layerai-logo flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-sm font-black text-surface-0">L</div>
         <h1 className="text-base font-semibold tracking-tight text-text-primary">
           Layer<span className="text-accent">AI</span>
         </h1>
@@ -191,7 +191,7 @@ export default function App(): React.JSX.Element {
 
       <LayerViewControls />
 
-      <main className="relative flex min-h-0 flex-1">
+      <main className="layerai-workspace relative flex min-h-0 flex-1">
         <LeftToolRail />
         <div className="relative flex-1">
           <Viewer3D
@@ -257,7 +257,7 @@ export default function App(): React.JSX.Element {
           )}
         </div>
 
-        <aside className="w-[420px] shrink-0 border-l border-border-subtle bg-surface-0">
+        <aside className="layerai-panel w-[420px] shrink-0 border-l border-border-subtle bg-surface-0">
           {step === "import" && <ImportPanel />}
           {(step === "intent" || step === "generating") && <IntentPanel />}
           {step === "review" && <ReviewPanel />}

@@ -1,4 +1,10 @@
-# LayerAI 1.7.6
+# LayerAI 1.7.7
+
+## Nouvelle identité visuelle
+- Interface redessinée pour distinguer clairement LayerAI de SauvegardePro.
+- Nouvelle palette violet et cyan inspirée de l'impression 3D, en modes sombre et clair.
+- Barre supérieure flottante, panneaux arrondis et arrière-plan technique quadrillé.
+- Contrastes, focus clavier et profondeur visuelle améliorés sans modifier les fonctionnalités.
 
 ## Nouveautés
 - Correction d'un bug d'affichage : après avoir activé « Plusieurs plateaux » et navigué sur un plateau avancé, changer d'imprimante pouvait laisser le navigateur de plateau afficher un numéro incohérent (ex. « Plateau 4 / 1 »). Le fichier exporté restait correct, seul l'affichage était trompeur - corrigé.
