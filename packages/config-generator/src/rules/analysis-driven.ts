@@ -33,6 +33,11 @@ export function applyAnalysisDrivenRules(builder: ConfigBuilder, input: ConfigGe
   const overhang = findRisk(riskFlags, "unsupported_overhang");
   if (overhang) {
     builder.setCategorical("support_material", true, overhang.confidence, "analysis.supports_overhang");
+    if (overhang.severity === "high") {
+      // This risk is computed after LayerAI has already selected its best orientation. When it is
+      // still high, build-plate-only supports are insufficient: allow supports to start on the model.
+      builder.setCategorical("support_material_buildplate_only", false, 0.95, "analysis.supports_everywhere_orientation");
+    }
   }
 
   const instability = findRisk(riskFlags, "instability");

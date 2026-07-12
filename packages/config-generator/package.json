@@ -7,6 +7,7 @@
   "types": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/*.test.ts",
     "lint": "echo no-lint"
   },
   "dependencies": {
@@ -14,6 +15,8 @@
     "@layerai/prusa-profile-db": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^22.20.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.7.2"
   }
 }

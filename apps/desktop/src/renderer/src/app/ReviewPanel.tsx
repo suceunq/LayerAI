@@ -10,7 +10,7 @@ import { PlateQuantityControl } from "./PlateQuantityControl.js";
 import { useTranslation } from "../i18n/useTranslation.js";
 import { RiskOverview } from "./RiskOverview.js";
 
-const SUPPORTS_CONTROL_KEYS = new Set(["support_material", "support_material_style"]);
+const SUPPORTS_CONTROL_KEYS = new Set(["support_material", "support_material_style", "support_material_buildplate_only"]);
 
 export function ReviewPanel(): React.JSX.Element {
   const { t } = useTranslation();

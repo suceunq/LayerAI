@@ -24,6 +24,8 @@ export const BAMBU_PARAM_MAP: Record<string, string> = {
   min_fan_speed: "fan_min_speed",
   max_fan_speed: "fan_max_speed",
   support_material: "enable_support",
+  support_material_buildplate_only: "support_on_build_plate_only",
+  support_material_style: "support_type",
   brim_width: "brim_width",
   skirts: "skirt_loops",
   raft_layers: "raft_layers",
@@ -31,4 +33,3 @@ export const BAMBU_PARAM_MAP: Record<string, string> = {
 };
 
 /** Keys with no confirmed direct BambuStudio equivalent (e.g. support_material_style's enum values differ) - dropped rather than guessed. */
-export const BAMBU_UNMAPPED_KEYS = new Set(["support_material_style"]);

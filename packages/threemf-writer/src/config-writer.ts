@@ -1,5 +1,5 @@
 import type { ConfigPrimitive, FilamentProfile, GeneratedConfig, PrinterProfile } from "@layerai/shared-types";
-import { BAMBU_PARAM_MAP, BAMBU_UNMAPPED_KEYS } from "./bambu-param-map.js";
+import { BAMBU_PARAM_MAP } from "./bambu-param-map.js";
 import { validateStandaloneBambuJsonText, validateStandaloneIniText } from "./validation.js";
 
 const PERCENT_KEYS = new Set(["fill_density"]);
@@ -8,6 +8,17 @@ function serializeValue(key: string, value: ConfigPrimitive): string {
   if (typeof value === "boolean") return value ? "1" : "0";
   if (typeof value === "number" && PERCENT_KEYS.has(key)) return `${value}%`;
   return String(value);
+}
+
+function serializeBambuValue(key: string, value: ConfigPrimitive): string {
+  if (key === "support_material_style") return value === "organic" ? "tree(auto)" : "normal(auto)";
+  return serializeValue(key, value);
+}
+
+function mappedBambuKey(key: string): string {
+  const mapped = BAMBU_PARAM_MAP[key];
+  if (!mapped) throw new Error(`Export Bambu/Creality incomplet : le paramètre « ${key} » n'a pas de correspondance slicer.`);
+  return mapped;
 }
 
 function bedShapeToString(printer: PrinterProfile): string {
@@ -64,10 +75,8 @@ export function buildBambuPrintConfigText(config: GeneratedConfig, printer: Prin
   lines.push(`; filament_type = ${filament.materialType}`);
 
   for (const [key, entry] of Object.entries(config)) {
-    if (BAMBU_UNMAPPED_KEYS.has(key)) continue;
-    const bambuKey = BAMBU_PARAM_MAP[key];
-    if (!bambuKey) continue;
-    lines.push(`; ${bambuKey} = ${serializeValue(key, entry.value)}`);
+    const bambuKey = mappedBambuKey(key);
+    lines.push(`; ${bambuKey} = ${serializeBambuValue(key, entry.value)}`);
   }
 
   return lines.join("\n") + "\n";
@@ -115,10 +124,8 @@ export function buildStandaloneBambuJsonText(config: GeneratedConfig, printer: P
   };
 
   for (const [key, entry] of Object.entries(config)) {
-    if (BAMBU_UNMAPPED_KEYS.has(key)) continue;
-    const bambuKey = BAMBU_PARAM_MAP[key];
-    if (!bambuKey) continue;
-    profile[bambuKey] = serializeValue(key, entry.value);
+    const bambuKey = mappedBambuKey(key);
+    profile[bambuKey] = serializeBambuValue(key, entry.value);
   }
 
   const text = JSON.stringify(profile, null, 4) + "\n";

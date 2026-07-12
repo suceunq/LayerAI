@@ -3,6 +3,7 @@ import test from "node:test";
 import JSZip from "jszip";
 import { validateMeshGeometry, validateStandaloneBambuJsonText, validateStandaloneIniText, validateThreeMf } from "./validation.js";
 import { buildThreeMf } from "./writer.js";
+import { buildStandaloneBambuJsonText, buildStandaloneIniText } from "./config-writer.js";
 import type { FilamentProfile, PrinterProfile } from "@layerai/shared-types";
 
 const printer: PrinterProfile = {
@@ -28,6 +29,25 @@ test("refuse les coordonnées non finies et les indices hors limites", () => {
 test("valide les profils INI et JSON complets", () => {
   assert.doesNotThrow(() => validateStandaloneIniText("printer_model = p\nnozzle_diameter = 0.4\nfilament_type = PLA\n"));
   assert.doesNotThrow(() => validateStandaloneBambuJsonText(JSON.stringify({ type: "process", name: "LayerAI", from: "User", printer_model: "p", nozzle_diameter: "0.4", filament_type: "PLA" })));
+});
+
+test("exporte le placement et le style des supports dans chaque famille de slicer", () => {
+  const config = {
+    support_material: { value: true, confidence: 1, ruleId: "test" },
+    support_material_buildplate_only: { value: true, confidence: 1, ruleId: "test" },
+    support_material_style: { value: "organic", confidence: 1, ruleId: "test" },
+  };
+  const ini = buildStandaloneIniText(config, printer, filament);
+  assert.match(ini, /support_material_buildplate_only = 1/);
+  assert.match(ini, /support_material_style = organic/);
+  const bambu = JSON.parse(buildStandaloneBambuJsonText(config, { ...printer, vendor: "Bambu Lab" }, filament));
+  assert.equal(bambu.support_on_build_plate_only, "1");
+  assert.equal(bambu.support_type, "tree(auto)");
+});
+
+test("refuse de produire silencieusement un profil Bambu incomplet", () => {
+  const config = { future_unmapped_setting: { value: 1, confidence: 1, ruleId: "test" } };
+  assert.throws(() => buildStandaloneBambuJsonText(config, { ...printer, vendor: "Bambu Lab" }, filament), /incomplet/);
 });
 
 test("refuse les profils incomplets ou mal formés", () => {

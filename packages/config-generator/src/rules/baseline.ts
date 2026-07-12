@@ -53,6 +53,9 @@ export function applyBaselineDefaults(builder: ConfigBuilder, input: ConfigGener
   builder.setNumeric("max_fan_speed", filament.isFlexible ? 10 : 60, BASELINE_WEIGHT, 0.55, "baseline.max_fan_speed", 0);
 
   builder.setCategorical("support_material", input.analysis.supportsRecommended, 0.6, "analysis.supports_baseline");
+  // Safest low-waste default: supports may rise from the build plate, but are not attached to the model itself.
+  // A high overhang risk after auto-orientation overrides this in analysis-driven rules below.
+  builder.setCategorical("support_material_buildplate_only", true, BASELINE_CONFIDENCE, "baseline.supports_buildplate_only");
   builder.setCategorical("support_material_style", "grid", BASELINE_CONFIDENCE, "baseline.support_style");
   builder.setNumeric("brim_width", 0, BASELINE_WEIGHT, BASELINE_CONFIDENCE, "baseline.brim_width", 0);
   builder.setNumeric("skirts", 1, BASELINE_WEIGHT, BASELINE_CONFIDENCE, "baseline.skirts", 0);

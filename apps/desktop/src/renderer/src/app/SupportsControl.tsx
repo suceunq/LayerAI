@@ -33,6 +33,8 @@ export function SupportsControl(): React.JSX.Element | null {
 
   const enabled = supportEntry.value === true;
   const style = typeof config?.support_material_style?.value === "string" ? config.support_material_style.value : "grid";
+  const buildPlateOnly = config?.support_material_buildplate_only?.value !== false;
+  const placementRule = config?.support_material_buildplate_only?.ruleId ?? "";
   const whyText = explanations?.parameters.find((p) => p.parameterKey === "support_material")?.whyText;
 
   return (
@@ -42,6 +44,7 @@ export function SupportsControl(): React.JSX.Element | null {
         <label className="relative inline-flex cursor-pointer items-center">
           <input
             type="checkbox"
+            aria-label={t("supports.title")}
             checked={enabled}
             onChange={(e) => updateConfigValue("support_material", e.target.checked)}
             className="peer sr-only"
@@ -60,7 +63,20 @@ export function SupportsControl(): React.JSX.Element | null {
       )}
 
       {enabled && (
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex flex-col gap-3">
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-text-secondary">{t("supports.placement")}</span>
+              {placementRule === "analysis.supports_everywhere_orientation" && (
+                <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent">{t("supports.aiPriority")}</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2" role="group" aria-label={t("supports.placement")}>
+              <button onClick={() => updateConfigValue("support_material_buildplate_only", true)} aria-pressed={buildPlateOnly} className={`rounded-lg border px-2 py-2 text-xs ${buildPlateOnly ? "border-accent bg-accent/10 text-accent" : "border-border-subtle text-text-secondary hover:border-accent"}`}>{t("supports.buildPlateOnly")}</button>
+              <button onClick={() => updateConfigValue("support_material_buildplate_only", false)} aria-pressed={!buildPlateOnly} className={`rounded-lg border px-2 py-2 text-xs ${!buildPlateOnly ? "border-accent bg-accent/10 text-accent" : "border-border-subtle text-text-secondary hover:border-accent"}`}>{t("supports.everywhere")}</button>
+            </div>
+          </div>
+          <div className="flex gap-2">
           {SUPPORT_STYLES.map((s) => (
             <button
               key={s.id}
@@ -76,6 +92,7 @@ export function SupportsControl(): React.JSX.Element | null {
               {t(s.labelKey)}
             </button>
           ))}
+          </div>
         </div>
       )}
     </Card>

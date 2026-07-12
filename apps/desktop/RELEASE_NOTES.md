@@ -1,4 +1,18 @@
-# LayerAI 1.7.16
+# LayerAI 1.7.17
+
+## Placement intelligent des supports
+- Les supports sont désormais réglés sur « plateau uniquement » par défaut afin de limiter les marques sur la pièce et la matière consommée.
+- Un risque de surplomb modéré conserve ce réglage économe.
+- Si un risque élevé subsiste après que LayerAI a déjà choisi la meilleure orientation, l’analyse IA prend la priorité et autorise automatiquement les supports partout.
+- L’écran de révision affiche le placement choisi et un badge « Choix IA · orientation » lorsque la géométrie impose les supports partout.
+- Le placement reste modifiable manuellement entre « Plateau uniquement » et « Partout ».
+
+## Export complet vers les slicers
+- PrusaSlicer reçoit `support_material_buildplate_only` et le style de support sans transformation.
+- Bambu Studio et Creality Print reçoivent `support_on_build_plate_only` ainsi que leur valeur native `support_type`.
+- Le style organique est traduit en `tree(auto)` et les styles grille/ajusté en `normal(auto)` pour ces slicers.
+- Aucun paramètre généré n’est plus ignoré silencieusement : l’export est interrompu avec une erreur claire si une future option ne possède pas encore de correspondance.
+- Cinq nouveaux tests vérifient la priorité IA, le comportement par défaut et la présence des paramètres dans les profils INI et JSON.
 
 ## Sélecteurs plus visibles
 - Les commandes Simple/Expert et Sombre/Clair sont maintenant regroupées exactement au centre de la barre supérieure.
