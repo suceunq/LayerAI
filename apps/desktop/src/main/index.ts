@@ -47,7 +47,9 @@ function createMainWindow(): void {
     autoHideMenuBar: false,
     icon: isDev ? resolveDevIconPath() : undefined,
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      // Sandboxed preload scripts must use CommonJS; Electron's restricted sandbox loader does
+      // not execute the ESM `import { contextBridge } from "electron"` emitted previously.
+      preload: join(__dirname, "../preload/index.cjs"),
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,

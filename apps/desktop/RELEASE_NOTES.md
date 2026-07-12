@@ -1,4 +1,11 @@
-# LayerAI 1.7.14
+# LayerAI 1.7.15
+
+## Correction urgente du démarrage
+- Correction de l’écran noir qui pouvait apparaître dès le lancement des versions 1.7.13 et 1.7.14.
+- Le preload était généré au format ESM alors que le bac à sable Electron exige un script CommonJS : l’API sécurisée n’était donc jamais exposée à l’interface.
+- Le preload est maintenant produit et chargé explicitement sous la forme `index.cjs`, compatible avec le bac à sable.
+- Le bac à sable, l’isolation de contexte et toutes les autres protections de sécurité restent activés.
+- Un test de non-régression vérifie le format du preload compilé, son chemin de chargement et le maintien du bac à sable avant chaque publication.
 
 ## Accessibilité
 - Toutes les fenêtres modales et tous les panneaux latéraux gèrent maintenant la touche Échap, le piégeage du focus et le retour vers l’action d’origine.
