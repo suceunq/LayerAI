@@ -24,6 +24,8 @@ import type {
   SaveCustomProfileRequest,
   RecentProject,
   RecordRecentProjectRequest,
+  ProjectRecoverySnapshot,
+  SaveProjectRecoveryRequest,
   RecordOutcomeRequest,
   AppSettings,
   CompanySettings,
@@ -73,6 +75,9 @@ export interface LayerAiApi {
   getRecentProjects: () => Promise<RecentProject[]>;
   recordRecentProject: (request: RecordRecentProjectRequest) => Promise<RecentProject>;
   removeRecentProject: (id: string) => Promise<void>;
+  getProjectRecovery: () => Promise<ProjectRecoverySnapshot | null>;
+  saveProjectRecovery: (request: SaveProjectRecoveryRequest) => Promise<ProjectRecoverySnapshot>;
+  clearProjectRecovery: () => Promise<void>;
   getSettings: () => Promise<AppSettings>;
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
   setLanguage: (language: SupportedLanguage) => Promise<void>;

@@ -80,6 +80,22 @@ export interface RecentProject {
 
 export type RecordRecentProjectRequest = Omit<RecentProject, "id" | "lastOpenedAt">;
 
+export interface ProjectRecoverySnapshot {
+  schemaVersion: 1;
+  updatedAt: string;
+  filePath: string;
+  fileName: string;
+  printerId: string;
+  filamentId: string;
+  intentText: string;
+  config: GeneratedConfig | null;
+  quantity: number;
+  multiPlateEnabled: boolean;
+  currentPlateIndex: number;
+}
+
+export type SaveProjectRecoveryRequest = Omit<ProjectRecoverySnapshot, "schemaVersion" | "updatedAt">;
+
 export type SaveCustomProfileRequest = Omit<CustomProfile, "id" | "createdAt">;
 
 export interface ExportIniRequest {

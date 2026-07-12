@@ -15,6 +15,7 @@ import { UpdateDialog } from "./app/UpdateDialog.js";
 import { PhotoDiagnosisDialog } from "./app/PhotoDiagnosisDialog.js";
 import { InvoiceDialog } from "./app/InvoiceDialog.js";
 import { FeedbackDialog } from "./app/FeedbackDialog.js";
+import { ProjectRecoveryDialog } from "./app/ProjectRecoveryDialog.js";
 import { ProgressBar } from "./components/ui/ProgressBar.js";
 import { useTranslation } from "./i18n/useTranslation.js";
 
@@ -54,6 +55,9 @@ export default function App(): React.JSX.Element {
   const currentPlateIndex = useAppStore((s) => s.currentPlateIndex);
   const showToolNotice = useAppStore((s) => s.showToolNotice);
   const importedFile = useAppStore((s) => s.importedFile);
+  const selectedFilamentId = useAppStore((s) => s.selectedFilamentId);
+  const intentText = useAppStore((s) => s.intentText);
+  const loadProjectRecovery = useAppStore((s) => s.loadProjectRecovery);
 
   const [surfaceInspect, setSurfaceInspect] = useState<{
     x: number;
@@ -81,7 +85,26 @@ export default function App(): React.JSX.Element {
     void loadRecentProjects();
     void checkOnboarding();
     void loadLanguage();
-  }, [loadProfileDb, loadCustomProfiles, loadRecentProjects, checkOnboarding, loadLanguage]);
+    void loadProjectRecovery();
+  }, [loadProfileDb, loadCustomProfiles, loadRecentProjects, checkOnboarding, loadLanguage, loadProjectRecovery]);
+
+  useEffect(() => {
+    if (!importedFile || step === "import" || step === "analyzing") return;
+    const timer = window.setTimeout(() => {
+      void window.api.saveProjectRecovery({
+        filePath: importedFile.filePath,
+        fileName: importedFile.fileName,
+        printerId: selectedPrinterId,
+        filamentId: selectedFilamentId,
+        intentText,
+        config,
+        quantity,
+        multiPlateEnabled,
+        currentPlateIndex,
+      }).catch(() => { /* Autosave is best-effort; a write error must not interrupt the current project. */ });
+    }, 750);
+    return () => window.clearTimeout(timer);
+  }, [importedFile, step, selectedPrinterId, selectedFilamentId, intentText, config, quantity, multiPlateEnabled, currentPlateIndex]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -301,6 +324,7 @@ export default function App(): React.JSX.Element {
         <PhotoDiagnosisDialog />
         <InvoiceDialog />
         <FeedbackDialog />
+        <ProjectRecoveryDialog />
         <OnboardingTour />
 
         {toolNotice && (

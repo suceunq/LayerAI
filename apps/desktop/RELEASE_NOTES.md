@@ -1,4 +1,14 @@
-# LayerAI 1.7.10
+# LayerAI 1.7.11
+
+## Sauvegarde automatique et récupération
+- LayerAI sauvegarde automatiquement le projet actif après chaque modification importante, sans interrompre le travail.
+- Au prochain démarrage, une fenêtre propose de reprendre exactement le dernier modèle, l’objectif, l’imprimante, le filament, la quantité, les plateaux et les réglages générés.
+- Les réglages modifiés manuellement sont eux aussi restaurés et réaffichés dans le récapitulatif.
+- Les sauvegardes sont écrites atomiquement afin qu’une fermeture au mauvais moment ne produise pas un fichier partiel.
+- Une copie de secours est conservée et utilisée automatiquement si la sauvegarde principale est illisible.
+- « Recommencer » ou « Ignorer » efface proprement la session récupérable.
+- Un fichier source déplacé ou supprimé produit une erreur claire sans bloquer le démarrage de LayerAI.
+- Interface de récupération disponible en français et en anglais.
 
 ## Risques expliqués et actions concrètes
 - Chaque risque affiche maintenant un titre clair, sa gravité, la cause mesurée, la conséquence probable et l’action conseillée.

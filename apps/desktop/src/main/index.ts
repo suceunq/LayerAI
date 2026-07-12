@@ -12,6 +12,7 @@ import { registerSettingsHandlers } from "./ipc/settings.handlers.js";
 import { registerAiHandlers } from "./ipc/ai.handlers.js";
 import { registerUpdateHandlers } from "./ipc/update.handlers.js";
 import { registerInvoiceHandlers } from "./ipc/invoice.handlers.js";
+import { registerProjectRecoveryHandlers } from "./ipc/project-recovery.handlers.js";
 import { buildAppMenu } from "./menu.js";
 import { setupAutoUpdater, checkForUpdates } from "./autoUpdater.js";
 import { readSettings } from "./settings-store.js";
@@ -92,6 +93,7 @@ app.whenReady().then(async () => {
   registerAiHandlers();
   registerUpdateHandlers();
   registerInvoiceHandlers();
+  registerProjectRecoveryHandlers();
 
   createMainWindow();
 

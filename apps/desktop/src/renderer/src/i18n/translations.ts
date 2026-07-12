@@ -21,6 +21,12 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "import.filament": "Filament",
     "recent.title": "Projets récents",
     "recent.remove": "Retirer de la liste",
+    "recovery.title": "Reprendre votre projet ?",
+    "recovery.body": "LayerAI a sauvegardé automatiquement votre dernière session. Vous pouvez retrouver le modèle, votre objectif et tous les réglages générés.",
+    "recovery.savedAt": "Sauvegardé le {date}",
+    "recovery.restore": "Reprendre",
+    "recovery.restoring": "Restauration…",
+    "recovery.discard": "Ignorer",
 
     "analyzing.label": "Analyse du modèle en cours…",
 
@@ -416,6 +422,12 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "import.filament": "Filament",
     "recent.title": "Recent projects",
     "recent.remove": "Remove from list",
+    "recovery.title": "Resume your project?",
+    "recovery.body": "LayerAI automatically saved your last session. You can restore the model, your goal and all generated settings.",
+    "recovery.savedAt": "Saved on {date}",
+    "recovery.restore": "Resume",
+    "recovery.restoring": "Restoring…",
+    "recovery.discard": "Discard",
 
     "analyzing.label": "Analyzing model…",
 

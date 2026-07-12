@@ -17,6 +17,7 @@ import type {
   CustomProfile,
   GenerateInvoiceRequest,
   PhotoDiagnosisResult,
+  ProjectRecoverySnapshot,
   RecentProject,
   SupportedTheme,
   SupportedInterfaceMode,
@@ -97,6 +98,8 @@ interface AppState {
 
   customProfiles: CustomProfile[];
   recentProjects: RecentProject[];
+  recoverySnapshot: ProjectRecoverySnapshot | null;
+  recoveryLoading: boolean;
 
   loadProfileDb: () => Promise<void>;
   setPrinter: (id: string) => void;
@@ -131,6 +134,9 @@ interface AppState {
   recordCurrentAsRecentProject: () => Promise<void>;
   reopenRecentProject: (project: RecentProject) => Promise<void>;
   removeRecentProject: (id: string) => Promise<void>;
+  loadProjectRecovery: () => Promise<void>;
+  restoreProjectRecovery: () => Promise<void>;
+  discardProjectRecovery: () => Promise<void>;
 
   outcomeRecorded: boolean;
   recordOutcome: (outcome: PrintOutcomeId) => Promise<void>;
@@ -285,6 +291,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   customProfiles: [],
   recentProjects: [],
+  recoverySnapshot: null,
+  recoveryLoading: false,
   outcomeRecorded: false,
   onboardingActive: false,
 
@@ -542,7 +550,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  startOver: () =>
+  startOver: () => {
+    void window.api.clearProjectRecovery();
     set({
       step: "import",
       importedFile: null,
@@ -563,7 +572,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       quantity: 1,
       multiPlateEnabled: false,
       currentPlateIndex: 0,
-    }),
+      recoverySnapshot: null,
+    });
+  },
 
   loadCustomProfiles: async () => {
     try {
@@ -791,6 +802,49 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }
+  },
+
+  loadProjectRecovery: async () => {
+    try {
+      set({ recoverySnapshot: await window.api.getProjectRecovery() });
+    } catch {
+      set({ recoverySnapshot: null });
+    }
+  },
+
+  restoreProjectRecovery: async () => {
+    const snapshot = get().recoverySnapshot;
+    if (!snapshot) return;
+    set({ recoveryLoading: true, error: null, selectedPrinterId: snapshot.printerId, selectedFilamentId: snapshot.filamentId,
+      intentText: snapshot.intentText, quantity: snapshot.quantity, multiPlateEnabled: snapshot.multiPlateEnabled,
+      currentPlateIndex: snapshot.currentPlateIndex });
+    try {
+      await get().importDroppedPath(snapshot.filePath);
+      if (!get().importedFile || get().step === "import") throw new Error("Le fichier source du projet est introuvable ou illisible.");
+      if (snapshot.config && get().step === "intent") {
+        await get().generateConfiguration();
+        if (get().step === "review") {
+          set((state) => ({
+            config: snapshot.config,
+            explanations: state.explanations ? {
+              ...state.explanations,
+              parameters: state.explanations.parameters.map((parameter) => {
+                const restored = snapshot.config?.[parameter.parameterKey];
+                return restored ? { ...parameter, valueLabel: String(restored.value) } : parameter;
+              }),
+            } : null,
+          }));
+        }
+      }
+      set({ recoverySnapshot: null, recoveryLoading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), recoveryLoading: false });
+    }
+  },
+
+  discardProjectRecovery: async () => {
+    await window.api.clearProjectRecovery();
+    set({ recoverySnapshot: null });
   },
 
   setInterfaceMode: async (interfaceMode) => {
