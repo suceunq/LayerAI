@@ -327,7 +327,7 @@ export const Viewer3D = forwardRef<Viewer3DHandle, Viewer3DProps>(function Viewe
 
     if (sceneRefs.plateGhostMesh) {
       sceneRefs.scene.remove(sceneRefs.plateGhostMesh);
-      sceneRefs.plateGhostMesh.geometry.dispose();
+      if (sceneRefs.plateGhostMesh.geometry !== sceneRefs.meshObject?.geometry) sceneRefs.plateGhostMesh.geometry.dispose();
       (sceneRefs.plateGhostMesh.material as THREE.Material).dispose();
       sceneRefs.plateGhostMesh = null;
     }
@@ -359,9 +359,11 @@ export const Viewer3D = forwardRef<Viewer3DHandle, Viewer3DProps>(function Viewe
       }
     });
 
-    if (!geometry || ghostPositions.length === 0) return;
+    if (!geometry || ghostPositions.length === 0 || !sceneRefs.meshObject) return;
 
-    const displayGeometry = buildDisplayGeometry(geometry, overhangFaces);
+    // Reuse the already-expanded/colorized geometry of the interactive model. Rebuilding it here
+    // doubled vertex expansion and normal computation for every model or plate change.
+    const displayGeometry = sceneRefs.meshObject.geometry;
     const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.05, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
     const instanced = new THREE.InstancedMesh(displayGeometry, material, ghostPositions.length);
     const matrix = new THREE.Matrix4();

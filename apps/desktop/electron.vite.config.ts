@@ -11,6 +11,7 @@ export default defineConfig({
         external: ["electron"],
         input: {
           index: resolve(__dirname, "src/main/index.ts"),
+          "analysis-worker": resolve(__dirname, "src/main/analysis-worker.ts"),
         },
       },
     },

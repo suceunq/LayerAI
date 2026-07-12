@@ -1,6 +1,6 @@
 {
   "name": "@layerai/desktop",
-  "version": "1.7.11",
+  "version": "1.7.12",
   "private": true,
   "type": "module",
   "author": "LayerAI",
@@ -11,6 +11,7 @@
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "echo no-lint",
+    "test": "electron-vite build && node --test scripts/analysis-worker.test.mjs",
     "package:win": "electron-vite build && electron-builder --win && node scripts/generate-release-manifest.mjs"
   },
   "dependencies": {

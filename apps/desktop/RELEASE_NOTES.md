@@ -1,4 +1,14 @@
-# LayerAI 1.7.11
+# LayerAI 1.7.12
+
+## Performances et fluidité
+- L’analyse géométrique lourde s’exécute maintenant dans un processus de travail séparé.
+- La fenêtre, les menus et le système restent réactifs pendant l’import et l’analyse des modèles complexes.
+- Le même processus optimisé prend en charge l’analyse initiale, le redimensionnement et la réorientation manuelle.
+- Le worker est réutilisé entre les analyses pour éviter le coût d’un nouveau démarrage à chaque opération.
+- Une panne du worker est isolée, signalée proprement et le moteur peut être recréé lors de l’analyse suivante.
+- La géométrie colorisée du viewer est désormais partagée avec les copies et les plateaux multiples au lieu d’être reconstruite deux fois.
+- Réduction du calcul des normales, des allocations mémoire et des copies de sommets dans les scènes contenant plusieurs exemplaires.
+- Un test automatisé exécute désormais une véritable analyse STL dans le worker de production.
 
 ## Sauvegarde automatique et récupération
 - LayerAI sauvegarde automatiquement le projet actif après chaque modification importante, sans interrompre le travail.

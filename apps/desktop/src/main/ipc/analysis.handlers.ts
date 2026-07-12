@@ -1,10 +1,9 @@
 import { ipcMain } from "electron";
-import { analyzeMesh, parseStl, parseObj, parseThreeMf, scaleGeometry, rotateGeometry } from "@layerai/mesh-analysis";
 import { generateConfig, computeComparisonMetrics } from "@layerai/config-generator";
 import { generateExplanations } from "@layerai/explanation-engine";
 import { getAllPrinters, getAllFilaments, getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
 import { getOutcomeStats, computeAdjustments, type LearningAdjustment } from "@layerai/learning-store";
-import type { GeneratedConfig, IntentTag, MeshGeometryData, IntentResult } from "@layerai/shared-types";
+import type { GeneratedConfig, IntentTag, IntentResult } from "@layerai/shared-types";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import { resolveIntentWithOptionalCloud } from "../ai/cloud-intent.js";
 import type {
@@ -18,20 +17,9 @@ import type {
   ConfigGenerateResponse,
 } from "../../shared/ipc-types.js";
 import { getLearningDb } from "./learning.handlers.js";
+import { runAnalysisJob } from "../analysis-worker-client.js";
 
 const INTENT_TAG_THRESHOLD = 0.15;
-
-async function parseImportedFile(file: AnalysisRunRequest["file"]): Promise<MeshGeometryData> {
-  const bytes = file.data instanceof Uint8Array ? file.data : new Uint8Array(file.data);
-  switch (file.format) {
-    case "stl":
-      return parseStl(bytes);
-    case "obj":
-      return parseObj(new TextDecoder("utf-8").decode(bytes));
-    case "3mf":
-      return parseThreeMf(bytes);
-  }
-}
 
 /** Applies learning-store nudges as an additive layer on top of the rule-based config - never overwrites, only shifts. */
 function applyLearningAdjustments(config: GeneratedConfig, adjustments: LearningAdjustment[]): GeneratedConfig {
@@ -51,16 +39,16 @@ function applyLearningAdjustments(config: GeneratedConfig, adjustments: Learning
 
 export function registerAnalysisHandlers(): void {
   ipcMain.handle(IpcChannels.analysisRun, async (_event, request: AnalysisRunRequest): Promise<AnalysisRunResponse> => {
-    const geometry = await parseImportedFile(request.file);
-    return analyzeMesh(geometry);
+    const data = request.file.data instanceof Uint8Array ? request.file.data : new Uint8Array(request.file.data);
+    return runAnalysisJob({ kind: "analyze", format: request.file.format, data });
   });
 
   ipcMain.handle(IpcChannels.analysisRescale, async (_event, request: AnalysisRescaleRequest): Promise<AnalysisRescaleResponse> => {
-    return analyzeMesh(scaleGeometry(request.geometry, request.scaleFactor));
+    return runAnalysisJob({ kind: "rescale", geometry: request.geometry, scaleFactor: request.scaleFactor });
   });
 
   ipcMain.handle(IpcChannels.analysisReorient, async (_event, request: AnalysisReorientRequest): Promise<AnalysisReorientResponse> => {
-    return analyzeMesh(rotateGeometry(request.geometry, request.quaternion), { skipOrientationSearch: true });
+    return runAnalysisJob({ kind: "reorient", geometry: request.geometry, quaternion: request.quaternion });
   });
 
   ipcMain.handle(IpcChannels.configGenerate, async (_event, request: ConfigGenerateRequest): Promise<ConfigGenerateResponse> => {
