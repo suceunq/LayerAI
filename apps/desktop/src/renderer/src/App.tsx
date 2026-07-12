@@ -150,12 +150,13 @@ export default function App(): React.JSX.Element {
     <div className="layerai-shell flex h-full flex-col bg-surface-0">
       <a href="#main-content" className="skip-link">{t("accessibility.skipToContent")}</a>
       <header className="layerai-header flex items-center gap-3 border-b border-border-subtle px-5 py-3">
-        <div className="layerai-logo flex h-9 w-9 items-center justify-center rounded-xl bg-accent text-sm font-black text-surface-0">L</div>
-        <h1 className="text-base font-semibold tracking-tight text-text-primary">
-          Layer<span className="text-accent">AI</span>
-        </h1>
-        {printer && <span className="ml-2 mr-1 text-xs text-text-muted">{printer.name}</span>}
-        {interfaceMode === "expert" && <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="layerai-logo flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-sm font-black text-surface-0">L</div>
+          <h1 className="shrink-0 text-base font-semibold tracking-tight text-text-primary">
+            Layer<span className="text-accent">AI</span>
+          </h1>
+          {printer && <span className="mx-1 truncate text-xs text-text-muted">{printer.name}</span>}
+          {interfaceMode === "expert" && <div className="flex items-center gap-2">
           <button
             onClick={toggleLayerView}
             disabled={!analysis}
@@ -197,58 +198,36 @@ export default function App(): React.JSX.Element {
           >
             ✉ {t("app.feedback")}
           </button>
-        </div>}
-        <button
-          onClick={toggleFeedbackDialog}
-          title={t("app.feedback")}
-          className={`${interfaceMode === "simple" ? "ml-1" : "hidden"} rounded-full border border-accent/50 px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent hover:bg-accent hover:text-surface-0`}
-        >
-          ✉ {t("app.feedback")}
-        </button>
-        {interfaceMode === "simple" && (
+          </div>}
           <button
-            onClick={toggleSettingsDialog}
-            title={t("app.settingsAriaLabel")}
-            aria-label={t("app.settingsAriaLabel")}
-            className="rounded-full border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-text-primary"
+            onClick={toggleFeedbackDialog}
+            title={t("app.feedback")}
+            className={`${interfaceMode === "simple" ? "ml-1" : "hidden"} whitespace-nowrap rounded-full border border-accent/50 px-3 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent hover:bg-accent hover:text-surface-0`}
           >
-            ⚙
+            ✉ {t("app.feedback")}
           </button>
-        )}
-        <div className="ml-auto flex items-center gap-1 rounded-full border border-border-subtle p-0.5" role="group" aria-label={t("app.modeTitle")}>
-          <button
-            onClick={() => void setInterfaceMode("simple")}
-            aria-pressed={interfaceMode === "simple"}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${interfaceMode === "simple" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"}`}
-          >{t("app.modeSimple")}</button>
-          <button
-            onClick={() => void setInterfaceMode("expert")}
-            aria-pressed={interfaceMode === "expert"}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${interfaceMode === "expert" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"}`}
-          >{t("app.modeExpert")}</button>
+          {interfaceMode === "simple" && (
+            <button
+              onClick={toggleSettingsDialog}
+              title={t("app.settingsAriaLabel")}
+              aria-label={t("app.settingsAriaLabel")}
+              className="rounded-full border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:text-text-primary"
+            >
+              ⚙
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-1 rounded-full border border-border-subtle p-0.5" role="group" aria-label={t("settings.theme.title")}>
-          <button
-            onClick={() => void setTheme("dark")}
-            aria-pressed={theme === "dark"}
-            title={t("settings.theme.dark")}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              theme === "dark" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            {t("settings.theme.dark")}
-          </button>
-          <button
-            onClick={() => void setTheme("light")}
-            aria-pressed={theme === "light"}
-            title={t("settings.theme.light")}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              theme === "light" ? "bg-accent text-surface-0" : "text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            {t("settings.theme.light")}
-          </button>
+        <div className="flex shrink-0 items-center gap-2 rounded-2xl border border-accent/40 bg-surface-2/90 p-1.5 shadow-lg shadow-black/20" aria-label={t("accessibility.displayControls")}>
+          <div className="flex items-center gap-1 rounded-full border border-border-subtle bg-surface-1 p-0.5" role="group" aria-label={t("app.modeTitle")}>
+            <button onClick={() => void setInterfaceMode("simple")} aria-pressed={interfaceMode === "simple"} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${interfaceMode === "simple" ? "bg-accent text-surface-0 shadow" : "text-text-secondary hover:text-text-primary"}`}>{t("app.modeSimple")}</button>
+            <button onClick={() => void setInterfaceMode("expert")} aria-pressed={interfaceMode === "expert"} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${interfaceMode === "expert" ? "bg-accent text-surface-0 shadow" : "text-text-secondary hover:text-text-primary"}`}>{t("app.modeExpert")}</button>
+          </div>
+          <div className="flex items-center gap-1 rounded-full border border-border-subtle bg-surface-1 p-0.5" role="group" aria-label={t("settings.theme.title")}>
+            <button onClick={() => void setTheme("dark")} aria-pressed={theme === "dark"} title={t("settings.theme.dark")} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${theme === "dark" ? "bg-accent text-surface-0 shadow" : "text-text-secondary hover:text-text-primary"}`}>{t("settings.theme.dark")}</button>
+            <button onClick={() => void setTheme("light")} aria-pressed={theme === "light"} title={t("settings.theme.light")} className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${theme === "light" ? "bg-accent text-surface-0 shadow" : "text-text-secondary hover:text-text-primary"}`}>{t("settings.theme.light")}</button>
+          </div>
         </div>
+        <div className="min-w-0 flex-1" aria-hidden="true" />
       </header>
 
       {interfaceMode === "expert" && <LayerViewControls />}

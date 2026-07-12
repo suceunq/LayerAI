@@ -1,4 +1,11 @@
-# LayerAI 1.7.15
+# LayerAI 1.7.16
+
+## Sélecteurs plus visibles
+- Les commandes Simple/Expert et Sombre/Clair sont maintenant regroupées exactement au centre de la barre supérieure.
+- Le bloc bénéficie d’un fond contrasté, d’une bordure accentuée et d’une ombre légère pour être repéré immédiatement.
+- Les boutons sont plus grands, avec une typographie plus lisible et une zone de clic élargie.
+- Les outils LayerAI restent regroupés à gauche et un espace symétrique à droite garantit un centrage stable.
+- Les états actifs et les libellés pour lecteurs d’écran sont conservés.
 
 ## Correction urgente du démarrage
 - Correction de l’écran noir qui pouvait apparaître dès le lancement des versions 1.7.13 et 1.7.14.

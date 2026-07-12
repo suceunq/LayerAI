@@ -18,6 +18,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "accessibility.stepProgress": "Étape {current} sur {total}",
     "accessibility.assistantPanel": "Assistant de préparation d’impression",
     "accessibility.modelDoesNotFit": "le modèle dépasse le volume d’impression",
+    "accessibility.displayControls": "Mode d’interface et apparence",
 
     "import.title": "Importer un modèle 3D",
     "import.subtitle": "Glissez-déposez un fichier STL, OBJ ou 3MF, ou parcourez vos fichiers.",
@@ -428,6 +429,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     "accessibility.stepProgress": "Step {current} of {total}",
     "accessibility.assistantPanel": "Print preparation assistant",
     "accessibility.modelDoesNotFit": "the model exceeds the print volume",
+    "accessibility.displayControls": "Interface mode and appearance",
 
     "import.title": "Import a 3D model",
     "import.subtitle": "Drag and drop an STL, OBJ or 3MF file, or browse your files.",
