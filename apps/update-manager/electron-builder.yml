@@ -1,6 +1,6 @@
-appId: com.layerai.updatemanager
-productName: LayerAI Update Manager
-copyright: Copyright (c) 2026 LayerAI
+appId: com.updatemanager.app
+productName: Update Manager
+copyright: Copyright (c) 2026
 
 directories:
   output: release
@@ -17,7 +17,7 @@ win:
       arch:
         - x64
   icon: resources/icon.ico
-  artifactName: LayerAI-UpdateManager-Setup-${version}.${ext}
+  artifactName: UpdateManager-Setup-${version}.${ext}
 
 nsis:
   oneClick: false
@@ -25,8 +25,8 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: LayerAI Update Manager
-  uninstallDisplayName: LayerAI Update Manager
+  shortcutName: Update Manager
+  uninstallDisplayName: Update Manager
   deleteAppDataOnUninstall: false
 
 publish: null

@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "author": "LayerAI",
-  "description": "Gestionnaire de publication des mises à jour LayerAI (GitHub Releases)",
+  "author": "",
+  "description": "Gestionnaire universel de mises à jour - publie des releases GitHub pour plusieurs logiciels",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "echo no-lint",
     "package:win": "electron-vite build && electron-builder --win",
-    "cli": "tsx src/cli/publish-cli.ts"
+    "cli": "electron out/main/index.js --"
   },
   "dependencies": {
     "@layerai/update-publisher": "workspace:*",

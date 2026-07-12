@@ -1,0 +1,7 @@
+services:
+  layerai-website:
+    build: .
+    container_name: layerai-website
+    restart: unless-stopped
+    ports:
+      - "8080:80"

@@ -1,6 +1,8 @@
-import { basename } from "node:path";
-import { computeSha256, getFileSizeBytes } from "./hash.js";
-import { createRelease, deleteRelease, uploadAsset } from "./github.js";
+import { basename, join } from "node:path";
+import { tmpdir } from "node:os";
+import { writeFile, unlink } from "node:fs/promises";
+import { computeSha256, getFileSizeBytes, verifySha256 } from "./hash.js";
+import { createRelease, deleteRelease, uploadAsset, getReleaseAssets, downloadAssetContent } from "./github.js";
 import { buildManifest, manifestFileName, serializeManifest } from "./manifest.js";
 import { isValidSemVer } from "./semver.js";
 import type { GitHubConfig, ManifestFileEntry, PublishInput, PublishProgressCallback, PublishResult } from "./types.js";
@@ -65,8 +67,19 @@ export async function publishRelease(config: GitHubConfig, input: PublishInput, 
 
     await uploadManifestAsset(config, release.uploadUrl, manifestFile, manifestBuffer);
 
+    const verified = await verifyPublishedRelease(
+      config,
+      release.id,
+      [
+        ...fileEntries.map((e) => ({ name: e.name, sizeBytes: e.sizeBytes, sha256: e.sha256 })),
+        { name: manifestFile, sizeBytes: manifestBuffer.byteLength, sha256: null },
+      ],
+      input.verifyAll,
+      onProgress
+    );
+
     onProgress?.({ phase: "done", message: `Version ${input.version} publiée avec succès` });
-    return { version: input.version, releaseUrl: release.htmlUrl, manifest };
+    return { version: input.version, releaseUrl: release.htmlUrl, manifest, verified };
   } catch (error) {
     await deleteRelease(config, release.id).catch(() => {
       // Best-effort rollback - the primary error is more important to surface than a cleanup failure.
@@ -76,9 +89,6 @@ export async function publishRelease(config: GitHubConfig, input: PublishInput, 
 }
 
 async function uploadManifestAsset(config: GitHubConfig, releaseUploadUrl: string, fileName: string, content: Buffer): Promise<void> {
-  const { writeFile, unlink } = await import("node:fs/promises");
-  const { tmpdir } = await import("node:os");
-  const { join } = await import("node:path");
   const tempPath = join(tmpdir(), `${basename(fileName)}-${Date.now()}`);
   await writeFile(tempPath, content);
   try {
@@ -89,6 +99,64 @@ async function uploadManifestAsset(config: GitHubConfig, releaseUploadUrl: strin
       sizeBytes: content.byteLength,
       contentType: "application/json",
     });
+  } finally {
+    await unlink(tempPath).catch(() => {});
+  }
+}
+
+/**
+ * Re-fetches the release's asset list from GitHub (the authoritative source, not just "the upload
+ * call returned 2xx") and confirms every expected file is present with the right size. The largest
+ * hashable file (normally the installer) always gets a full re-download + SHA-256 re-check; pass
+ * `verifyAll` to do that for every file instead, at the cost of re-downloading everything.
+ */
+async function verifyPublishedRelease(
+  config: GitHubConfig,
+  releaseId: number,
+  expected: Array<{ name: string; sizeBytes: number; sha256: string | null }>,
+  verifyAll: boolean | undefined,
+  onProgress?: PublishProgressCallback
+): Promise<boolean> {
+  const remoteAssets = await getReleaseAssets(config, releaseId);
+  const remoteByName = new Map(remoteAssets.map((a) => [a.name, a]));
+
+  for (const file of expected) {
+    const remote = remoteByName.get(file.name);
+    if (!remote) {
+      throw new Error(`Vérification post-publication échouée : "${file.name}" est absent de la release GitHub.`);
+    }
+    if (remote.size !== file.sizeBytes) {
+      throw new Error(
+        `Vérification post-publication échouée : taille incorrecte pour "${file.name}" (attendu ${file.sizeBytes} o, obtenu ${remote.size} o).`
+      );
+    }
+  }
+
+  const hashable = expected.filter((f): f is { name: string; sizeBytes: number; sha256: string } => f.sha256 !== null);
+  const primary = hashable.reduce<(typeof hashable)[number] | null>(
+    (largest, f) => (!largest || f.sizeBytes > largest.sizeBytes ? f : largest),
+    null
+  );
+  const toHashCheck = verifyAll ? hashable : primary ? [primary] : [];
+
+  for (const file of toHashCheck) {
+    onProgress?.({ phase: "verifying", fileName: file.name });
+    const remote = remoteByName.get(file.name)!;
+    await verifyDownloadedHash(config, remote.id, file.name, file.sha256);
+  }
+
+  return true;
+}
+
+async function verifyDownloadedHash(config: GitHubConfig, assetId: number, fileName: string, expectedSha256: string): Promise<void> {
+  const content = await downloadAssetContent(config, assetId);
+  const tempPath = join(tmpdir(), `verify-${basename(fileName)}-${Date.now()}`);
+  await writeFile(tempPath, content);
+  try {
+    const ok = await verifySha256(tempPath, expectedSha256);
+    if (!ok) {
+      throw new Error(`Vérification post-publication échouée : empreinte SHA-256 incorrecte pour "${fileName}".`);
+    }
   } finally {
     await unlink(tempPath).catch(() => {});
   }
