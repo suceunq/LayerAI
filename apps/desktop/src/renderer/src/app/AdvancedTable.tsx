@@ -22,14 +22,19 @@ export function AdvancedTable(): React.JSX.Element {
       <tbody>
         {entries.map(([key, entry]) => (
           <tr key={key} className="border-t border-border-subtle">
-            <td className="py-1.5 pr-2 font-mono text-text-secondary">{key}</td>
+            <td className="py-1.5 pr-2 font-mono text-text-secondary">
+              {entry.ruleId.startsWith("learning.") && (
+                <span title={t("learning.badgeHint")} className="mr-1 inline-block h-1.5 w-1.5 rounded-full bg-accent align-middle" />
+              )}
+              {key}
+            </td>
             <td className="py-1.5 pr-2">
               {typeof entry.value === "boolean" ? (
                 <input
                   type="checkbox"
                   checked={entry.value}
                   onChange={(e) => updateConfigValue(key, e.target.checked)}
-                  className="accent-prusa-orange"
+                  className="accent-accent"
                 />
               ) : (
                 <input
@@ -38,7 +43,7 @@ export function AdvancedTable(): React.JSX.Element {
                     const numeric = Number(e.target.value);
                     updateConfigValue(key, Number.isNaN(numeric) || e.target.value.trim() === "" ? e.target.value : numeric);
                   }}
-                  className="w-24 rounded border border-border-subtle bg-surface-2 px-1.5 py-0.5 text-text-primary outline-none focus:border-prusa-orange"
+                  className="w-24 rounded border border-border-subtle bg-surface-2 px-1.5 py-0.5 text-text-primary outline-none focus:border-accent"
                 />
               )}
             </td>

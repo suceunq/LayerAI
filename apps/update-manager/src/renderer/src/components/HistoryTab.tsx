@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import type { PublishHistoryEntry } from "../../../shared/ipc-types.js";
 
-export function HistoryTab({ refreshKey }: { refreshKey: number }): React.JSX.Element {
+export function HistoryTab({ projectId, refreshKey }: { projectId: string; refreshKey: number }): React.JSX.Element {
   const [history, setHistory] = useState<PublishHistoryEntry[]>([]);
 
   useEffect(() => {
-    void window.api.getHistory().then(setHistory);
-  }, [refreshKey]);
+    void window.api.history.list(projectId).then(setHistory);
+  }, [projectId, refreshKey]);
 
   if (history.length === 0) {
     return <p className="text-sm text-text-muted">Aucune publication pour le moment.</p>;
@@ -23,13 +23,18 @@ export function HistoryTab({ refreshKey }: { refreshKey: number }): React.JSX.El
               </p>
               <p className="text-xs text-text-muted">{new Date(entry.publishedAt).toLocaleString("fr-FR")}</p>
             </div>
-            <span
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                entry.status === "success" ? "bg-confidence-high/15 text-confidence-high" : "bg-confidence-low/15 text-confidence-low"
-              }`}
-            >
-              {entry.status === "success" ? "✓ Publié" : "✗ Échec"}
-            </span>
+            <div className="flex items-center gap-2">
+              {entry.status === "success" && entry.verified && (
+                <span className="rounded-full bg-confidence-high/15 px-2 py-0.5 text-xs font-medium text-confidence-high">✓ Vérifié</span>
+              )}
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                  entry.status === "success" ? "bg-confidence-high/15 text-confidence-high" : "bg-confidence-low/15 text-confidence-low"
+                }`}
+              >
+                {entry.status === "success" ? "✓ Publié" : "✗ Échec"}
+              </span>
+            </div>
           </div>
           <p className="mt-2 text-xs text-text-secondary">Fichiers : {entry.fileNames.join(", ")}</p>
           {entry.releaseUrl && (

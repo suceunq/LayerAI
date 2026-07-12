@@ -24,6 +24,8 @@ export function buildAppMenu(language: SupportedLanguage = "fr"): void {
           submenu: [
             { label: m.fileExportPdf, click: () => sendToRenderer("file:export-pdf") },
             { label: m.fileExportIni, click: () => sendToRenderer("file:export-ini") },
+            { label: m.fileExportBambu, click: () => sendToRenderer("file:export-bambu") },
+            { label: m.fileExportCreality, click: () => sendToRenderer("file:export-creality") },
           ],
         },
         { type: "separator" },
@@ -51,7 +53,6 @@ export function buildAppMenu(language: SupportedLanguage = "fr"): void {
       label: m.view,
       submenu: [
         { role: "reload", label: m.viewReload },
-        { role: "toggleDevTools", label: m.viewToggleDevTools },
         { type: "separator" },
         { role: "resetZoom", label: m.viewActualSize },
         { role: "zoomIn", label: m.viewZoomIn },

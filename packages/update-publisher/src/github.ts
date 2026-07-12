@@ -10,7 +10,7 @@ function authHeaders(config: GitHubConfig): Record<string, string> {
     Authorization: `Bearer ${config.token}`,
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "LayerAI-UpdateManager",
+    "User-Agent": "Update-Manager",
   };
 }
 
@@ -77,6 +77,55 @@ export async function deleteRelease(config: GitHubConfig, releaseId: number): Pr
     method: "DELETE",
     headers: authHeaders(config),
   });
+}
+
+/**
+ * Checks whether {owner}/{repo} exists and, if so, whether this token can actually push to it - the
+ * real signal a "test connection" needs is not just "the token is valid" but "this token can publish
+ * releases HERE". `permissions.push` is only present on an authenticated request, which we always make.
+ */
+export async function getRepoInfo(
+  config: GitHubConfig
+): Promise<{ exists: boolean; canPush: boolean; defaultBranch: string | null }> {
+  const response = await fetch(`https://${API_BASE}/repos/${config.owner}/${config.repo}`, { headers: authHeaders(config) });
+  if (response.status === 404) return { exists: false, canPush: false, defaultBranch: null };
+  if (!response.ok) {
+    throw new Error(`Impossible de contacter GitHub (${response.status}) : ${await readJsonError(response)}`);
+  }
+  const data = (await response.json()) as { default_branch: string; permissions?: { push?: boolean } };
+  return { exists: true, canPush: Boolean(data.permissions?.push), defaultBranch: data.default_branch };
+}
+
+export interface ReleaseAssetInfo {
+  id: number;
+  name: string;
+  size: number;
+  browserDownloadUrl: string;
+}
+
+/** Re-fetches the asset list for a release directly from GitHub - the authoritative source for
+ * post-publish verification, as opposed to trusting that each upload call merely returned 2xx. */
+export async function getReleaseAssets(config: GitHubConfig, releaseId: number): Promise<ReleaseAssetInfo[]> {
+  const response = await fetch(`https://${API_BASE}/repos/${config.owner}/${config.repo}/releases/${releaseId}/assets`, {
+    headers: authHeaders(config),
+  });
+  if (!response.ok) {
+    throw new Error(`Impossible de récupérer les fichiers publiés (${response.status}) : ${await readJsonError(response)}`);
+  }
+  const data = (await response.json()) as Array<{ id: number; name: string; size: number; browser_download_url: string }>;
+  return data.map((a) => ({ id: a.id, name: a.name, size: a.size, browserDownloadUrl: a.browser_download_url }));
+}
+
+/** Downloads a release asset's raw content via the authenticated API (works for private repos too,
+ * unlike browser_download_url which requires a signed redirect for private assets). */
+export async function downloadAssetContent(config: GitHubConfig, assetId: number): Promise<Buffer> {
+  const response = await fetch(`https://${API_BASE}/repos/${config.owner}/${config.repo}/releases/assets/${assetId}`, {
+    headers: { ...authHeaders(config), Accept: "application/octet-stream" },
+  });
+  if (!response.ok) {
+    throw new Error(`Téléchargement de vérification impossible (${response.status}) : ${await readJsonError(response)}`);
+  }
+  return Buffer.from(await response.arrayBuffer());
 }
 
 export interface UploadAssetOptions {

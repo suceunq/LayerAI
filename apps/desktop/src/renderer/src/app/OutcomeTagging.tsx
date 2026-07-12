@@ -25,7 +25,7 @@ export function OutcomeTagging(): React.JSX.Element {
 
   if (!expanded) {
     return (
-      <button onClick={() => setExpanded(true)} className="self-start text-xs text-text-muted hover:text-prusa-orange">
+      <button onClick={() => setExpanded(true)} className="self-start text-xs text-text-muted hover:text-accent">
         {t("outcome.linkCollapsed")}
       </button>
     );
@@ -39,7 +39,7 @@ export function OutcomeTagging(): React.JSX.Element {
           <button
             key={o.id}
             onClick={() => void recordOutcome(o.id)}
-            className="rounded-full border border-border-subtle bg-surface-2 px-3 py-1 text-xs text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+            className="rounded-full border border-border-subtle bg-surface-2 px-3 py-1 text-xs text-text-secondary hover:border-accent hover:text-text-primary"
           >
             {t(o.key)}
           </button>

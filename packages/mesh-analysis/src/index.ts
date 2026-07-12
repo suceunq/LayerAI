@@ -8,3 +8,5 @@ export { generateOrientationCandidates } from "./orientation/candidates.js";
 export { scaleGeometry } from "./orientation/scale.js";
 export { rotateGeometry, quaternionRestingFace } from "./orientation/rotate.js";
 export type { QuaternionLike } from "./orientation/rotate.js";
+export { computeGridArrangement } from "./arrangement/grid-arrangement.js";
+export type { GridArrangementResult } from "./arrangement/grid-arrangement.js";

@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-prusa-orange: #ff6600;
-  --color-prusa-orange-dim: #cc5200;
-  --color-prusa-orange-glow: #ff8533;
+  --color-accent: #2f80ed;
+  --color-accent-dim: #1b5fc4;
+  --color-accent-glow: #5b9ef7;
   --color-surface-0: #0b0b0d;
   --color-surface-1: #131316;
   --color-surface-2: #1c1c20;
@@ -18,10 +18,29 @@
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
+[data-theme="light"] {
+  --color-surface-0: #f4f4f6;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #ececef;
+  --color-surface-3: #e1e2e6;
+  --color-border-subtle: #d9dade;
+  --color-text-primary: #1a1a1e;
+  --color-text-secondary: #55555d;
+  --color-text-muted: #86868e;
+}
+
 html,
 body,
 #root {
   height: 100%;
+}
+
+html {
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
 body {
@@ -42,4 +61,31 @@ body {
   100% {
     transform: translateX(300%);
   }
+}
+
+.release-notes h1,
+.release-notes h2,
+.release-notes h3 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.release-notes p {
+  margin-bottom: 0.5rem;
+}
+
+.release-notes ul {
+  margin-bottom: 0.5rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.release-notes li {
+  margin-bottom: 0.15rem;
+}
+
+.release-notes strong {
+  color: var(--color-text-primary);
 }

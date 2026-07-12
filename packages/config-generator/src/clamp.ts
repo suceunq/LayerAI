@@ -21,6 +21,8 @@ const FIXED_RANGES: Record<string, Range> = {
   brim_width: { min: 0, max: 15 },
   skirts: { min: 0, max: 5 },
   raft_layers: { min: 0, max: 6 },
+  temperature: { min: 150, max: 300 },
+  bed_temperature: { min: 0, max: 120 },
 };
 
 /** Clamps every numeric value the generator produced to physically/mechanically sane bounds. */

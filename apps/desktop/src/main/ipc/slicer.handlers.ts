@@ -12,7 +12,7 @@ import { readSettings, updateSettings } from "../settings-store.js";
 
 interface SlicerTarget {
   displayName: string;
-  settingsKey: keyof Pick<AppSettings, "prusaSlicerPath" | "bambuStudioPath">;
+  settingsKey: keyof Pick<AppSettings, "prusaSlicerPath" | "bambuStudioPath" | "crealityPrintPath">;
   candidatePaths: string[];
 }
 
@@ -26,20 +26,31 @@ function localAppDataDir(): string | undefined {
   return process.env["LOCALAPPDATA"];
 }
 
-function slicerTargetFor(vendor: string): SlicerTarget {
-  if (vendor === "Bambu Lab") {
-    const candidatePaths: string[] = [];
-    for (const base of programFilesDirs()) candidatePaths.push(join(base, "Bambu Studio", "bambu-studio.exe"));
-    const localAppData = localAppDataDir();
-    if (localAppData) candidatePaths.push(join(localAppData, "Programs", "Bambu Studio", "bambu-studio.exe"));
-    return { displayName: "Bambu Studio", settingsKey: "bambuStudioPath", candidatePaths };
-  }
+interface SlicerDescriptor {
+  displayName: string;
+  settingsKey: SlicerTarget["settingsKey"];
+  /** Install-folder name variants to try under both Program Files and %LOCALAPPDATA%\Programs. */
+  folderNames: string[];
+  exeName: string;
+}
 
-  const candidatePaths: string[] = [];
-  for (const base of programFilesDirs()) candidatePaths.push(join(base, "Prusa3D", "PrusaSlicer", "prusa-slicer.exe"));
-  const localAppData = localAppDataDir();
-  if (localAppData) candidatePaths.push(join(localAppData, "Programs", "PrusaSlicer", "prusa-slicer.exe"));
-  return { displayName: "PrusaSlicer", settingsKey: "prusaSlicerPath", candidatePaths };
+/** Add a new vendor here (one row) rather than a new branch - see slicerTargetFor. */
+const SLICER_DESCRIPTORS: Record<string, SlicerDescriptor> = {
+  "Bambu Lab": { displayName: "Bambu Studio", settingsKey: "bambuStudioPath", folderNames: ["Bambu Studio"], exeName: "bambu-studio.exe" },
+  Creality: {
+    displayName: "Creality Print",
+    settingsKey: "crealityPrintPath",
+    folderNames: ["Creality Print", "CrealityPrint"],
+    exeName: "CrealityPrint.exe",
+  },
+  default: { displayName: "PrusaSlicer", settingsKey: "prusaSlicerPath", folderNames: ["Prusa3D/PrusaSlicer"], exeName: "prusa-slicer.exe" },
+};
+
+function slicerTargetFor(vendor: string): SlicerTarget {
+  const descriptor = SLICER_DESCRIPTORS[vendor] ?? SLICER_DESCRIPTORS["default"]!;
+  const roots = [...programFilesDirs(), ...(localAppDataDir() ? [join(localAppDataDir()!, "Programs")] : [])];
+  const candidatePaths = roots.flatMap((root) => descriptor.folderNames.map((folder) => join(root, folder, descriptor.exeName)));
+  return { displayName: descriptor.displayName, settingsKey: descriptor.settingsKey, candidatePaths };
 }
 
 async function locateSlicerExecutable(target: SlicerTarget, window: BrowserWindow | null): Promise<string | null> {
@@ -89,6 +100,7 @@ export function registerSlicerHandlers(): void {
         printer,
         filament,
         objectName: request.objectName,
+        positions: request.positions,
       });
       const tempDir = join(tmpdir(), "layerai");
       await mkdir(tempDir, { recursive: true });

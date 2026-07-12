@@ -8,6 +8,8 @@ export interface MenuLabels {
   fileExport: string;
   fileExportPdf: string;
   fileExportIni: string;
+  fileExportBambu: string;
+  fileExportCreality: string;
   fileQuit: string;
   edit: string;
   editUndo: string;
@@ -19,7 +21,6 @@ export interface MenuLabels {
   toolsScale: string;
   view: string;
   viewReload: string;
-  viewToggleDevTools: string;
   viewActualSize: string;
   viewZoomIn: string;
   viewZoomOut: string;
@@ -42,6 +43,8 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     fileExport: "Exporter",
     fileExportPdf: "Rapport PDF…",
     fileExportIni: "Profil PrusaSlicer (.ini)…",
+    fileExportBambu: "Profil Bambu Studio (.json)…",
+    fileExportCreality: "Profil Creality Print (.json)…",
     fileQuit: "Quitter",
     edit: "Édition",
     editUndo: "Annuler",
@@ -53,7 +56,6 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     toolsScale: "Mise à l'échelle…",
     view: "Affichage",
     viewReload: "Recharger",
-    viewToggleDevTools: "Outils de développement",
     viewActualSize: "Taille réelle",
     viewZoomIn: "Zoomer",
     viewZoomOut: "Dézoomer",
@@ -74,6 +76,8 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     fileExport: "Export",
     fileExportPdf: "PDF report…",
     fileExportIni: "PrusaSlicer profile (.ini)…",
+    fileExportBambu: "Bambu Studio profile (.json)…",
+    fileExportCreality: "Creality Print profile (.json)…",
     fileQuit: "Quit",
     edit: "Edit",
     editUndo: "Undo",
@@ -85,7 +89,6 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     toolsScale: "Scale…",
     view: "View",
     viewReload: "Reload",
-    viewToggleDevTools: "Toggle Developer Tools",
     viewActualSize: "Actual Size",
     viewZoomIn: "Zoom In",
     viewZoomOut: "Zoom Out",

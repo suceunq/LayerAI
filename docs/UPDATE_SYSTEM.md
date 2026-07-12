@@ -119,7 +119,7 @@ l'administrateur du projet.
   ```
   pnpm --filter @layerai/update-manager run cli -- \
     --version 1.2.0 --title "Titre" --changelog-file CHANGELOG.md \
-    --files release/LayerAI-Setup-1.2.0.exe \
+    --files release/LayerAI_Setup.exe \
     --owner suceunq --repo LayerAI --token $LAYERAI_GH_TOKEN
   ```
   Owner/repo/token peuvent aussi venir des variables d'environnement `LAYERAI_GH_OWNER` /

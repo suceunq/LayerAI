@@ -83,8 +83,8 @@ export function ResizePanel(): React.JSX.Element | null {
                 onClick={() => setPercent(p)}
                 className={`rounded-full border px-3 py-1.5 text-sm ${
                   percent === p
-                    ? "border-prusa-orange bg-prusa-orange/10 text-prusa-orange"
-                    : "border-border-subtle text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
                 }`}
               >
                 {p}%{!fit.fits && p === fit.recommendedScalePercent ? t("resize.adjusted") : ""}
@@ -108,7 +108,7 @@ export function ResizePanel(): React.JSX.Element | null {
         <div className="rounded-lg border border-border-subtle bg-surface-1 p-3 text-sm">
           <p className="text-text-secondary">
             {t("resize.newDimensions")}{" "}
-            <span className="font-mono text-prusa-orange">
+            <span className="font-mono text-accent">
               {previewX.toFixed(1)} × {previewY.toFixed(1)} × {previewZ.toFixed(1)} mm
             </span>
           </p>

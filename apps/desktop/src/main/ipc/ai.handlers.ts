@@ -1,9 +1,17 @@
 import { ipcMain } from "electron";
 import { IpcChannels } from "../../shared/ipc-channels.js";
-import type { AiSettingsPublic, SaveAiProviderRequest, TestAiProviderRequest, TestAiProviderResponse } from "../../shared/ipc-types.js";
+import type {
+  AiSettingsPublic,
+  DiagnosePhotoRequest,
+  DiagnosePhotoResponse,
+  SaveAiProviderRequest,
+  TestAiProviderRequest,
+  TestAiProviderResponse,
+} from "../../shared/ipc-types.js";
 import type { AiProviderId } from "../../shared/ai-providers.js";
 import * as providerStore from "../ai/provider-store.js";
 import { testConnection } from "../ai/provider-client.js";
+import { diagnosePrintPhoto } from "../ai/photo-diagnosis.js";
 
 export function registerAiHandlers(): void {
   ipcMain.handle(IpcChannels.aiGetSettings, async (): Promise<AiSettingsPublic> => providerStore.getPublicSettings());
@@ -32,5 +40,9 @@ export function registerAiHandlers(): void {
       model: request.model || stored?.model,
       baseUrl: request.baseUrl || stored?.baseUrl,
     });
+  });
+
+  ipcMain.handle(IpcChannels.aiDiagnosePhoto, async (_event, request: DiagnosePhotoRequest): Promise<DiagnosePhotoResponse> => {
+    return diagnosePrintPhoto(request.imageBase64, request.mimeType, request.language);
   });
 }

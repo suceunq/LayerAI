@@ -2,6 +2,7 @@ node_modules/
 dist/
 out/
 release/
+update-a-publier/
 .turbo/
 *.log
 .DS_Store
@@ -13,3 +14,4 @@ Thumbs.db
 packages/prusa-profile-db/data/*.json
 !packages/prusa-profile-db/data/.gitkeep
 apps/desktop/src/renderer/dist/
+logiciel fini/

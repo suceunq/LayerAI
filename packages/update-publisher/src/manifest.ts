@@ -19,7 +19,7 @@ export function buildManifest(input: BuildManifestInput): ReleaseManifest {
 }
 
 export function manifestFileName(): string {
-  return "layerai-update-manifest.json";
+  return "update-manifest.json";
 }
 
 export function serializeManifest(manifest: ReleaseManifest): string {

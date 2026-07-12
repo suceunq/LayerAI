@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Button } from "./Button.js";
 import { renderMarkdownPreview } from "../lib/markdown.js";
-import type { PickedFile, PublishProgressEvent } from "../../../shared/ipc-types.js";
+import type { PickedFile, Project, PublishProgressEvent } from "../../../shared/ipc-types.js";
 
 const SEMVER_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z-.]+)?$/;
 
@@ -25,38 +25,96 @@ function describeProgress(event: PublishProgressEvent): string {
     }
     case "uploaded":
       return `✓ ${event.fileName} envoyé`;
+    case "verifying":
+      return `Vérification post-publication : ${event.fileName}`;
     case "done":
       return `✓ ${event.message}`;
   }
 }
 
-export function PublishTab({ onPublished }: { onPublished: () => void }): React.JSX.Element {
+export function PublishTab({ project, onPublished }: { project: Project; onPublished: () => void }): React.JSX.Element {
   const [version, setVersion] = useState("");
   const [title, setTitle] = useState("");
   const [changelog, setChangelog] = useState("");
   const [prerelease, setPrerelease] = useState(false);
+  const [verifyAll, setVerifyAll] = useState(false);
   const [files, setFiles] = useState<PickedFile[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [log, setLog] = useState<string[]>([]);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [manifestError, setManifestError] = useState<string | null>(null);
+  const [importingManifest, setImportingManifest] = useState(false);
 
   useEffect(() => window.api.onPublishProgress((event) => setLog((prev) => [...prev, describeProgress(event)])), []);
+
+  // Reset the form when switching to a different project - stale files/version from the previous
+  // project's form must never be publishable against this one.
+  useEffect(() => {
+    setVersion("");
+    setTitle("");
+    setChangelog("");
+    setFiles([]);
+    setResult(null);
+    setLog([]);
+  }, [project.id]);
 
   const versionValid = version.length === 0 || SEMVER_RE.test(version);
   const canPublish = SEMVER_RE.test(version) && title.trim().length > 0 && files.length > 0 && !publishing;
 
   const previewHtml = useMemo(() => renderMarkdownPreview(changelog), [changelog]);
 
-  const handlePickFiles = async (): Promise<void> => {
-    const picked = await window.api.pickFiles();
+  const addFiles = (picked: PickedFile[]): void => {
     setFiles((prev) => {
       const existingPaths = new Set(prev.map((f) => f.path));
       return [...prev, ...picked.filter((f) => !existingPaths.has(f.path))];
     });
   };
 
+  const handlePickFiles = async (): Promise<void> => {
+    addFiles(await window.api.pickFiles());
+  };
+
   const removeFile = (path: string): void => setFiles((prev) => prev.filter((f) => f.path !== path));
+
+  const importManifestFromPath = async (manifestPath: string): Promise<void> => {
+    setManifestError(null);
+    setImportingManifest(true);
+    try {
+      const manifest = await window.api.importManifest(manifestPath);
+      setVersion(manifest.version);
+      setTitle(manifest.title);
+      setChangelog(manifest.changelog);
+      addFiles(manifest.files);
+    } catch (err) {
+      setManifestError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setImportingManifest(false);
+    }
+  };
+
+  const handleImportManifestDialog = async (): Promise<void> => {
+    const manifestPath = await window.api.pickManifest();
+    if (manifestPath) await importManifestFromPath(manifestPath);
+  };
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    setIsDragOver(false);
+    const droppedFiles = Array.from(event.dataTransfer.files) as (File & { path?: string })[];
+
+    if (project.rawManifestFileName) {
+      const manifestFile = droppedFiles.find((f) => f.name === project.rawManifestFileName);
+      if (manifestFile?.path) {
+        void importManifestFromPath(manifestFile.path);
+        return;
+      }
+    }
+
+    const picked: PickedFile[] = droppedFiles.filter((f) => f.path).map((f) => ({ path: f.path!, name: f.name, sizeBytes: f.size }));
+    addFiles(picked);
+  };
 
   const handlePublish = async (): Promise<void> => {
     setPublishing(true);
@@ -64,14 +122,19 @@ export function PublishTab({ onPublished }: { onPublished: () => void }): React.
     setResult(null);
     try {
       const response = await window.api.publish({
+        projectId: project.id,
         version,
         title,
         changelog,
         filePaths: files.map((f) => f.path),
         prerelease,
+        verifyAll,
       });
       if (response.success) {
-        setResult({ success: true, message: `Version ${version} publiée : ${response.releaseUrl}` });
+        setResult({
+          success: true,
+          message: `Version ${version} publiée${response.verified ? " et vérifiée" : ""} : ${response.releaseUrl}`,
+        });
         onPublished();
       } else {
         setResult({ success: false, message: response.errorMessage });
@@ -83,7 +146,30 @@ export function PublishTab({ onPublished }: { onPublished: () => void }): React.
 
   return (
     <div className="grid grid-cols-2 gap-6">
-      <div className="flex flex-col gap-4">
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDrop}
+        className={`flex flex-col gap-4 rounded-xl border-2 border-dashed p-3 transition-colors ${
+          isDragOver ? "border-prusa-orange bg-surface-1/50" : "border-transparent"
+        }`}
+      >
+        {project.rawManifestFileName && (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-border-subtle bg-surface-1/50 px-3 py-2">
+            <span className="text-xs text-text-secondary">
+              Glissez-déposez le fichier <span className="font-mono text-text-primary">{project.rawManifestFileName}</span> (généré à
+              la compilation) pour tout remplir automatiquement.
+            </span>
+            <Button variant="secondary" onClick={() => void handleImportManifestDialog()} disabled={importingManifest}>
+              {importingManifest ? "Import…" : "Importer version"}
+            </Button>
+          </div>
+        )}
+        {manifestError && <p className="text-xs text-confidence-low">{manifestError}</p>}
+
         <div className="flex gap-3">
           <label className="flex flex-1 flex-col gap-1">
             <span className="text-xs uppercase tracking-wide text-text-muted">Version (SemVer)</span>
@@ -108,10 +194,16 @@ export function PublishTab({ onPublished }: { onPublished: () => void }): React.
           </label>
         </div>
 
-        <label className="flex items-center gap-2 text-xs text-text-secondary">
-          <input type="checkbox" checked={prerelease} onChange={(e) => setPrerelease(e.target.checked)} className="accent-prusa-orange" />
-          Version préliminaire (pre-release)
-        </label>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-xs text-text-secondary">
+            <input type="checkbox" checked={prerelease} onChange={(e) => setPrerelease(e.target.checked)} className="accent-prusa-orange" />
+            Version préliminaire (pre-release)
+          </label>
+          <label className="flex items-center gap-2 text-xs text-text-secondary">
+            <input type="checkbox" checked={verifyAll} onChange={(e) => setVerifyAll(e.target.checked)} className="accent-prusa-orange" />
+            Vérification complète (tous les fichiers)
+          </label>
+        </div>
 
         <div>
           <div className="mb-1 flex items-center justify-between">
@@ -143,7 +235,7 @@ export function PublishTab({ onPublished }: { onPublished: () => void }): React.
             </Button>
           </div>
           {files.length === 0 ? (
-            <p className="text-xs text-text-muted">Aucun fichier sélectionné.</p>
+            <p className="text-xs text-text-muted">Aucun fichier sélectionné. Glissez-déposez des fichiers ici, ou utilisez le bouton ci-dessus.</p>
           ) : (
             <ul className="flex flex-col gap-1">
               {files.map((f) => (

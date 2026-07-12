@@ -8,6 +8,36 @@ function formatBytesPerSecond(bytesPerSecond: number): string {
   return `${(kb / 1024).toFixed(1)} Mo/s`;
 }
 
+const RELEASE_NOTES_ALLOWED_TAGS = new Set(["H1", "H2", "H3", "P", "UL", "LI", "STRONG", "EM", "BR"]);
+
+/**
+ * electron-updater converts a GitHub release's Markdown body to HTML before exposing it as
+ * `info.releaseNotes` - that HTML is only ever authored by whoever can publish a release to the
+ * configured repo, but it's still untrusted content by the time it reaches this renderer (a leaked
+ * publish token or a compromised release could inject an event-handler attribute that fires once
+ * rendered live). Strip every attribute and unwrap any tag outside our own markdown converter's
+ * output vocabulary (see apps/update-manager's markdown.ts) before handing it to
+ * dangerouslySetInnerHTML.
+ */
+function sanitizeReleaseNotesHtml(html: string): string {
+  const container = document.createElement("div");
+  container.innerHTML = html;
+
+  const strip = (node: Element): void => {
+    for (const child of Array.from(node.children)) {
+      if (!RELEASE_NOTES_ALLOWED_TAGS.has(child.tagName)) {
+        child.replaceWith(document.createTextNode(child.textContent ?? ""));
+        continue;
+      }
+      for (const attr of Array.from(child.attributes)) child.removeAttribute(attr.name);
+      strip(child);
+    }
+  };
+  strip(container);
+
+  return container.innerHTML;
+}
+
 function formatEta(bytesRemaining: number, bytesPerSecond: number): string {
   if (bytesPerSecond <= 0) return "…";
   const seconds = Math.round(bytesRemaining / bytesPerSecond);
@@ -58,13 +88,16 @@ export function UpdateDialog(): React.JSX.Element | null {
 
           {(status === "available" || status === "downloading" || status === "downloaded") && (
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-prusa-orange">
+              <p className="text-sm font-medium text-accent">
                 {t("update.available", { version: updateState?.availableVersion ?? "" })}
               </p>
               {updateState?.releaseNotes && (
                 <div className="rounded-lg border border-border-subtle bg-surface-1 p-3">
                   <p className="mb-1 text-xs uppercase tracking-wide text-text-muted">{t("update.changelogTitle")}</p>
-                  <div className="max-h-40 overflow-y-auto whitespace-pre-wrap text-xs text-text-secondary">{updateState.releaseNotes}</div>
+                  <div
+                    className="release-notes max-h-40 overflow-y-auto text-xs text-text-secondary"
+                    dangerouslySetInnerHTML={{ __html: sanitizeReleaseNotesHtml(updateState.releaseNotes) }}
+                  />
                 </div>
               )}
             </div>
@@ -75,7 +108,7 @@ export function UpdateDialog(): React.JSX.Element | null {
               <p className="text-sm text-text-secondary">{t("update.downloading")}</p>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
                 <div
-                  className="h-full rounded-full bg-prusa-orange transition-all"
+                  className="h-full rounded-full bg-accent transition-all"
                   style={{ width: `${Math.round(updateState?.progressPercent ?? 0)}%` }}
                 />
               </div>

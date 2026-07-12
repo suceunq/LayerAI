@@ -30,6 +30,9 @@ export interface PublishInput {
   changelog: string;
   files: PublishInputFile[];
   prerelease?: boolean;
+  /** When true, every file's SHA-256 is re-verified by re-downloading it from GitHub after upload
+   * (not just the primary/largest asset). Slower - proportional to total upload size - but stronger. */
+  verifyAll?: boolean;
 }
 
 export type PublishProgressEvent =
@@ -38,6 +41,7 @@ export type PublishProgressEvent =
   | { phase: "creating-release"; message: string }
   | { phase: "uploading"; fileName: string; transferredBytes: number; totalBytes: number }
   | { phase: "uploaded"; fileName: string }
+  | { phase: "verifying"; fileName: string }
   | { phase: "done"; message: string };
 
 export type PublishProgressCallback = (event: PublishProgressEvent) => void;
@@ -46,6 +50,7 @@ export interface PublishResult {
   version: string;
   releaseUrl: string;
   manifest: ReleaseManifest;
+  verified: boolean;
 }
 
 export interface PublishHistoryEntry {
@@ -56,4 +61,5 @@ export interface PublishHistoryEntry {
   releaseUrl?: string;
   errorMessage?: string;
   fileNames: string[];
+  verified?: boolean;
 }
