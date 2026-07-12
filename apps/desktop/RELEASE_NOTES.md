@@ -1,4 +1,6 @@
-# LayerAI 1.7.19
+# LayerAI 1.7.20
+
+- Icône arrondie avec transparence réelle dans les coins.
 
 - Sécurité : seuls les liens externes HTTPS peuvent désormais quitter l’application.
 - Isolation Electron, bac à sable, permissions refusées et stockage chiffré des clés vérifiés.
