@@ -8,6 +8,7 @@ import { OutcomeTagging } from "./OutcomeTagging.js";
 import { SupportsControl } from "./SupportsControl.js";
 import { PlateQuantityControl } from "./PlateQuantityControl.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { RiskOverview } from "./RiskOverview.js";
 
 const SUPPORTS_CONTROL_KEYS = new Set(["support_material", "support_material_style"]);
 
@@ -42,6 +43,8 @@ export function ReviewPanel(): React.JSX.Element {
       {learnedCount > 0 && (
         <p className="rounded-lg bg-accent/10 px-3 py-2 text-xs text-accent">{t("learning.summary", { count: learnedCount })}</p>
       )}
+
+      <RiskOverview />
 
       <ComparisonView />
 

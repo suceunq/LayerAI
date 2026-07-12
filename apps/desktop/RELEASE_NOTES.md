@@ -1,4 +1,13 @@
-# LayerAI 1.7.9
+# LayerAI 1.7.10
+
+## Risques expliqués et actions concrètes
+- Chaque risque affiche maintenant un titre clair, sa gravité, la cause mesurée, la conséquence probable et l’action conseillée.
+- Les risques sont classés automatiquement du plus important au moins important.
+- Le niveau de fiabilité de l’analyse est visible, y compris lorsqu’aucun risque important n’est détecté.
+- Les surplombs sont reliés à leur représentation orange dans la vue 3D.
+- Le résumé est disponible après l’analyse et avant l’export final.
+- En mode Simple, les risques secondaires restent repliés pour alléger l’écran ; le mode Expert affiche tous les détails.
+- Présentation et recommandations disponibles en français et en anglais.
 
 ## Modes Simple et Expert
 - Nouveau mode Simple activé par défaut : seules les actions essentielles restent visibles.

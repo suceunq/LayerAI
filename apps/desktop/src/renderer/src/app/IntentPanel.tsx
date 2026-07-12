@@ -3,6 +3,7 @@ import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { Card } from "../components/ui/Card.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { RiskOverview } from "./RiskOverview.js";
 
 const EXAMPLE_PROMPT_KEYS = [
   "intent.example.strength",
@@ -13,13 +14,6 @@ const EXAMPLE_PROMPT_KEYS = [
   "intent.example.outdoor",
   "intent.example.minimalSupports",
 ];
-
-/** Risk descriptions are always generated in French by mesh-analysis (pure geometry logic, no i18n there); the dynamic numeric part is extracted here to re-localize the rest via translation keys. */
-function extractRiskValue(id: string, description: string): string | undefined {
-  if (id === "fragile_thin_wall") return /jusqu'à ([\d.]+) mm/.exec(description)?.[1];
-  if (id === "unsupported_overhang") return /^(\d+)%/.exec(description)?.[1];
-  return undefined;
-}
 
 export function IntentPanel(): React.JSX.Element {
   const { t } = useTranslation();
@@ -88,24 +82,9 @@ export function IntentPanel(): React.JSX.Element {
           </dd>
         </dl>
 
-        {analysis.riskFlags.length > 0 && (
-          <div className="mt-3 flex flex-col gap-1.5 border-t border-border-subtle pt-3">
-            {analysis.riskFlags.map((flag) => {
-              const value = extractRiskValue(flag.id, flag.description);
-              return (
-                <div key={flag.id} className="flex items-start gap-2 text-xs">
-                  <span
-                    className={`mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                      flag.severity === "high" ? "bg-confidence-low" : "bg-confidence-medium"
-                    }`}
-                  />
-                  <span className="text-text-secondary">{t(`risk.${flag.id}`, value !== undefined ? { value } : undefined)}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </Card>
+
+      <RiskOverview />
 
       {error && <p className="text-sm text-confidence-low">{error}</p>}
 
