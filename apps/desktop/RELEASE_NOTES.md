@@ -1,4 +1,7 @@
-# LayerAI 1.7.18
+# LayerAI 1.7.19
+
+- Sécurité : seuls les liens externes HTTPS peuvent désormais quitter l’application.
+- Isolation Electron, bac à sable, permissions refusées et stockage chiffré des clés vérifiés.
 
 ## Nouvelle icône LayerAI
 - Nouvelle identité visuelle métallique commune à la suite Bob59.

@@ -65,7 +65,7 @@ function createMainWindow(): void {
   mainWindow.webContents.setWindowOpenHandler((details) => {
     // Only hand off http(s) links to the OS - never let a window-open request pass an arbitrary
     // scheme (file:, custom protocol handlers...) straight to shell.openExternal.
-    if (details.url.startsWith("https://") || details.url.startsWith("http://")) {
+    if (details.url.startsWith("https://")) {
       shell.openExternal(details.url);
     }
     return { action: "deny" };
