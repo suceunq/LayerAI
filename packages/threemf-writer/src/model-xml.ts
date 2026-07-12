@@ -12,19 +12,23 @@ function escapeXml(value: string): string {
  * Builds 3D/3dmodel.model. The 3MF format requires an indexed vertex/triangle representation;
  * geometry without indices (e.g. STL triangle-soup) is emitted as vertices 0..N-1 taken in
  * order with sequential triangle indices - valid per the format even without deduplication.
+ *
+ * Multiple `positions` produce multiple `<item>` build entries that all reference the same mesh
+ * resource - the standard 3MF way to place several copies of one part without duplicating
+ * geometry, exactly how slicers represent "print N copies".
  */
 export function buildModelXml(
   geometry: MeshGeometryData,
   objectName: string,
-  bedCenter: { x: number; y: number } = { x: 0, y: 0 }
+  itemPositions: { x: number; y: number }[] = [{ x: 0, y: 0 }]
 ): string {
-  const { positions, indices } = geometry;
-  const vertexCount = positions.length / 3;
+  const { positions: vertexPositions, indices } = geometry;
+  const vertexCount = vertexPositions.length / 3;
 
   const vertexLines: string[] = new Array(vertexCount);
   for (let i = 0; i < vertexCount; i++) {
     const base = i * 3;
-    vertexLines[i] = `<vertex x="${fmtNum(positions[base]!)}" y="${fmtNum(positions[base + 1]!)}" z="${fmtNum(positions[base + 2]!)}"/>`;
+    vertexLines[i] = `<vertex x="${fmtNum(vertexPositions[base]!)}" y="${fmtNum(vertexPositions[base + 1]!)}" z="${fmtNum(vertexPositions[base + 2]!)}"/>`;
   }
 
   const triangleIndices = indices ?? Array.from({ length: vertexCount }, (_, i) => i);
@@ -52,7 +56,7 @@ ${triangleLines.map((l) => "     " + l).join("\n")}
   </object>
  </resources>
  <build>
-  <item objectid="1" transform="1 0 0 0 1 0 0 0 1 ${fmtNum(bedCenter.x)} ${fmtNum(bedCenter.y)} 0"/>
+${itemPositions.map((p) => `  <item objectid="1" transform="1 0 0 0 1 0 0 0 1 ${fmtNum(p.x)} ${fmtNum(p.y)} 0"/>`).join("\n")}
  </build>
 </model>`;
 }

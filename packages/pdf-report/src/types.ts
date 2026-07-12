@@ -18,4 +18,6 @@ export interface ReportData {
   explanations: ExplanationSet;
   comparison: ComparisonMetrics;
   generatedAt: string;
+  /** Number of copies of this part in the batch. Defaults to 1 (report describes a single piece). */
+  quantity?: number;
 }

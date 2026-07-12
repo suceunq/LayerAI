@@ -1,10 +1,16 @@
 import { providerMeta, type AiProviderId } from "../../shared/ai-providers.js";
 
+interface ChatImage {
+  base64: string;
+  mimeType: string;
+}
+
 interface ChatParams {
   apiKey?: string;
   model?: string;
   baseUrl?: string;
   prompt: string;
+  image?: ChatImage;
 }
 
 async function extractError(res: Response): Promise<string> {
@@ -16,15 +22,18 @@ async function extractError(res: Response): Promise<string> {
   }
 }
 
-async function anthropicChat({ apiKey, model, prompt }: ChatParams): Promise<string> {
+async function anthropicChat({ apiKey, model, prompt, image }: ChatParams): Promise<string> {
   if (!apiKey) throw new Error("Clé API manquante");
+  const content = image
+    ? [{ type: "image", source: { type: "base64", media_type: image.mimeType, data: image.base64 } }, { type: "text", text: prompt }]
+    : prompt;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: model || providerMeta("anthropic").defaultModel,
       max_tokens: 512,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content }],
     }),
   });
   if (!res.ok) throw new Error(await extractError(res));
@@ -32,27 +41,35 @@ async function anthropicChat({ apiKey, model, prompt }: ChatParams): Promise<str
   return data.content?.[0]?.text ?? "";
 }
 
-async function geminiChat({ apiKey, model, prompt }: ChatParams): Promise<string> {
+async function geminiChat({ apiKey, model, prompt, image }: ChatParams): Promise<string> {
   if (!apiKey) throw new Error("Clé API manquante");
   const modelName = model || providerMeta("gemini").defaultModel;
+  const parts = image ? [{ text: prompt }, { inline_data: { mime_type: image.mimeType, data: image.base64 } }] : [{ text: prompt }];
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    body: JSON.stringify({ contents: [{ parts }] }),
   });
   if (!res.ok) throw new Error(await extractError(res));
   const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
-async function openAiCompatibleChat(defaultBaseUrl: string, defaultModel: string, { apiKey, model, baseUrl, prompt }: ChatParams): Promise<string> {
+async function openAiCompatibleChat(
+  defaultBaseUrl: string,
+  defaultModel: string,
+  { apiKey, model, baseUrl, prompt, image }: ChatParams
+): Promise<string> {
   const url = `${(baseUrl || defaultBaseUrl).replace(/\/$/, "")}/chat/completions`;
   const headers: Record<string, string> = { "content-type": "application/json" };
   if (apiKey) headers["authorization"] = `Bearer ${apiKey}`;
+  const content = image
+    ? [{ type: "text", text: prompt }, { type: "image_url", image_url: { url: `data:${image.mimeType};base64,${image.base64}` } }]
+    : prompt;
   const res = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify({ model: model || defaultModel, messages: [{ role: "user", content: prompt }] }),
+    body: JSON.stringify({ model: model || defaultModel, messages: [{ role: "user", content }] }),
   });
   if (!res.ok) throw new Error(await extractError(res));
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
@@ -66,7 +83,7 @@ async function openAiCompatibleChat(defaultBaseUrl: string, defaultModel: string
  * completion rather than an error, which looked like a mysterious failure. Querying /v1/models
  * first and using whatever is actually loaded avoids needing a model field at all.
  */
-async function lmStudioChat({ model, baseUrl, prompt }: ChatParams): Promise<string> {
+async function lmStudioChat({ model, baseUrl, prompt, image }: ChatParams): Promise<string> {
   const base = (baseUrl || providerMeta("lmstudio").defaultBaseUrl || "http://localhost:1234/v1").replace(/\/$/, "");
 
   let resolvedModel = model;
@@ -78,10 +95,13 @@ async function lmStudioChat({ model, baseUrl, prompt }: ChatParams): Promise<str
     if (!resolvedModel) throw new Error("Aucun modèle chargé dans LM Studio. Chargez un modèle dans l'application LM Studio, puis réessayez.");
   }
 
+  const content = image
+    ? [{ type: "text", text: prompt }, { type: "image_url", image_url: { url: `data:${image.mimeType};base64,${image.base64}` } }]
+    : prompt;
   const res = await fetch(`${base}/chat/completions`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ model: resolvedModel, messages: [{ role: "user", content: prompt }] }),
+    body: JSON.stringify({ model: resolvedModel, messages: [{ role: "user", content }] }),
   });
   if (!res.ok) throw new Error(await extractError(res));
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };

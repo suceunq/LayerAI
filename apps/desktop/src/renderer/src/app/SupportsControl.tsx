@@ -46,7 +46,7 @@ export function SupportsControl(): React.JSX.Element | null {
             onChange={(e) => updateConfigValue("support_material", e.target.checked)}
             className="peer sr-only"
           />
-          <div className="h-5 w-9 rounded-full bg-surface-3 transition-colors peer-checked:bg-prusa-orange" />
+          <div className="h-5 w-9 rounded-full bg-surface-3 transition-colors peer-checked:bg-accent" />
           <div className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-text-primary transition-transform peer-checked:translate-x-4" />
         </label>
       </div>
@@ -68,8 +68,8 @@ export function SupportsControl(): React.JSX.Element | null {
               title={t(s.labelKey)}
               className={`flex flex-1 flex-col items-center gap-1 rounded-lg border px-2 py-2 text-xs ${
                 style === s.id
-                  ? "border-prusa-orange bg-prusa-orange/10 text-prusa-orange"
-                  : "border-border-subtle text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
               }`}
             >
               <span className="text-base leading-none">{s.icon}</span>

@@ -19,13 +19,23 @@ General Public License v3.0 or later (AGPL-3.0-or-later).
   Files:   resources/profiles/BBL/{machine,filament,process}
   License: https://www.gnu.org/licenses/agpl-3.0.html
 
-LayerAI does not embed, redistribute, or invoke the PrusaSlicer or
-BambuStudio slicing engines. The printer and filament defaults bundled in
-`packages/prusa-profile-db/data/*.json` are generated at build time from
-the files above by `tooling/profile-ingest`; see
-docs/licensing/THIRD_PARTY_PRUSASLICER.md and
-docs/licensing/THIRD_PARTY_BAMBUSTUDIO.md for details on what was taken
+This product also includes seed data derived from CrealityPrint's official
+configuration bundle for Creality printers ("resources/profiles/Creality"),
+Copyright (c) Creality and contributors, licensed under the GNU Affero
+General Public License v3.0 or later (AGPL-3.0-or-later).
+
+  Source:  https://github.com/CrealityOfficial/CrealityPrint
+  Files:   resources/profiles/Creality/{machine,filament}
+  License: https://www.gnu.org/licenses/agpl-3.0.html
+
+LayerAI does not embed, redistribute, or invoke the PrusaSlicer,
+BambuStudio, or CrealityPrint slicing engines. The printer and filament
+defaults bundled in `packages/prusa-profile-db/data/*.json` are generated
+at build time from the files above by `tooling/profile-ingest`; see
+docs/licensing/THIRD_PARTY_PRUSASLICER.md,
+docs/licensing/THIRD_PARTY_BAMBUSTUDIO.md, and
+docs/licensing/THIRD_PARTY_CREALITYPRINT.md for details on what was taken
 from each source versus authored by LayerAI.
 
 LayerAI is a standalone application and is not affiliated with, endorsed
-by, or sponsored by Prusa Research a.s. or Bambu Lab.
+by, or sponsored by Prusa Research a.s., Bambu Lab, or Creality.

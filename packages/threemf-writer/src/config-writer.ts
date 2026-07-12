@@ -90,3 +90,33 @@ export function buildStandaloneIniText(config: GeneratedConfig, printer: Printer
 
   return lines.join("\n") + "\n";
 }
+
+/**
+ * Builds a standalone, importable BambuStudio process preset .json (File > Import > Import
+ * Configs, which accepts single *.json preset files directly). Shape confirmed against both a
+ * real shipped BambuStudio process preset (type/name/from/instantiation + flat settings keys) and
+ * `Preset::save` in BambuStudio's own source (`from_str = "User"` for user-authored presets).
+ * Same best-effort caveat as buildBambuPrintConfigText: field names are mapped via
+ * bambu-param-map.ts, not round-trip tested against a real BambuStudio install.
+ */
+export function buildStandaloneBambuJsonText(config: GeneratedConfig, printer: PrinterProfile, filament: FilamentProfile): string {
+  const profile: Record<string, unknown> = {
+    type: "process",
+    name: `LayerAI - ${printer.name}`,
+    from: "User",
+    instantiation: "true",
+    printer_model: printer.id,
+    nozzle_diameter: String(printer.defaultNozzleDiameterMm),
+    filament_type: filament.materialType,
+    compatible_printers: [printer.name],
+  };
+
+  for (const [key, entry] of Object.entries(config)) {
+    if (BAMBU_UNMAPPED_KEYS.has(key)) continue;
+    const bambuKey = BAMBU_PARAM_MAP[key];
+    if (!bambuKey) continue;
+    profile[bambuKey] = serializeValue(key, entry.value);
+  }
+
+  return JSON.stringify(profile, null, 4) + "\n";
+}

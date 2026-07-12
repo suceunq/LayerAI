@@ -49,7 +49,7 @@ export function IntentPanel(): React.JSX.Element {
         onChange={(e) => setIntentText(e.target.value)}
         placeholder={t("intent.placeholder")}
         rows={4}
-        className="resize-none rounded-lg border border-border-subtle bg-surface-2 p-3 text-sm text-text-primary outline-none focus:border-prusa-orange"
+        className="resize-none rounded-lg border border-border-subtle bg-surface-2 p-3 text-sm text-text-primary outline-none focus:border-accent"
       />
 
       <div className="flex flex-wrap gap-2">
@@ -59,7 +59,7 @@ export function IntentPanel(): React.JSX.Element {
             <button
               key={key}
               onClick={() => setIntentText(intentText ? `${intentText}, ${prompt.toLowerCase()}` : prompt)}
-              className="rounded-full border border-border-subtle bg-surface-2 px-3 py-1 text-xs text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+              className="rounded-full border border-border-subtle bg-surface-2 px-3 py-1 text-xs text-text-secondary hover:border-accent hover:text-text-primary"
             >
               {prompt}
             </button>

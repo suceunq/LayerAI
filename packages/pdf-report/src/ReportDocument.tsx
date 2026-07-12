@@ -2,6 +2,7 @@ import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { ReportData } from "./types.js";
 import { RISK_LABELS_FR } from "./risk-labels.js";
+import { formatDurationFr } from "./duration.js";
 
 const ORANGE = "#FF6600";
 const DARK = "#1a1a1d";
@@ -36,10 +37,11 @@ function SectionTitle({ children }: { children: string }): React.JSX.Element {
 }
 
 export function ReportDocument({ data }: { data: ReportData }): React.JSX.Element {
-  const { fileName, printer, filament, analysis, config, explanations, comparison, generatedAt } = data;
+  const { fileName, printer, filament, analysis, config, explanations, comparison, generatedAt, quantity = 1 } = data;
 
   const costPerKg = filament.costPerKg ?? 0;
   const estimatedCost = (comparison.aiFilamentG / 1000) * costPerKg;
+  const batchEstimatedCost = estimatedCost * quantity;
 
   return (
     <Document title={`Rapport LayerAI - ${fileName}`}>
@@ -64,7 +66,7 @@ export function ReportDocument({ data }: { data: ReportData }): React.JSX.Elemen
           <View style={styles.statGrid}>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>Temps estimé</Text>
-              <Text style={styles.statValue}>{comparison.aiEstimatedTimeMin.toFixed(0)} min</Text>
+              <Text style={styles.statValue}>{formatDurationFr(comparison.aiEstimatedTimeMin)}</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>Poids / consommation</Text>
@@ -75,6 +77,13 @@ export function ReportDocument({ data }: { data: ReportData }): React.JSX.Elemen
               <Text style={styles.statValue}>{estimatedCost > 0 ? `${estimatedCost.toFixed(2)} €` : "—"}</Text>
             </View>
           </View>
+          {quantity > 1 && (
+            <Text style={{ marginTop: 8, fontSize: 9, color: GRAY }}>
+              Lot de {quantity} exemplaires : ≈{formatDurationFr(comparison.aiEstimatedTimeMin * quantity)} ·{" "}
+              {(comparison.aiFilamentG * quantity).toFixed(1)} g
+              {batchEstimatedCost > 0 ? ` · ${batchEstimatedCost.toFixed(2)} €` : ""} au total.
+            </Text>
+          )}
         </View>
 
         <View style={styles.section}>

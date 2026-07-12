@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
 const TEXTURE_SIZE = 128;
-const LINE_COLOR = "#ff8533";
-const BG_COLOR = "rgba(255, 102, 0, 0.12)";
+const LINE_COLOR = "#5b9ef7";
+const BG_COLOR = "rgba(47, 128, 237, 0.12)";
 
 /**
  * A small illustrative canvas pattern per fill_pattern value - visually distinct per pattern so

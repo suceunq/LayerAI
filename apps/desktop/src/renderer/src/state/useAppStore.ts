@@ -11,11 +11,22 @@ import type {
   PrintOutcomeId,
 } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../../../preload/api.js";
-import type { CustomProfile, UpdateState } from "../../../shared/ipc-types.js";
+import type {
+  CompanySettings,
+  CostSettings,
+  CustomProfile,
+  GenerateInvoiceRequest,
+  PhotoDiagnosisResult,
+  RecentProject,
+  SupportedTheme,
+  UpdateState,
+} from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
+import { filamentGroupForVendor, filamentGroupOfId } from "../lib/vendor-filament.js";
 import type { Language } from "../i18n/translations.js";
 import { translate } from "../i18n/useTranslation.js";
-import { quaternionRestingFace } from "@layerai/mesh-analysis";
+import { quaternionRestingFace, computeGridArrangement } from "@layerai/mesh-analysis";
+import { clampConfig } from "@layerai/config-generator";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
@@ -29,11 +40,26 @@ interface AppState {
   helpDialogOpen: boolean;
   helpDialogTab: HelpDialogTab;
   language: Language;
+  theme: SupportedTheme;
   settingsDialogOpen: boolean;
   updateDialogOpen: boolean;
   updateState: UpdateState | null;
   checkUpdatesOnStartup: boolean;
   postponedUpdateVersion: string | undefined;
+  costSettings: CostSettings;
+  companySettings: CompanySettings | null;
+
+  photoDiagnosisDialogOpen: boolean;
+  photoDiagnosisLoading: boolean;
+  photoDiagnosisResult: PhotoDiagnosisResult | null;
+  photoDiagnosisError: string | null;
+  photoDiagnosisAppliedCount: number;
+
+  invoiceDialogOpen: boolean;
+  invoiceGenerating: boolean;
+  invoiceError: string | null;
+
+  feedbackDialogOpen: boolean;
 
   printers: PrinterProfile[];
   filaments: FilamentProfile[];
@@ -59,7 +85,16 @@ interface AppState {
   layerViewEnabled: boolean;
   layerViewHeightMm: number;
 
+  quantity: number;
+  setQuantity: (quantity: number) => void;
+
+  multiPlateEnabled: boolean;
+  setMultiPlateEnabled: (enabled: boolean) => void;
+  currentPlateIndex: number;
+  setCurrentPlateIndex: (index: number) => void;
+
   customProfiles: CustomProfile[];
+  recentProjects: RecentProject[];
 
   loadProfileDb: () => Promise<void>;
   setPrinter: (id: string) => void;
@@ -80,6 +115,7 @@ interface AppState {
   setLayerViewHeight: (heightMm: number) => void;
   exportThreeMf: () => Promise<void>;
   exportIni: () => Promise<void>;
+  exportBambuProfile: (targetSlicer?: "bambuStudio" | "crealityPrint") => Promise<void>;
   exportPdfReport: () => Promise<void>;
   openInSlicer: () => Promise<void>;
   startOver: () => void;
@@ -88,6 +124,11 @@ interface AppState {
   saveCurrentAsProfile: (name: string) => Promise<void>;
   applyCustomProfile: (profile: CustomProfile) => void;
   deleteCustomProfile: (id: string) => Promise<void>;
+
+  loadRecentProjects: () => Promise<void>;
+  recordCurrentAsRecentProject: () => Promise<void>;
+  reopenRecentProject: (project: RecentProject) => Promise<void>;
+  removeRecentProject: (id: string) => Promise<void>;
 
   outcomeRecorded: boolean;
   recordOutcome: (outcome: PrintOutcomeId) => Promise<void>;
@@ -106,6 +147,7 @@ interface AppState {
 
   loadLanguage: () => Promise<void>;
   setLanguage: (language: Language) => Promise<void>;
+  setTheme: (theme: SupportedTheme) => Promise<void>;
   toggleSettingsDialog: () => void;
 
   toggleUpdateDialog: () => void;
@@ -113,10 +155,67 @@ interface AppState {
   openUpdateDialogAndCheck: () => void;
   setCheckUpdatesOnStartup: (enabled: boolean) => Promise<void>;
   postponeAvailableUpdate: () => void;
+
+  setCostSettings: (costs: CostSettings) => Promise<void>;
+  setCompanySettings: (company: CompanySettings) => Promise<void>;
+
+  togglePhotoDiagnosisDialog: () => void;
+  runPhotoDiagnosis: (imageBase64: string, mimeType: string) => Promise<void>;
+  applyDiagnosisCorrections: () => void;
+  resetPhotoDiagnosis: () => void;
+
+  toggleInvoiceDialog: () => void;
+  generateInvoice: (request: GenerateInvoiceRequest) => Promise<{ saved: boolean; invoiceNumber?: string }>;
+
+  toggleFeedbackDialog: () => void;
 }
 
 async function runAnalysisForFile(file: ImportedFilePayload): Promise<{ geometry: MeshGeometryData; analysis: MeshAnalysisResult }> {
   return window.api.runAnalysis({ file });
+}
+
+/**
+ * Computes where each copy of the current part should sit on the bed for a given quantity.
+ * Returns undefined for a single copy so callers (buildThreeMf) fall back to their own
+ * single-centered default rather than threading a redundant one-element array everywhere.
+ */
+export interface PlateArrangementInfo {
+  /** Bed-space XY centers for the pieces on the requested plate only. */
+  positions: { x: number; y: number }[];
+  /** How many copies fit on a single plate at this spacing. */
+  maxFitPerPlate: number;
+  /** ceil(quantity / maxFitPerPlate) - how many plates it'd take to print everything requested. */
+  totalPlates: number;
+  /** How many of the requested copies are on this specific plate (the last plate may be a partial fill). */
+  platePieceCount: number;
+}
+
+/**
+ * Computes where each copy of the current part should sit on the bed for a given quantity and
+ * plate index. Multi-plate is purely a UI/export-time concept - pieces past what fits on plate 0
+ * spill onto plate 1, 2, etc. rather than being silently dropped, but the caller decides whether
+ * to expose that (multiPlateEnabled) or just show/export plate 0 with an overflow warning.
+ * Returns null for a single copy so callers (buildThreeMf) fall back to their own
+ * single-centered default rather than threading a redundant one-element array everywhere.
+ */
+export function computePlateArrangement(
+  analysis: MeshAnalysisResult | null,
+  printer: PrinterProfile | undefined,
+  quantity: number,
+  plateIndex = 0
+): PlateArrangementInfo | null {
+  if (!analysis || !printer || quantity <= 1) return null;
+  const width = analysis.boundingBoxMm.max.x - analysis.boundingBoxMm.min.x;
+  const depth = analysis.boundingBoxMm.max.y - analysis.boundingBoxMm.min.y;
+
+  const probe = computeGridArrangement(quantity, width, depth, printer.bedShape);
+  const maxFitPerPlate = Math.max(1, probe.maxFit);
+  const totalPlates = Math.max(1, Math.ceil(quantity / maxFitPerPlate));
+  const clampedIndex = Math.min(Math.max(0, plateIndex), totalPlates - 1);
+  const platePieceCount = Math.max(0, Math.min(maxFitPerPlate, quantity - clampedIndex * maxFitPerPlate));
+
+  const plate = computeGridArrangement(platePieceCount, width, depth, printer.bedShape);
+  return { positions: plate.positions, maxFitPerPlate, totalPlates, platePieceCount };
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -127,11 +226,26 @@ export const useAppStore = create<AppState>((set, get) => ({
   helpDialogOpen: false,
   helpDialogTab: "aide",
   language: "fr",
+  theme: "dark",
   settingsDialogOpen: false,
   updateDialogOpen: false,
   updateState: null,
   checkUpdatesOnStartup: true,
   postponedUpdateVersion: undefined,
+  costSettings: { currency: "€", filamentPricePerKg: null, printerPowerW: null, electricityPricePerKwh: null },
+  companySettings: null,
+
+  photoDiagnosisDialogOpen: false,
+  photoDiagnosisLoading: false,
+  photoDiagnosisResult: null,
+  photoDiagnosisError: null,
+  photoDiagnosisAppliedCount: 0,
+
+  invoiceDialogOpen: false,
+  invoiceGenerating: false,
+  invoiceError: null,
+
+  feedbackDialogOpen: false,
 
   printers: [],
   filaments: [],
@@ -157,16 +271,31 @@ export const useAppStore = create<AppState>((set, get) => ({
   layerViewEnabled: false,
   layerViewHeightMm: 0,
 
+  quantity: 1,
+  setQuantity: (quantity) => set({ quantity: Math.max(1, Math.floor(quantity) || 1), currentPlateIndex: 0 }),
+
+  multiPlateEnabled: false,
+  setMultiPlateEnabled: (enabled) => set({ multiPlateEnabled: enabled, currentPlateIndex: 0 }),
+  currentPlateIndex: 0,
+  setCurrentPlateIndex: (index) => set({ currentPlateIndex: Math.max(0, index) }),
+
   customProfiles: [],
+  recentProjects: [],
   outcomeRecorded: false,
   onboardingActive: false,
 
   loadProfileDb: async () => {
     try {
-      const [printers, filaments] = await Promise.all([window.api.getPrinters(), window.api.getFilaments()]);
+      const [printers, filaments, settings] = await Promise.all([
+        window.api.getPrinters(),
+        window.api.getFilaments(),
+        window.api.getSettings(),
+      ]);
       const defaultPrinter = printers.find((p) => p.id === "MK4S")?.id ?? printers[0]?.id ?? "";
       const defaultFilament = filaments.find((f) => f.id === "PLA")?.id ?? filaments[0]?.id ?? "";
-      set({ printers, filaments, selectedPrinterId: defaultPrinter, selectedFilamentId: defaultFilament });
+      const selectedPrinterId = printers.find((p) => p.id === settings.lastPrinterId)?.id ?? defaultPrinter;
+      const selectedFilamentId = filaments.find((f) => f.id === settings.lastFilamentId)?.id ?? defaultFilament;
+      set({ printers, filaments, selectedPrinterId, selectedFilamentId });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }
@@ -175,14 +304,26 @@ export const useAppStore = create<AppState>((set, get) => ({
   setPrinter: (id) =>
     set((s) => {
       const vendor = s.printers.find((p) => p.id === id)?.vendor;
-      const isBambu = vendor === "Bambu Lab";
-      const currentFilamentIsBambu = s.selectedFilamentId.startsWith("BAMBU_");
-      if (isBambu === currentFilamentIsBambu) return { selectedPrinterId: id };
+      const targetGroup = filamentGroupForVendor(vendor);
+      const currentGroup = filamentGroupOfId(s.selectedFilamentId);
+      // A different printer can change how many copies fit per plate (and thus totalPlates),
+      // so a previously-valid currentPlateIndex could now point past the end - reset it rather
+      // than let the plate navigator show an out-of-range "Plateau N / totalPlates".
+      if (targetGroup === currentGroup) {
+        void window.api.setLastSelection({ printerId: id, filamentId: s.selectedFilamentId });
+        return { selectedPrinterId: id, currentPlateIndex: 0 };
+      }
 
-      const fallback = s.filaments.find((f) => f.id.startsWith("BAMBU_") === isBambu);
-      return { selectedPrinterId: id, selectedFilamentId: fallback?.id ?? s.selectedFilamentId };
+      const fallback = s.filaments.find((f) => filamentGroupOfId(f.id) === targetGroup);
+      const filamentId = fallback?.id ?? s.selectedFilamentId;
+      void window.api.setLastSelection({ printerId: id, filamentId });
+      return { selectedPrinterId: id, selectedFilamentId: filamentId, currentPlateIndex: 0 };
     }),
-  setFilament: (id) => set({ selectedFilamentId: id }),
+  setFilament: (id) =>
+    set((s) => {
+      void window.api.setLastSelection({ printerId: s.selectedPrinterId, filamentId: id });
+      return { selectedFilamentId: id };
+    }),
 
   importFromDialog: async () => {
     try {
@@ -232,6 +373,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         language,
       });
       set({ intentResult: intent, config, explanations, comparison, step: "review" });
+      void get().recordCurrentAsRecentProject();
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err), step: "intent" });
     }
@@ -289,15 +431,28 @@ export const useAppStore = create<AppState>((set, get) => ({
     }),
 
   exportThreeMf: async () => {
-    const { geometry, config, selectedPrinterId, selectedFilamentId, importedFile } = get();
+    const { geometry, analysis, config, printers, selectedPrinterId, selectedFilamentId, importedFile, quantity, multiPlateEnabled, currentPlateIndex } =
+      get();
     if (!geometry || !config) return;
+    const arrangement = computePlateArrangement(
+      analysis,
+      printers.find((p) => p.id === selectedPrinterId),
+      quantity,
+      multiPlateEnabled ? currentPlateIndex : 0
+    );
+    const baseName = importedFile?.fileName.replace(/\.[^.]+$/, "");
+    const objectName =
+      multiPlateEnabled && arrangement && arrangement.totalPlates > 1 && baseName
+        ? `${baseName}-plateau${currentPlateIndex + 1}`
+        : baseName;
     try {
       await window.api.exportThreeMf({
         geometry,
         config,
         printerId: selectedPrinterId,
         filamentId: selectedFilamentId,
-        objectName: importedFile?.fileName.replace(/\.[^.]+$/, ""),
+        objectName,
+        positions: arrangement?.positions,
       });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
@@ -314,8 +469,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  exportBambuProfile: async (targetSlicer = "bambuStudio") => {
+    const { config, selectedPrinterId, selectedFilamentId } = get();
+    if (!config) return;
+    try {
+      await window.api.exportBambuProfile({ config, printerId: selectedPrinterId, filamentId: selectedFilamentId, targetSlicer });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
   exportPdfReport: async () => {
-    const { analysis, intentResult, config, explanations, comparison, selectedPrinterId, selectedFilamentId, importedFile } = get();
+    const { analysis, intentResult, config, explanations, comparison, selectedPrinterId, selectedFilamentId, importedFile, quantity } = get();
     if (!analysis || !intentResult || !config || !explanations || !comparison) return;
     try {
       await window.api.exportPdfReport({
@@ -327,6 +492,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         config,
         explanations,
         comparison,
+        quantity,
       });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
@@ -334,8 +500,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   openInSlicer: async () => {
-    const { geometry, config, selectedPrinterId, selectedFilamentId, importedFile } = get();
+    const { geometry, analysis, config, printers, selectedPrinterId, selectedFilamentId, importedFile, quantity, multiPlateEnabled, currentPlateIndex } =
+      get();
     if (!geometry || !config) return;
+    const arrangement = computePlateArrangement(
+      analysis,
+      printers.find((p) => p.id === selectedPrinterId),
+      quantity,
+      multiPlateEnabled ? currentPlateIndex : 0
+    );
+    const baseName = importedFile?.fileName.replace(/\.[^.]+$/, "");
+    const objectName =
+      multiPlateEnabled && arrangement && arrangement.totalPlates > 1 && baseName
+        ? `${baseName}-plateau${currentPlateIndex + 1}`
+        : baseName;
     set({ error: null, slicerNotice: null });
     try {
       const result = await window.api.openInSlicer({
@@ -343,7 +521,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         config,
         printerId: selectedPrinterId,
         filamentId: selectedFilamentId,
-        objectName: importedFile?.fileName.replace(/\.[^.]+$/, ""),
+        objectName,
+        positions: arrangement?.positions,
       });
       if (result.opened) {
         const notice = translate(get().language, "review.slicerOpening", { slicer: result.slicerName });
@@ -377,6 +556,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       layerViewHeightMm: 0,
       resizePanelOpen: false,
       facePickModeActive: false,
+      quantity: 1,
+      multiPlateEnabled: false,
+      currentPlateIndex: 0,
     }),
 
   loadCustomProfiles: async () => {
@@ -405,6 +587,47 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       await window.api.deleteCustomProfile(id);
       set((s) => ({ customProfiles: s.customProfiles.filter((p) => p.id !== id) }));
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  loadRecentProjects: async () => {
+    try {
+      const recentProjects = await window.api.getRecentProjects();
+      set({ recentProjects });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  recordCurrentAsRecentProject: async () => {
+    const { importedFile, selectedPrinterId, selectedFilamentId, intentText } = get();
+    if (!importedFile) return;
+    try {
+      const entry = await window.api.recordRecentProject({
+        filePath: importedFile.filePath,
+        fileName: importedFile.fileName,
+        printerId: selectedPrinterId,
+        filamentId: selectedFilamentId,
+        intentText,
+      });
+      set((s) => ({ recentProjects: [entry, ...s.recentProjects.filter((p) => p.filePath !== entry.filePath)].slice(0, 20) }));
+    } catch {
+      // Best-effort - a failure to record recent-project history must never interrupt the review the user is already looking at.
+    }
+  },
+
+  reopenRecentProject: async (project) => {
+    set({ selectedPrinterId: project.printerId, selectedFilamentId: project.filamentId, intentText: project.intentText });
+    await get().importDroppedPath(project.filePath);
+    if (get().step === "intent") await get().generateConfiguration();
+  },
+
+  removeRecentProject: async (id) => {
+    try {
+      await window.api.removeRecentProject(id);
+      set((s) => ({ recentProjects: s.recentProjects.filter((p) => p.id !== id) }));
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }
@@ -453,12 +676,97 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const settings = await window.api.getSettings();
       if (settings.language) set({ language: settings.language });
+      if (settings.theme) set({ theme: settings.theme });
       set({
         checkUpdatesOnStartup: settings.checkUpdatesOnStartup ?? true,
         postponedUpdateVersion: settings.postponedUpdateVersion,
       });
+      if (settings.costs) set({ costSettings: settings.costs });
+      if (settings.company) set({ companySettings: settings.company });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  setCostSettings: async (costs) => {
+    set({ costSettings: costs });
+    try {
+      await window.api.setCostSettings(costs);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  setCompanySettings: async (company) => {
+    set({ companySettings: company });
+    try {
+      await window.api.setCompanySettings(company);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  togglePhotoDiagnosisDialog: () =>
+    set((s) => {
+      const nextOpen = !s.photoDiagnosisDialogOpen;
+      return nextOpen
+        ? { photoDiagnosisDialogOpen: true }
+        : { photoDiagnosisDialogOpen: false, photoDiagnosisResult: null, photoDiagnosisError: null, photoDiagnosisAppliedCount: 0 };
+    }),
+
+  resetPhotoDiagnosis: () => set({ photoDiagnosisResult: null, photoDiagnosisError: null, photoDiagnosisAppliedCount: 0 }),
+
+  runPhotoDiagnosis: async (imageBase64, mimeType) => {
+    set({ photoDiagnosisLoading: true, photoDiagnosisError: null, photoDiagnosisResult: null, photoDiagnosisAppliedCount: 0 });
+    try {
+      const response = await window.api.diagnosePrintPhoto({ imageBase64, mimeType, language: get().language });
+      if (response.success) {
+        set({ photoDiagnosisResult: response.result });
+      } else {
+        set({ photoDiagnosisError: response.message });
+      }
+    } catch (err) {
+      set({ photoDiagnosisError: err instanceof Error ? err.message : String(err) });
+    } finally {
+      set({ photoDiagnosisLoading: false });
+    }
+  },
+
+  applyDiagnosisCorrections: () => {
+    const { photoDiagnosisResult, config, selectedPrinterId } = get();
+    if (!photoDiagnosisResult || !config) return;
+    let next = { ...config };
+    for (const correction of photoDiagnosisResult.corrections) {
+      const entry = next[correction.parameterKey];
+      if (!entry || typeof entry.value !== "number") continue;
+      next = {
+        ...next,
+        [correction.parameterKey]: { ...entry, value: entry.value + correction.deltaValue, ruleId: "manual.photoDiagnosis", confidence: 1 },
+      };
+    }
+    next = clampConfig(next, selectedPrinterId);
+    set({ config: next, photoDiagnosisAppliedCount: photoDiagnosisResult.corrections.length });
+  },
+
+  toggleInvoiceDialog: () => set((s) => ({ invoiceDialogOpen: !s.invoiceDialogOpen, invoiceError: null })),
+
+  toggleFeedbackDialog: () => set((s) => ({ feedbackDialogOpen: !s.feedbackDialogOpen })),
+
+  generateInvoice: async (request) => {
+    set({ invoiceGenerating: true, invoiceError: null });
+    try {
+      const response = await window.api.generateInvoice(request);
+      if (response.saved) {
+        set({ invoiceDialogOpen: false });
+        return { saved: true, invoiceNumber: response.invoiceNumber };
+      }
+      if (response.error) set({ invoiceError: response.error });
+      return { saved: false };
+    } catch (err) {
+      set({ invoiceError: err instanceof Error ? err.message : String(err) });
+      return { saved: false };
+    } finally {
+      set({ invoiceGenerating: false });
     }
   },
 
@@ -466,6 +774,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ language });
     try {
       await window.api.setLanguage(language);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  setTheme: async (theme) => {
+    set({ theme });
+    try {
+      await window.api.setTheme(theme);
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }
@@ -524,6 +841,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         break;
       case "file:export-ini":
         void s.exportIni();
+        break;
+      case "file:export-bambu":
+        void s.exportBambuProfile("bambuStudio");
+        break;
+      case "file:export-creality":
+        void s.exportBambuProfile("crealityPrint");
         break;
       case "edit:preferences":
         s.toggleSettingsDialog();

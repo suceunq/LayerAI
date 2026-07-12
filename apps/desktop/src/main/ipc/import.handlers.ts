@@ -15,7 +15,7 @@ async function readModelFile(filePath: string): Promise<ImportedFilePayload> {
   const format = detectFormat(filePath);
   if (!format) throw new Error(`Format de fichier non supporté : ${filePath}`);
   const data = await readFile(filePath);
-  return { fileName: basename(filePath), format, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
+  return { fileName: basename(filePath), filePath, format, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
 }
 
 export function registerImportHandlers(): void {

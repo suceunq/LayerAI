@@ -15,6 +15,7 @@ export function AdvancedPanel(): React.JSX.Element | null {
   const saveCurrentAsProfile = useAppStore((s) => s.saveCurrentAsProfile);
   const config = useAppStore((s) => s.config);
   const exportIni = useAppStore((s) => s.exportIni);
+  const exportBambuProfile = useAppStore((s) => s.exportBambuProfile);
   const step = useAppStore((s) => s.step);
   const replayOnboarding = useAppStore((s) => s.replayOnboarding);
   const toggleSettingsDialog = useAppStore((s) => s.toggleSettingsDialog);
@@ -57,9 +58,9 @@ export function AdvancedPanel(): React.JSX.Element | null {
               <button
                 key={mode.id}
                 onClick={() => setIntentText(mode.intentText[language])}
-                className="flex flex-col items-center gap-1 rounded-lg border border-border-subtle bg-surface-2 py-3 text-xs text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+                className="flex flex-col items-center gap-1 rounded-lg border border-border-subtle bg-surface-2 py-3 text-xs text-text-secondary hover:border-accent hover:text-text-primary"
               >
-                <span className="text-lg text-prusa-orange">{mode.icon}</span>
+                <span className="text-lg text-accent">{mode.icon}</span>
                 {t(mode.labelKey)}
               </button>
             ))}
@@ -70,7 +71,7 @@ export function AdvancedPanel(): React.JSX.Element | null {
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-xs uppercase tracking-wide text-text-muted">{t("advanced.myProfiles")}</h3>
             {intentText && (
-              <button onClick={handleSaveProfile} className="text-xs text-prusa-orange hover:text-prusa-orange-glow">
+              <button onClick={handleSaveProfile} className="text-xs text-accent hover:text-accent-glow">
                 {t("advanced.saveCurrent")}
               </button>
             )}
@@ -81,7 +82,7 @@ export function AdvancedPanel(): React.JSX.Element | null {
             <div className="flex flex-col gap-1.5">
               {customProfiles.map((profile) => (
                 <div key={profile.id} className="flex items-center justify-between rounded-lg border border-border-subtle bg-surface-2 px-3 py-2">
-                  <button onClick={() => applyCustomProfile(profile)} className="text-left text-sm text-text-primary hover:text-prusa-orange">
+                  <button onClick={() => applyCustomProfile(profile)} className="text-left text-sm text-text-primary hover:text-accent">
                     {profile.name}
                   </button>
                   <button onClick={() => void deleteCustomProfile(profile.id)} className="text-xs text-text-muted hover:text-confidence-low">
@@ -102,6 +103,12 @@ export function AdvancedPanel(): React.JSX.Element | null {
             <Button variant="ghost" onClick={() => void exportIni()} className="mt-3">
               {t("advanced.exportIni")}
             </Button>
+            <Button variant="ghost" onClick={() => void exportBambuProfile("bambuStudio")} className="mt-2">
+              {t("advanced.exportBambu")}
+            </Button>
+            <Button variant="ghost" onClick={() => void exportBambuProfile("crealityPrint")} className="mt-2">
+              {t("advanced.exportCreality")}
+            </Button>
           </section>
         )}
 
@@ -110,16 +117,16 @@ export function AdvancedPanel(): React.JSX.Element | null {
           <div className="flex flex-col gap-2">
             <button
               onClick={handleReplayOnboarding}
-              className="flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-left text-sm text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+              className="flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-left text-sm text-text-secondary hover:border-accent hover:text-text-primary"
             >
-              <span className="text-prusa-orange">↻</span>
+              <span className="text-accent">↻</span>
               {t("advanced.replayOnboarding")}
             </button>
             <button
               onClick={handleOpenSettings}
-              className="flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-left text-sm text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+              className="flex w-full items-center gap-2 rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-left text-sm text-text-secondary hover:border-accent hover:text-text-primary"
             >
-              <span className="text-prusa-orange">⚙</span>
+              <span className="text-accent">⚙</span>
               {t("settings.title")}
             </button>
           </div>

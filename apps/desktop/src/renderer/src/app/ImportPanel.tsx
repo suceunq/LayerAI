@@ -3,6 +3,8 @@ import { useAppStore } from "../state/useAppStore.js";
 import { Button } from "../components/ui/Button.js";
 import { Select } from "../components/ui/Select.js";
 import { useTranslation } from "../i18n/useTranslation.js";
+import { RecentProjectsList } from "./RecentProjectsList.js";
+import { filamentGroupForVendor, filamentGroupOfId } from "../lib/vendor-filament.js";
 
 const ACCEPTED_EXTENSIONS = [".stl", ".obj", ".3mf"];
 
@@ -35,11 +37,17 @@ export function ImportPanel(): React.JSX.Element {
     if (!printersByVendor.has(p.vendor)) printersByVendor.set(p.vendor, []);
     printersByVendor.get(p.vendor)!.push(p);
   }
+  const vendors = Array.from(printersByVendor.keys());
 
   const selectedVendor = printers.find((p) => p.id === selectedPrinterId)?.vendor;
-  const compatibleFilaments = filaments.filter((f) =>
-    selectedVendor === "Bambu Lab" ? f.id.startsWith("BAMBU_") : !f.id.startsWith("BAMBU_")
-  );
+  const printersOfSelectedVendor = selectedVendor ? (printersByVendor.get(selectedVendor) ?? []) : [];
+  const selectedFilamentGroup = filamentGroupForVendor(selectedVendor);
+  const compatibleFilaments = filaments.filter((f) => filamentGroupOfId(f.id) === selectedFilamentGroup);
+
+  const handleBrandChange = (vendor: string): void => {
+    const firstOfVendor = printersByVendor.get(vendor)?.[0];
+    if (firstOfVendor) setPrinter(firstOfVendor.id);
+  };
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-8 p-8">
@@ -56,31 +64,41 @@ export function ImportPanel(): React.JSX.Element {
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
         className={`flex w-full flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-12 transition-colors ${
-          isDragOver ? "border-prusa-orange bg-surface-1" : "border-border-subtle bg-surface-1/50"
+          isDragOver ? "border-accent bg-surface-1" : "border-border-subtle bg-surface-1/50"
         }`}
       >
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-2 text-3xl text-prusa-orange">↑</div>
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-2 text-3xl text-accent">↑</div>
         <p className="text-sm text-text-secondary">{t("import.dropHint")}</p>
         <Button onClick={() => void importFromDialog()}>{t("import.browse")}</Button>
       </div>
 
       {error && <p className="max-w-md text-center text-sm text-confidence-low">{error}</p>}
 
+      <RecentProjectsList />
+
       <div className="flex w-full flex-col gap-3">
-        <label className="flex min-w-0 flex-col gap-1">
-          <span className="text-xs uppercase tracking-wide text-text-muted">{t("import.printer")}</span>
-          <Select value={selectedPrinterId} onChange={(e) => setPrinter(e.target.value)} className="w-full">
-            {Array.from(printersByVendor.entries()).map(([vendor, vendorPrinters]) => (
-              <optgroup key={vendor} label={vendor}>
-                {vendorPrinters.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </Select>
-        </label>
+        <div className="flex gap-3">
+          <label className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-xs uppercase tracking-wide text-text-muted">{t("import.brand")}</span>
+            <Select value={selectedVendor ?? ""} onChange={(e) => handleBrandChange(e.target.value)} className="w-full">
+              {vendors.map((vendor) => (
+                <option key={vendor} value={vendor}>
+                  {vendor}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-xs uppercase tracking-wide text-text-muted">{t("import.printer")}</span>
+            <Select value={selectedPrinterId} onChange={(e) => setPrinter(e.target.value)} className="w-full">
+              {printersOfSelectedVendor.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </Select>
+          </label>
+        </div>
         <label className="flex min-w-0 flex-col gap-1">
           <span className="text-xs uppercase tracking-wide text-text-muted">{t("import.filament")}</span>
           <Select value={selectedFilamentId} onChange={(e) => setFilament(e.target.value)} className="w-full">

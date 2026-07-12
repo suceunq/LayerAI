@@ -53,6 +53,8 @@ export interface ExportThreeMfRequest {
   printerId: string;
   filamentId: string;
   objectName?: string;
+  /** Bed-space centers for each copy to place, e.g. from computeGridArrangement. Defaults to a single centered copy. */
+  positions?: { x: number; y: number }[];
 }
 
 export type ExportThreeMfResponse = { saved: true; filePath: string } | { saved: false };
@@ -66,6 +68,18 @@ export interface CustomProfile {
   createdAt: string;
 }
 
+export interface RecentProject {
+  id: string;
+  filePath: string;
+  fileName: string;
+  printerId: string;
+  filamentId: string;
+  intentText: string;
+  lastOpenedAt: string;
+}
+
+export type RecordRecentProjectRequest = Omit<RecentProject, "id" | "lastOpenedAt">;
+
 export type SaveCustomProfileRequest = Omit<CustomProfile, "id" | "createdAt">;
 
 export interface ExportIniRequest {
@@ -76,12 +90,32 @@ export interface ExportIniRequest {
 
 export type ExportIniResponse = { saved: true; filePath: string } | { saved: false };
 
+export interface ExportBambuProfileRequest {
+  config: GeneratedConfig;
+  printerId: string;
+  filamentId: string;
+  /** Both slicers read the identical JSON preset schema (see packages/threemf-writer) - this only changes the save-dialog title/filename. */
+  targetSlicer?: "bambuStudio" | "crealityPrint";
+}
+
+export type ExportBambuProfileResponse = { saved: true; filePath: string } | { saved: false };
+
+export interface ExportCaptureImageRequest {
+  /** A "data:image/png;base64,..." data URL, as produced by canvas.toDataURL("image/png"). */
+  dataUrl: string;
+  suggestedFileName?: string;
+}
+
+export type ExportCaptureImageResponse = { saved: true; filePath: string } | { saved: false };
+
 export interface OpenInSlicerRequest {
   geometry: MeshGeometryData;
   config: GeneratedConfig;
   printerId: string;
   filamentId: string;
   objectName?: string;
+  /** Bed-space centers for each copy to place, e.g. from computeGridArrangement. Defaults to a single centered copy. */
+  positions?: { x: number; y: number }[];
 }
 
 export type OpenInSlicerResponse =
@@ -98,9 +132,54 @@ export interface ExportPdfReportRequest {
   config: GeneratedConfig;
   explanations: ExplanationSet;
   comparison: ComparisonMetrics;
+  quantity?: number;
 }
 
 export type ExportPdfReportResponse = { saved: true; filePath: string } | { saved: false };
+
+export type CompanyLegalStatus = "auto-entrepreneur" | "entreprise-individuelle" | "societe";
+
+export interface CompanySettings {
+  legalStatus: CompanyLegalStatus;
+  name: string;
+  addressLine1: string;
+  addressLine2?: string;
+  postalCode: string;
+  city: string;
+  siret: string;
+  rcsCity?: string;
+  capitalSocial?: string;
+  vatApplicable: boolean;
+  vatNumber?: string;
+  vatRatePercent: number;
+  email?: string;
+  phone?: string;
+  iban?: string;
+  paymentTermsDays: number;
+  invoicePrefix: string;
+}
+
+export interface InvoiceClientRequest {
+  name: string;
+  addressLine1: string;
+  addressLine2?: string;
+  postalCode: string;
+  city: string;
+}
+
+export interface InvoiceLineItemRequest {
+  description: string;
+  quantity: number;
+  unitPriceHt: number;
+}
+
+export interface GenerateInvoiceRequest {
+  client: InvoiceClientRequest;
+  lineItems: InvoiceLineItemRequest[];
+  notes?: string;
+}
+
+export type GenerateInvoiceResponse = { saved: true; filePath: string; invoiceNumber: string } | { saved: false; error?: string };
 
 export interface RecordOutcomeRequest {
   analysis: AnalyzedMesh["analysis"];
@@ -114,13 +193,33 @@ export interface RecordOutcomeRequest {
 
 export type SupportedLanguage = "fr" | "en";
 
+export type SupportedTheme = "dark" | "light";
+
+export interface CostSettings {
+  currency: string;
+  filamentPricePerKg: number | null;
+  printerPowerW: number | null;
+  electricityPricePerKwh: number | null;
+}
+
 export interface AppSettings {
   onboardingCompleted: boolean;
   prusaSlicerPath?: string;
   bambuStudioPath?: string;
+  crealityPrintPath?: string;
   language?: SupportedLanguage;
+  theme?: SupportedTheme;
   checkUpdatesOnStartup?: boolean;
   postponedUpdateVersion?: string;
+  costs?: CostSettings;
+  lastPrinterId?: string;
+  lastFilamentId?: string;
+  company?: CompanySettings;
+}
+
+export interface LastSelectionRequest {
+  printerId: string;
+  filamentId: string;
 }
 
 export interface AiProviderPublic {
@@ -151,6 +250,43 @@ export interface TestAiProviderRequest {
 }
 
 export type TestAiProviderResponse = { success: true } | { success: false; message: string };
+
+export type PrintDefectId =
+  | "stringing"
+  | "elephantFoot"
+  | "warping"
+  | "layerShift"
+  | "overExtrusion"
+  | "underExtrusion"
+  | "poorAdhesion"
+  | "poorBridging"
+  | "none"
+  | "other";
+
+export interface PhotoDiagnosisCorrection {
+  /** One of the GeneratedConfig keys LayerAI can actually set (see CORRECTABLE_KEYS in photo-diagnosis.ts). */
+  parameterKey: string;
+  /** Relative adjustment applied to the current config value for that key. */
+  deltaValue: number;
+  label: string;
+}
+
+export interface PhotoDiagnosisResult {
+  defectId: PrintDefectId;
+  defectLabel: string;
+  confidencePercent: number;
+  explanation: string;
+  corrections: PhotoDiagnosisCorrection[];
+  additionalAdvice?: string;
+}
+
+export interface DiagnosePhotoRequest {
+  imageBase64: string;
+  mimeType: string;
+  language: SupportedLanguage;
+}
+
+export type DiagnosePhotoResponse = { success: true; result: PhotoDiagnosisResult } | { success: false; message: string };
 
 export type UpdateStatus =
   | "idle"

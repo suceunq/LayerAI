@@ -3,9 +3,29 @@ import { useAppStore } from "../state/useAppStore.js";
 import { useTranslation } from "../i18n/useTranslation.js";
 import { Button } from "../components/ui/Button.js";
 import { AI_PROVIDERS, providerMeta, type AiProviderId } from "../../../shared/ai-providers.js";
-import type { AiSettingsPublic } from "../../../shared/ipc-types.js";
+import type { AiSettingsPublic, CompanyLegalStatus, CompanySettings } from "../../../shared/ipc-types.js";
 
 type TestState = "idle" | "testing" | "success" | { error: string };
+
+const DEFAULT_COMPANY: CompanySettings = {
+  legalStatus: "auto-entrepreneur",
+  name: "",
+  addressLine1: "",
+  addressLine2: "",
+  postalCode: "",
+  city: "",
+  siret: "",
+  rcsCity: "",
+  capitalSocial: "",
+  vatApplicable: false,
+  vatNumber: "",
+  vatRatePercent: 20,
+  email: "",
+  phone: "",
+  iban: "",
+  paymentTermsDays: 30,
+  invoicePrefix: "FACT-",
+};
 
 interface EditableProvider {
   id: AiProviderId;
@@ -25,12 +45,27 @@ export function SettingsDialog(): React.JSX.Element | null {
   const toggleOpen = useAppStore((s) => s.toggleSettingsDialog);
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);
+  const theme = useAppStore((s) => s.theme);
+  const setTheme = useAppStore((s) => s.setTheme);
   const checkUpdatesOnStartup = useAppStore((s) => s.checkUpdatesOnStartup);
   const setCheckUpdatesOnStartup = useAppStore((s) => s.setCheckUpdatesOnStartup);
   const openUpdateDialogAndCheck = useAppStore((s) => s.openUpdateDialogAndCheck);
+  const costSettings = useAppStore((s) => s.costSettings);
+  const setCostSettings = useAppStore((s) => s.setCostSettings);
+  const companySettings = useAppStore((s) => s.companySettings);
+  const setCompanySettings = useAppStore((s) => s.setCompanySettings);
   const { t } = useTranslation();
 
-  const [tab, setTab] = useState<"apiKeys" | "language" | "updates">("apiKeys");
+  const [tab, setTab] = useState<"apiKeys" | "language" | "updates" | "costs" | "company">("apiKeys");
+  const [costsForm, setCostsForm] = useState(costSettings);
+  const [companyForm, setCompanyForm] = useState<CompanySettings>(companySettings ?? DEFAULT_COMPANY);
+
+  useEffect(() => {
+    if (open) {
+      setCostsForm(costSettings);
+      setCompanyForm(companySettings ?? DEFAULT_COMPANY);
+    }
+  }, [open, costSettings, companySettings]);
   const [providers, setProviders] = useState<EditableProvider[]>([]);
   const [defaultProviderId, setDefaultProviderId] = useState<AiProviderId | null>(null);
   const [cloudIntentEnabled, setCloudIntentEnabledState] = useState(false);
@@ -89,6 +124,8 @@ export function SettingsDialog(): React.JSX.Element | null {
       }
       await window.api.setDefaultAiProvider(defaultProviderId);
       await window.api.setCloudIntentEnabled(cloudIntentEnabled);
+      await setCostSettings(costsForm);
+      await setCompanySettings(companyForm);
       toggleOpen();
     } finally {
       setSaving(false);
@@ -111,39 +148,303 @@ export function SettingsDialog(): React.JSX.Element | null {
         <div className="flex border-b border-border-subtle px-5">
           <button
             onClick={() => setTab("apiKeys")}
-            className={`border-b-2 px-3 py-2 text-sm ${tab === "apiKeys" ? "border-prusa-orange text-prusa-orange" : "border-transparent text-text-muted hover:text-text-primary"}`}
+            className={`border-b-2 px-3 py-2 text-sm ${tab === "apiKeys" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("settings.tabApiKeys")}
           </button>
           <button
             onClick={() => setTab("language")}
-            className={`border-b-2 px-3 py-2 text-sm ${tab === "language" ? "border-prusa-orange text-prusa-orange" : "border-transparent text-text-muted hover:text-text-primary"}`}
+            className={`border-b-2 px-3 py-2 text-sm ${tab === "language" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("settings.tabLanguage")}
           </button>
           <button
             onClick={() => setTab("updates")}
-            className={`border-b-2 px-3 py-2 text-sm ${tab === "updates" ? "border-prusa-orange text-prusa-orange" : "border-transparent text-text-muted hover:text-text-primary"}`}
+            className={`border-b-2 px-3 py-2 text-sm ${tab === "updates" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
           >
             {t("settings.tabUpdates")}
+          </button>
+          <button
+            onClick={() => setTab("costs")}
+            className={`border-b-2 px-3 py-2 text-sm ${tab === "costs" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
+          >
+            {t("settings.tabCosts")}
+          </button>
+          <button
+            onClick={() => setTab("company")}
+            className={`border-b-2 px-3 py-2 text-sm ${tab === "company" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
+          >
+            {t("settings.tabCompany")}
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
-          {tab === "language" ? (
-            <div className="flex flex-col gap-2">
-              {(["fr", "en"] as const).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => void setLanguage(lang)}
-                  className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
-                    language === lang ? "border-prusa-orange bg-prusa-orange/10 text-prusa-orange" : "border-border-subtle text-text-secondary hover:border-prusa-orange hover:text-text-primary"
-                  }`}
+          {tab === "company" ? (
+            <div className="flex flex-col gap-4">
+              <p className="text-xs text-text-muted">{t("settings.company.intro")}</p>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.legalStatus")}</span>
+                <select
+                  value={companyForm.legalStatus}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, legalStatus: e.target.value as CompanyLegalStatus }))}
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                 >
-                  {t(lang === "fr" ? "settings.language.french" : "settings.language.english")}
-                  {language === lang && <span>✓</span>}
-                </button>
-              ))}
+                  <option value="auto-entrepreneur">{t("settings.company.statusAutoEntrepreneur")}</option>
+                  <option value="entreprise-individuelle">{t("settings.company.statusEi")}</option>
+                  <option value="societe">{t("settings.company.statusSociete")}</option>
+                </select>
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.name")}</span>
+                <input
+                  value={companyForm.name}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, name: e.target.value }))}
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.addressLine1")}</span>
+                <input
+                  value={companyForm.addressLine1}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, addressLine1: e.target.value }))}
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.addressLine2")}</span>
+                <input
+                  value={companyForm.addressLine2 ?? ""}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, addressLine2: e.target.value }))}
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+
+              <div className="flex gap-3">
+                <label className="flex w-28 flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.postalCode")}</span>
+                  <input
+                    value={companyForm.postalCode}
+                    onChange={(e) => setCompanyForm((f) => ({ ...f, postalCode: e.target.value }))}
+                    className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                  />
+                </label>
+                <label className="flex flex-1 flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.city")}</span>
+                  <input
+                    value={companyForm.city}
+                    onChange={(e) => setCompanyForm((f) => ({ ...f, city: e.target.value }))}
+                    className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.siret")}</span>
+                <input
+                  value={companyForm.siret}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, siret: e.target.value }))}
+                  placeholder="123 456 789 00012"
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+
+              {companyForm.legalStatus === "societe" && (
+                <>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.rcsCity")}</span>
+                    <input
+                      value={companyForm.rcsCity ?? ""}
+                      onChange={(e) => setCompanyForm((f) => ({ ...f, rcsCity: e.target.value }))}
+                      className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.capitalSocial")}</span>
+                    <input
+                      value={companyForm.capitalSocial ?? ""}
+                      onChange={(e) => setCompanyForm((f) => ({ ...f, capitalSocial: e.target.value }))}
+                      placeholder="1 000 €"
+                      className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                    />
+                  </label>
+                </>
+              )}
+
+              <label className="flex items-start gap-2 rounded-lg border border-border-subtle bg-surface-1 p-3 text-xs text-text-muted">
+                <input
+                  type="checkbox"
+                  checked={companyForm.vatApplicable}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, vatApplicable: e.target.checked }))}
+                  className="mt-0.5 accent-accent"
+                />
+                <span className="text-text-secondary">{t("settings.company.vatApplicable")}</span>
+              </label>
+
+              {companyForm.vatApplicable && (
+                <div className="flex gap-3">
+                  <label className="flex flex-1 flex-col gap-1">
+                    <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.vatNumber")}</span>
+                    <input
+                      value={companyForm.vatNumber ?? ""}
+                      onChange={(e) => setCompanyForm((f) => ({ ...f, vatNumber: e.target.value }))}
+                      placeholder="FR00123456789"
+                      className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                    />
+                  </label>
+                  <label className="flex w-28 flex-col gap-1">
+                    <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.vatRate")}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step="0.1"
+                      value={companyForm.vatRatePercent}
+                      onChange={(e) => setCompanyForm((f) => ({ ...f, vatRatePercent: Number(e.target.value) }))}
+                      className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                    />
+                  </label>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <label className="flex flex-1 flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.email")}</span>
+                  <input
+                    value={companyForm.email ?? ""}
+                    onChange={(e) => setCompanyForm((f) => ({ ...f, email: e.target.value }))}
+                    className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                  />
+                </label>
+                <label className="flex flex-1 flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.phone")}</span>
+                  <input
+                    value={companyForm.phone ?? ""}
+                    onChange={(e) => setCompanyForm((f) => ({ ...f, phone: e.target.value }))}
+                    className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                  />
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.iban")}</span>
+                <input
+                  value={companyForm.iban ?? ""}
+                  onChange={(e) => setCompanyForm((f) => ({ ...f, iban: e.target.value }))}
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+
+              <div className="flex gap-3">
+                <label className="flex flex-1 flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.paymentTermsDays")}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step="1"
+                    value={companyForm.paymentTermsDays}
+                    onChange={(e) => setCompanyForm((f) => ({ ...f, paymentTermsDays: Number(e.target.value) }))}
+                    className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                  />
+                </label>
+                <label className="flex flex-1 flex-col gap-1">
+                  <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.company.invoicePrefix")}</span>
+                  <input
+                    value={companyForm.invoicePrefix}
+                    onChange={(e) => setCompanyForm((f) => ({ ...f, invoicePrefix: e.target.value }))}
+                    className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                  />
+                </label>
+              </div>
+            </div>
+          ) : tab === "costs" ? (
+            <div className="flex flex-col gap-4">
+              <p className="text-xs text-text-muted">{t("settings.costs.intro")}</p>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.costs.currency")}</span>
+                <input
+                  value={costsForm.currency}
+                  onChange={(e) => setCostsForm((f) => ({ ...f, currency: e.target.value }))}
+                  placeholder="€"
+                  maxLength={4}
+                  className="w-20 rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.costs.filamentPricePerKg")}</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={costsForm.filamentPricePerKg ?? ""}
+                  onChange={(e) => setCostsForm((f) => ({ ...f, filamentPricePerKg: e.target.value === "" ? null : Number(e.target.value) }))}
+                  placeholder="25.00"
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.costs.printerPowerW")}</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="1"
+                  value={costsForm.printerPowerW ?? ""}
+                  onChange={(e) => setCostsForm((f) => ({ ...f, printerPowerW: e.target.value === "" ? null : Number(e.target.value) }))}
+                  placeholder="120"
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.costs.electricityPricePerKwh")}</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={costsForm.electricityPricePerKwh ?? ""}
+                  onChange={(e) => setCostsForm((f) => ({ ...f, electricityPricePerKwh: e.target.value === "" ? null : Number(e.target.value) }))}
+                  placeholder="0.20"
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+              </label>
+            </div>
+          ) : tab === "language" ? (
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.language.title")}</span>
+                {(["fr", "en"] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => void setLanguage(lang)}
+                    className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
+                      language === lang ? "border-accent bg-accent/10 text-accent" : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
+                    }`}
+                  >
+                    {t(lang === "fr" ? "settings.language.french" : "settings.language.english")}
+                    {language === lang && <span>✓</span>}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.theme.title")}</span>
+                <div className="flex gap-2">
+                  {(["dark", "light"] as const).map((themeOption) => (
+                    <button
+                      key={themeOption}
+                      onClick={() => void setTheme(themeOption)}
+                      className={`flex-1 rounded-lg border px-4 py-3 text-sm ${
+                        theme === themeOption
+                          ? "border-accent bg-accent/10 text-accent"
+                          : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
+                      }`}
+                    >
+                      {t(themeOption === "dark" ? "settings.theme.dark" : "settings.theme.light")}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : tab === "updates" ? (
             <div className="flex flex-col gap-4">
@@ -152,7 +453,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                   type="checkbox"
                   checked={checkUpdatesOnStartup}
                   onChange={(e) => void setCheckUpdatesOnStartup(e.target.checked)}
-                  className="mt-0.5 accent-prusa-orange"
+                  className="mt-0.5 accent-accent"
                 />
                 <span className="text-text-secondary">{t("settings.updates.checkOnStartup")}</span>
               </label>
@@ -175,7 +476,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                         <button
                           onClick={() => setDefaultProviderId(provider.id)}
                           title={t("settings.apiKeys.defaultProvider")}
-                          className={`h-4 w-4 rounded-full border ${defaultProviderId === provider.id ? "border-prusa-orange bg-prusa-orange" : "border-border-subtle"}`}
+                          className={`h-4 w-4 rounded-full border ${defaultProviderId === provider.id ? "border-accent bg-accent" : "border-border-subtle"}`}
                         />
                         <button onClick={() => void removeProvider(provider.id)} className="text-text-muted hover:text-confidence-low">
                           🗑
@@ -187,7 +488,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                       <label className="mt-3 flex flex-col gap-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.apiKeys.apiKey")}</span>
-                          <a href={meta.docsUrl} target="_blank" rel="noreferrer" className="text-xs text-prusa-orange hover:text-prusa-orange-glow">
+                          <a href={meta.docsUrl} target="_blank" rel="noreferrer" className="text-xs text-accent hover:text-accent-glow">
                             {t("settings.apiKeys.getKey")} ↗
                           </a>
                         </div>
@@ -196,7 +497,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                           value={provider.apiKeyInput}
                           onChange={(e) => updateProvider(provider.id, { apiKeyInput: e.target.value })}
                           placeholder={provider.hasApiKey ? "••••••••••••" : "sk-..."}
-                          className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-prusa-orange"
+                          className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                         />
                       </label>
                     )}
@@ -208,7 +509,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                           value={provider.baseUrl}
                           onChange={(e) => updateProvider(provider.id, { baseUrl: e.target.value })}
                           placeholder={meta.defaultBaseUrl}
-                          className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-prusa-orange"
+                          className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                         />
                       </label>
                     )}
@@ -220,7 +521,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                           value={provider.model}
                           onChange={(e) => updateProvider(provider.id, { model: e.target.value })}
                           placeholder={meta.defaultModel ? t("settings.apiKeys.modelDefault", { model: meta.defaultModel }) : undefined}
-                          className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-prusa-orange"
+                          className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
                         />
                       </label>
                     )}
@@ -247,7 +548,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                     <button
                       key={meta.id}
                       onClick={() => addProvider(meta.id)}
-                      className="rounded-full border border-border-subtle bg-surface-2 px-3 py-1.5 text-sm text-text-secondary hover:border-prusa-orange hover:text-text-primary"
+                      className="rounded-full border border-border-subtle bg-surface-2 px-3 py-1.5 text-sm text-text-secondary hover:border-accent hover:text-text-primary"
                     >
                       + {meta.displayName}
                     </button>
@@ -261,7 +562,7 @@ export function SettingsDialog(): React.JSX.Element | null {
                   checked={cloudIntentEnabled}
                   onChange={(e) => setCloudIntentEnabledState(e.target.checked)}
                   disabled={providers.length === 0}
-                  className="mt-0.5 accent-prusa-orange"
+                  className="mt-0.5 accent-accent"
                 />
                 <span>
                   <span className="block text-text-secondary">{t("settings.apiKeys.cloudModeToggle")}</span>

@@ -21,7 +21,7 @@ export function LeftToolRail(): React.JSX.Element | null {
       <button
         onClick={toggleResizePanel}
         title={t("app.resize")}
-        className="relative flex h-10 w-10 items-center justify-center rounded-lg text-lg text-text-secondary hover:bg-surface-2 hover:text-prusa-orange"
+        className="relative flex h-10 w-10 items-center justify-center rounded-lg text-lg text-text-secondary hover:bg-surface-2 hover:text-accent"
       >
         ⛶
         {!fits && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-confidence-low" />}
@@ -30,7 +30,7 @@ export function LeftToolRail(): React.JSX.Element | null {
         onClick={toggleFacePickMode}
         title={t("app.chooseFace")}
         className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg ${
-          facePickModeActive ? "bg-prusa-orange text-surface-0" : "text-text-secondary hover:bg-surface-2 hover:text-prusa-orange"
+          facePickModeActive ? "bg-accent text-surface-0" : "text-text-secondary hover:bg-surface-2 hover:text-accent"
         }`}
       >
         ⤓

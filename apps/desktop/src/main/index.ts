@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from "electron";
+import { app, shell, screen, BrowserWindow, nativeTheme } from "electron";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { registerImportHandlers } from "./ipc/import.handlers.js";
@@ -7,9 +7,11 @@ import { registerExportHandlers } from "./ipc/export.handlers.js";
 import { registerSlicerHandlers } from "./ipc/slicer.handlers.js";
 import { registerLearningHandlers } from "./ipc/learning.handlers.js";
 import { registerProfilesHandlers } from "./ipc/profiles.handlers.js";
+import { registerRecentProjectsHandlers } from "./ipc/recent-projects.handlers.js";
 import { registerSettingsHandlers } from "./ipc/settings.handlers.js";
 import { registerAiHandlers } from "./ipc/ai.handlers.js";
 import { registerUpdateHandlers } from "./ipc/update.handlers.js";
+import { registerInvoiceHandlers } from "./ipc/invoice.handlers.js";
 import { buildAppMenu } from "./menu.js";
 import { setupAutoUpdater, checkForUpdates } from "./autoUpdater.js";
 import { readSettings } from "./settings-store.js";
@@ -26,13 +28,21 @@ function resolveDevIconPath(): string | undefined {
 }
 
 function createMainWindow(): void {
+  const { width: workWidth, height: workHeight } = screen.getPrimaryDisplay().workAreaSize;
+  const width = Math.min(1440, workWidth);
+  const height = Math.min(900, workHeight);
+  // Fit within whatever screen the app launches on instead of a fixed 1440x900 - on
+  // smaller/lower-resolution displays a hardcoded size clips content (e.g. the header
+  // controls) and leaves a gap over the OS taskbar until the window is maximized.
+  const shouldMaximize = workWidth <= 1440 || workHeight <= 900;
+
   const mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 900,
-    minWidth: 1100,
-    minHeight: 700,
+    width,
+    height,
+    minWidth: Math.min(1100, workWidth),
+    minHeight: Math.min(700, workHeight),
     show: false,
-    backgroundColor: "#0B0B0D",
+    backgroundColor: nativeTheme.shouldUseDarkColors ? "#0B0B0D" : "#F4F4F6",
     autoHideMenuBar: false,
     icon: isDev ? resolveDevIconPath() : undefined,
     webPreferences: {
@@ -44,12 +54,17 @@ function createMainWindow(): void {
   });
 
   mainWindow.on("ready-to-show", () => {
+    if (shouldMaximize) mainWindow.maximize();
     mainWindow.show();
     if (isDev) mainWindow.webContents.openDevTools({ mode: "detach" });
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
+    // Only hand off http(s) links to the OS - never let a window-open request pass an arbitrary
+    // scheme (file:, custom protocol handlers...) straight to shell.openExternal.
+    if (details.url.startsWith("https://") || details.url.startsWith("http://")) {
+      shell.openExternal(details.url);
+    }
     return { action: "deny" };
   });
 
@@ -64,6 +79,7 @@ app.whenReady().then(async () => {
   if (process.platform === "win32") app.setAppUserModelId("com.layerai.app");
 
   const settings = await readSettings();
+  nativeTheme.themeSource = settings.theme ?? "dark";
   buildAppMenu(settings.language ?? "fr");
   registerImportHandlers();
   registerAnalysisHandlers();
@@ -71,9 +87,11 @@ app.whenReady().then(async () => {
   registerSlicerHandlers();
   registerLearningHandlers();
   registerProfilesHandlers();
+  registerRecentProjectsHandlers();
   registerSettingsHandlers();
   registerAiHandlers();
   registerUpdateHandlers();
+  registerInvoiceHandlers();
 
   createMainWindow();
 

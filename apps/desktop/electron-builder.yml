@@ -21,7 +21,7 @@ win:
       arch:
         - x64
   icon: resources/icon.ico
-  artifactName: LayerAI-Setup-${version}.${ext}
+  artifactName: LayerAI_Setup.exe
 
 nsis:
   oneClick: false

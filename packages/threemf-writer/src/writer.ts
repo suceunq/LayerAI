@@ -11,6 +11,8 @@ export interface BuildThreeMfInput {
   printer: PrinterProfile;
   filament: FilamentProfile;
   objectName?: string;
+  /** Bed-space centers for each copy to place, e.g. from computeGridArrangement. Defaults to a single centered copy. */
+  positions?: { x: number; y: number }[];
 }
 
 function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
@@ -20,16 +22,16 @@ function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
 }
 
 export async function buildThreeMf(input: BuildThreeMfInput): Promise<Uint8Array> {
-  const { geometry, config, printer, filament, objectName = "LayerAI part" } = input;
+  const { geometry, config, printer, filament, objectName = "LayerAI part", positions = [bedCenterOf(printer)] } = input;
 
   const weldedGeometry = weldGeometry(geometry);
 
   const zip = new JSZip();
   zip.file("[Content_Types].xml", CONTENT_TYPES_XML);
   zip.file("_rels/.rels", ROOT_RELS_XML);
-  zip.file("3D/3dmodel.model", buildModelXml(weldedGeometry, objectName, bedCenterOf(printer)));
+  zip.file("3D/3dmodel.model", buildModelXml(weldedGeometry, objectName, positions));
 
-  if (printer.vendor === "Bambu Lab") {
+  if (printer.vendor === "Bambu Lab" || printer.vendor === "Creality") {
     zip.file("Metadata/print_profile.config", buildBambuPrintConfigText(config, printer, filament));
   } else {
     zip.file("Metadata/Slic3r_PE.config", buildPrintConfigText(config, printer, filament));

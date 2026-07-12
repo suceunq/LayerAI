@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { BoundingBox3, MeshGeometryData, OverhangFace, PrinterProfile } from "@layerai/shared-types";
@@ -22,6 +22,20 @@ interface Viewer3DProps {
   onFacePicked?: (normal: { x: number; y: number; z: number }) => void;
   showSupportPreview?: boolean;
   onSurfaceClicked?: (info: { x: number; y: number; overhang: { angleFromHorizontalDeg: number; areaMm2: number } | null }) => void;
+  /** Bed-space centers for every copy on the active plate (from computeGridArrangement). Length <= 1 renders exactly like a single part. */
+  plateArrangementPositions?: { x: number; y: number }[];
+  /** One entry per plate (each in the same untiled bed-space coordinates as plateArrangementPositions) - when this has more than one plate, all plates render tiled side by side instead of just the active one. */
+  allPlatesPositions?: { x: number; y: number }[][];
+  /** Which entry of allPlatesPositions gets the real interactive mesh; the rest render as ghost-only ("full ghost") plates. */
+  activePlateIndex?: number;
+  theme?: "dark" | "light";
+}
+
+const VIEWER_BACKGROUND: Record<"dark" | "light", string> = { dark: "#0b0b0d", light: "#f4f4f6" };
+
+export interface Viewer3DHandle {
+  /** Renders one fresh frame and returns it as a "data:image/png;base64,..." URL, or null if the scene isn't mounted. */
+  captureImage: () => string | null;
 }
 
 interface SceneRefs {
@@ -34,9 +48,13 @@ interface SceneRefs {
   meshObject: THREE.Mesh | null;
   capMesh: THREE.Mesh | null;
   supportPreviewMesh: THREE.InstancedMesh | null;
+  plateGhostMesh: THREE.InstancedMesh | null;
   clippingPlane: THREE.Plane;
   animationHandle: number;
 }
+
+/** Horizontal gap left between tiled plates in "see all plates" mode. */
+const PLATE_GAP_MM = 40;
 
 function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
   const minX = Math.min(...printer.bedShape.map((p) => p.x));
@@ -46,18 +64,61 @@ function bedCenterOf(printer: PrinterProfile): { x: number; y: number } {
   return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 }
 
-/** World-space box covering the bed, expanded to also cover the model if it's larger than the bed - an oversized model must never be framed out of view. */
-function computeCombinedBounds(printer: PrinterProfile, boundingBoxMm: BoundingBox3 | null, modelCenter: { x: number; y: number }): { min: THREE.Vector3; max: THREE.Vector3 } {
+function bedWidthOf(printer: PrinterProfile): number {
+  return Math.max(...printer.bedShape.map((p) => p.x)) - Math.min(...printer.bedShape.map((p) => p.x));
+}
+
+/** Index of the position in `positions` closest to `target` - used to figure out which grid slot the real (interactive) mesh should occupy. */
+function closestPositionIndex(positions: { x: number; y: number }[], target: { x: number; y: number }): number {
+  let closestIndex = 0;
+  let closestDist = Infinity;
+  positions.forEach((p, i) => {
+    const d = (p.x - target.x) ** 2 + (p.y - target.y) ** 2;
+    if (d < closestDist) {
+      closestDist = d;
+      closestIndex = i;
+    }
+  });
+  return closestIndex;
+}
+
+/** World-space box covering the bed, expanded to also cover the model if it's larger than the bed - an oversized model must never be framed out of view. In "see all plates" mode, expands to cover every tiled plate. */
+function computeCombinedBounds(
+  printer: PrinterProfile,
+  boundingBoxMm: BoundingBox3 | null,
+  modelCenter: { x: number; y: number },
+  plateArrangementPositions: { x: number; y: number }[] = [],
+  allPlatesPositions?: { x: number; y: number }[][]
+): { min: THREE.Vector3; max: THREE.Vector3 } {
   const bedWidth = Math.max(...printer.bedShape.map((p) => p.x));
   const bedDepth = Math.max(...printer.bedShape.map((p) => p.y));
+  const isOverview = !!allPlatesPositions && allPlatesPositions.length > 1;
+  const plateCount = isOverview ? allPlatesPositions!.length : 1;
+  const tilePitch = bedWidth + PLATE_GAP_MM;
+
   const min = new THREE.Vector3(0, 0, 0);
-  const max = new THREE.Vector3(bedWidth, bedDepth, printer.maxPrintHeightMm);
+  const max = new THREE.Vector3(bedWidth + (plateCount - 1) * tilePitch, bedDepth, printer.maxPrintHeightMm);
   if (boundingBoxMm) {
-    min.x = Math.min(min.x, modelCenter.x + boundingBoxMm.min.x);
-    min.y = Math.min(min.y, modelCenter.y + boundingBoxMm.min.y);
+    const halfW = (boundingBoxMm.max.x - boundingBoxMm.min.x) / 2;
+    const halfD = (boundingBoxMm.max.y - boundingBoxMm.min.y) / 2;
+    const centers: { x: number; y: number }[] = [];
+    if (isOverview) {
+      allPlatesPositions!.forEach((positions, i) => {
+        const offsetX = i * tilePitch;
+        (positions.length > 0 ? positions : [modelCenter]).forEach((p) => centers.push({ x: p.x + offsetX, y: p.y }));
+      });
+    } else if (plateArrangementPositions.length > 1) {
+      centers.push(...plateArrangementPositions);
+    } else {
+      centers.push(modelCenter);
+    }
+    for (const c of centers) {
+      min.x = Math.min(min.x, c.x - halfW);
+      min.y = Math.min(min.y, c.y - halfD);
+      max.x = Math.max(max.x, c.x + halfW);
+      max.y = Math.max(max.y, c.y + halfD);
+    }
     min.z = Math.min(min.z, boundingBoxMm.min.z);
-    max.x = Math.max(max.x, modelCenter.x + boundingBoxMm.max.x);
-    max.y = Math.max(max.y, modelCenter.y + boundingBoxMm.max.y);
     max.z = Math.max(max.z, boundingBoxMm.max.z);
   }
   return { min, max };
@@ -77,26 +138,46 @@ function frameCameraToFit(sceneRefs: SceneRefs, min: THREE.Vector3, max: THREE.V
   sceneRefs.controls.target.copy(center);
 }
 
-export function Viewer3D({
-  printer,
-  geometry,
-  overhangFaces,
-  boundingBoxMm,
-  layerView,
-  facePickModeActive = false,
-  onFacePicked,
-  showSupportPreview = false,
-  onSurfaceClicked,
-}: Viewer3DProps): React.JSX.Element {
+export const Viewer3D = forwardRef<Viewer3DHandle, Viewer3DProps>(function Viewer3D(
+  {
+    printer,
+    geometry,
+    overhangFaces,
+    boundingBoxMm,
+    layerView,
+    facePickModeActive = false,
+    onFacePicked,
+    showSupportPreview = false,
+    onSurfaceClicked,
+    plateArrangementPositions = [],
+    allPlatesPositions,
+    activePlateIndex = 0,
+    theme = "dark",
+  },
+  ref
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const refs = useRef<SceneRefs | null>(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      captureImage: () => {
+        const sceneRefs = refs.current;
+        if (!sceneRefs) return null;
+        sceneRefs.renderer.render(sceneRefs.scene, sceneRefs.camera);
+        return sceneRefs.renderer.domElement.toDataURL("image/png");
+      },
+    }),
+    []
+  );
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#0b0b0d");
+    scene.background = new THREE.Color(VIEWER_BACKGROUND[theme]);
 
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 5000);
     camera.up.set(0, 0, 1);
@@ -130,6 +211,7 @@ export function Viewer3D({
       meshObject: null,
       capMesh: null,
       supportPreviewMesh: null,
+      plateGhostMesh: null,
       clippingPlane: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0),
       animationHandle: 0,
     };
@@ -165,26 +247,36 @@ export function Viewer3D({
 
   useEffect(() => {
     const sceneRefs = refs.current;
+    if (!sceneRefs) return;
+    sceneRefs.scene.background = new THREE.Color(VIEWER_BACKGROUND[theme]);
+  }, [theme]);
+
+  useEffect(() => {
+    const sceneRefs = refs.current;
     if (!sceneRefs || !printer) return;
 
     if (sceneRefs.bedGroup) {
       sceneRefs.scene.remove(sceneRefs.bedGroup);
     }
-    const bedGroup = buildBedPlate(printer);
-    sceneRefs.scene.add(bedGroup);
-    sceneRefs.bedGroup = bedGroup;
-
-    const center = bedCenterOf(printer);
-    sceneRefs.modelGroup.position.set(center.x, center.y, 0);
-  }, [printer]);
+    const plateCount = allPlatesPositions && allPlatesPositions.length > 1 ? allPlatesPositions.length : 1;
+    const tilePitch = bedWidthOf(printer) + PLATE_GAP_MM;
+    const group = new THREE.Group();
+    for (let i = 0; i < plateCount; i++) {
+      const plate = buildBedPlate(printer, theme);
+      plate.position.set(i * tilePitch, 0, 0);
+      group.add(plate);
+    }
+    sceneRefs.scene.add(group);
+    sceneRefs.bedGroup = group;
+  }, [printer, allPlatesPositions, theme]);
 
   useEffect(() => {
     const sceneRefs = refs.current;
     if (!sceneRefs || !printer) return;
     const center = bedCenterOf(printer);
-    const { min, max } = computeCombinedBounds(printer, boundingBoxMm, center);
+    const { min, max } = computeCombinedBounds(printer, boundingBoxMm, center, plateArrangementPositions, allPlatesPositions);
     frameCameraToFit(sceneRefs, min, max);
-  }, [printer, boundingBoxMm]);
+  }, [printer, boundingBoxMm, plateArrangementPositions, allPlatesPositions]);
 
   useEffect(() => {
     const sceneRefs = refs.current;
@@ -224,6 +316,63 @@ export function Viewer3D({
     sceneRefs.modelGroup.add(mesh);
     sceneRefs.supportPreviewMesh = mesh;
   }, [geometry, overhangFaces, showSupportPreview]);
+
+  // Positions the interactive mesh on its grid slot (fixing it to a raw bed-center would drift
+  // away from the actual slot whenever the grid has an even row/column count, overlapping
+  // neighboring ghost copies) and renders every other copy - on every tiled plate when in "see
+  // all plates" mode - as non-interactive ghost instances.
+  useEffect(() => {
+    const sceneRefs = refs.current;
+    if (!sceneRefs) return;
+
+    if (sceneRefs.plateGhostMesh) {
+      sceneRefs.scene.remove(sceneRefs.plateGhostMesh);
+      sceneRefs.plateGhostMesh.geometry.dispose();
+      (sceneRefs.plateGhostMesh.material as THREE.Material).dispose();
+      sceneRefs.plateGhostMesh = null;
+    }
+    if (!printer) return;
+
+    const isOverview = !!allPlatesPositions && allPlatesPositions.length > 1;
+    const plates = isOverview ? allPlatesPositions! : [plateArrangementPositions];
+    const activeIdx = isOverview ? Math.min(Math.max(activePlateIndex, 0), plates.length - 1) : 0;
+    const tilePitch = bedWidthOf(printer) + PLATE_GAP_MM;
+    const bedCenter = bedCenterOf(printer);
+
+    const ghostPositions: { x: number; y: number }[] = [];
+    plates.forEach((positions, plateIdx) => {
+      const tileOffsetX = plateIdx * tilePitch;
+      if (plateIdx === activeIdx) {
+        const target = { x: bedCenter.x + tileOffsetX, y: bedCenter.y };
+        if (positions.length > 0) {
+          const closestIndex = closestPositionIndex(positions, target);
+          const modelSlot = positions[closestIndex]!;
+          sceneRefs.modelGroup.position.set(modelSlot.x + tileOffsetX, modelSlot.y, 0);
+          positions.forEach((p, i) => {
+            if (i !== closestIndex) ghostPositions.push({ x: p.x + tileOffsetX, y: p.y });
+          });
+        } else {
+          sceneRefs.modelGroup.position.set(target.x, target.y, 0);
+        }
+      } else {
+        positions.forEach((p) => ghostPositions.push({ x: p.x + tileOffsetX, y: p.y }));
+      }
+    });
+
+    if (!geometry || ghostPositions.length === 0) return;
+
+    const displayGeometry = buildDisplayGeometry(geometry, overhangFaces);
+    const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.05, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+    const instanced = new THREE.InstancedMesh(displayGeometry, material, ghostPositions.length);
+    const matrix = new THREE.Matrix4();
+    ghostPositions.forEach((p, i) => {
+      matrix.makeTranslation(p.x, p.y, 0);
+      instanced.setMatrixAt(i, matrix);
+    });
+    instanced.instanceMatrix.needsUpdate = true;
+    sceneRefs.scene.add(instanced);
+    sceneRefs.plateGhostMesh = instanced;
+  }, [geometry, overhangFaces, plateArrangementPositions, allPlatesPositions, activePlateIndex, printer]);
 
   useEffect(() => {
     const sceneRefs = refs.current;
@@ -342,4 +491,4 @@ export function Viewer3D({
   }, [facePickModeActive, onSurfaceClicked, overhangFaces]);
 
   return <div ref={containerRef} className="h-full w-full" />;
-}
+});

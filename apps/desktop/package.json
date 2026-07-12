@@ -1,6 +1,6 @@
 {
   "name": "@layerai/desktop",
-  "version": "1.1.0",
+  "version": "1.7.6",
   "private": true,
   "type": "module",
   "author": "LayerAI",
@@ -11,12 +11,13 @@
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "echo no-lint",
-    "package:win": "electron-vite build && electron-builder --win"
+    "package:win": "electron-vite build && electron-builder --win && node scripts/generate-release-manifest.mjs"
   },
   "dependencies": {
     "@layerai/config-generator": "workspace:*",
     "@layerai/explanation-engine": "workspace:*",
     "@layerai/intent-engine": "workspace:*",
+    "@layerai/invoice-generator": "workspace:*",
     "@layerai/learning-store": "workspace:*",
     "@layerai/mesh-analysis": "workspace:*",
     "@layerai/pdf-report": "workspace:*",

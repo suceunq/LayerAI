@@ -23,7 +23,7 @@ export function OnboardingTour(): React.JSX.Element | null {
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/70">
       <div className="flex w-[440px] flex-col items-center gap-5 rounded-2xl border border-border-subtle bg-surface-1 p-8 text-center shadow-2xl">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-prusa-orange text-2xl font-bold text-surface-0">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-2xl font-bold text-surface-0">
           {step.icon}
         </div>
         <h2 className="text-xl font-semibold text-text-primary">{t(step.titleKey)}</h2>
@@ -31,7 +31,7 @@ export function OnboardingTour(): React.JSX.Element | null {
 
         <div className="flex gap-1.5">
           {ONBOARDING_STEPS.map((_, i) => (
-            <div key={i} className={`h-1.5 w-6 rounded-full ${i === stepIndex ? "bg-prusa-orange" : "bg-surface-3"}`} />
+            <div key={i} className={`h-1.5 w-6 rounded-full ${i === stepIndex ? "bg-accent" : "bg-surface-3"}`} />
           ))}
         </div>
 

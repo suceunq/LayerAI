@@ -1,6 +1,13 @@
-import { ipcMain, app } from "electron";
+import { ipcMain, app, nativeTheme } from "electron";
 import { IpcChannels } from "../../shared/ipc-channels.js";
-import type { AppSettings, SupportedLanguage } from "../../shared/ipc-types.js";
+import type {
+  AppSettings,
+  CompanySettings,
+  CostSettings,
+  LastSelectionRequest,
+  SupportedLanguage,
+  SupportedTheme,
+} from "../../shared/ipc-types.js";
 import { readSettings, updateSettings } from "../settings-store.js";
 import { buildAppMenu } from "../menu.js";
 
@@ -16,8 +23,25 @@ export function registerSettingsHandlers(): void {
     buildAppMenu(language);
   });
 
+  ipcMain.handle(IpcChannels.settingsSetTheme, async (_event, theme: SupportedTheme): Promise<void> => {
+    await updateSettings({ theme });
+    nativeTheme.themeSource = theme;
+  });
+
   ipcMain.handle(IpcChannels.settingsSetCheckUpdatesOnStartup, async (_event, enabled: boolean): Promise<void> => {
     await updateSettings({ checkUpdatesOnStartup: enabled });
+  });
+
+  ipcMain.handle(IpcChannels.settingsSetCosts, async (_event, costs: CostSettings): Promise<void> => {
+    await updateSettings({ costs });
+  });
+
+  ipcMain.handle(IpcChannels.settingsSetLastSelection, async (_event, request: LastSelectionRequest): Promise<void> => {
+    await updateSettings({ lastPrinterId: request.printerId, lastFilamentId: request.filamentId });
+  });
+
+  ipcMain.handle(IpcChannels.settingsSetCompany, async (_event, company: CompanySettings): Promise<void> => {
+    await updateSettings({ company });
   });
 
   ipcMain.handle(IpcChannels.appGetVersion, (): string => app.getVersion());
