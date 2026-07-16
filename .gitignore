@@ -13,7 +13,5 @@ Thumbs.db
 .env.local
 .claude/
 *.tsbuildinfo
-packages/prusa-profile-db/data/*.json
-!packages/prusa-profile-db/data/.gitkeep
 apps/desktop/src/renderer/dist/
 logiciel fini/

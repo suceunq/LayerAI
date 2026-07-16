@@ -1,0 +1,15 @@
+{
+  "sourceVendor": "Prusa Research + Bambu Lab + Creality",
+  "sourceFile": "PrusaResearch.ini, BambuStudio BBL profiles, CrealityPrint Creality profiles",
+  "sourceConfigVersion": "2.4.14",
+  "sourceFileSha256_16": "a6155d92471d3b0a",
+  "ingestedAt": "2026-07-05T20:21:58.828Z",
+  "license": "AGPL-3.0-or-later",
+  "attribution": "Printer and filament defaults are seeded from Prusa Research's official PrusaSlicer configuration bundle, Bambu Lab's official BambuStudio configuration bundle, and Creality's official CrealityPrint configuration bundle (all AGPLv3). See docs/licensing/THIRD_PARTY_PRUSASLICER.md, docs/licensing/THIRD_PARTY_BAMBUSTUDIO.md, and docs/licensing/THIRD_PARTY_CREALITYPRINT.md.",
+  "printerCount": 103,
+  "filamentCount": 33,
+  "bambuPrinterCount": 14,
+  "bambuFilamentCount": 10,
+  "crealityPrinterCount": 54,
+  "crealityFilamentCount": 11
+}
