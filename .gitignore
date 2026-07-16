@@ -5,6 +5,8 @@ release/
 update-a-publier/
 .turbo/
 *.log
+*.obj
+apps/website/*-dist.zip
 .DS_Store
 Thumbs.db
 .env

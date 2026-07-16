@@ -195,7 +195,8 @@ export const Viewer3D = forwardRef<Viewer3DHandle, Viewer3DProps>(function Viewe
     if (!container) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(VIEWER_BACKGROUND[theme]);
+    // The following theme effect applies the current value once refs are installed.
+    scene.background = new THREE.Color(VIEWER_BACKGROUND.dark);
 
     const camera = new THREE.PerspectiveCamera(45, 1, 1, 5000);
     camera.up.set(0, 0, 1);

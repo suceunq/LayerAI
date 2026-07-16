@@ -58,8 +58,8 @@ function createMainWindow(): void {
     backgroundColor: "#0B0B0D",
     icon: isDev ? resolveDevIconPath() : undefined,
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
-      sandbox: false,
+      preload: join(__dirname, "../preload/index.cjs"),
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -71,9 +71,11 @@ function createMainWindow(): void {
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
+    if (details.url.startsWith("https://")) void shell.openExternal(details.url);
     return { action: "deny" };
   });
+  mainWindow.webContents.on("will-navigate", (event) => event.preventDefault());
+  mainWindow.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
 
   attachEditContextMenu(mainWindow);
 

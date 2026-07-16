@@ -10,6 +10,7 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "electron-vite build && node --test scripts/*.test.mjs",
     "lint": "echo no-lint",
     "package:win": "electron-vite build && electron-builder --win",
     "cli": "electron out/main/index.js --"

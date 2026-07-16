@@ -7,15 +7,20 @@
   "scripts": {
     "dev": "turbo run dev --filter=@layerai/desktop",
     "build": "turbo run build",
-    "lint": "turbo run lint",
+    "lint": "eslint . --max-warnings 0",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "ingest:profiles": "turbo run ingest --filter=@layerai/profile-ingest",
     "package:win": "turbo run build && pnpm --filter @layerai/desktop package:win"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.7.0",
     "turbo": "^2.3.3",
-    "typescript": "^5.7.2"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.64.0"
   },
   "packageManager": "pnpm@11.9.0",
   "engines": {

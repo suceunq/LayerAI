@@ -34,7 +34,7 @@ function parseBinaryStl(buffer: Uint8Array): MeshGeometryData {
   return { positions };
 }
 
-const ASCII_VERTEX = /vertex\s+([\-0-9.eE]+)\s+([\-0-9.eE]+)\s+([\-0-9.eE]+)/g;
+const ASCII_VERTEX = /vertex\s+([-0-9.eE]+)\s+([-0-9.eE]+)\s+([-0-9.eE]+)/g;
 
 function parseAsciiStl(buffer: Uint8Array): MeshGeometryData {
   const text = new TextDecoder("utf-8").decode(buffer);

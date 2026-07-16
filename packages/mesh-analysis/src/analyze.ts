@@ -3,7 +3,6 @@ import {
   computeBoundingBox,
   computeVolumeAndCenterOfMass,
   computeFootprintPolygon,
-  computeFootprintAreaMm2,
   estimateManifoldRatio,
   computeComplexityScore,
 } from "./geometry/bounds.js";
