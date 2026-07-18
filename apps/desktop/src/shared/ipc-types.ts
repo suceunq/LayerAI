@@ -230,7 +230,6 @@ export interface AppSettings {
   theme?: SupportedTheme;
   interfaceMode?: SupportedInterfaceMode;
   checkUpdatesOnStartup?: boolean;
-  postponedUpdateVersion?: string;
   costs?: CostSettings;
   lastPrinterId?: string;
   lastFilamentId?: string;
@@ -324,12 +323,16 @@ export type UpdateStatus =
   | "available"
   | "downloading"
   | "downloaded"
+  | "preparing"
+  | "installing"
+  | "installed"
   | "error"
   | "dev-unavailable";
 
 export interface UpdateState {
   status: UpdateStatus;
   currentVersion: string;
+  previousVersion?: string;
   availableVersion?: string;
   releaseNotes?: string;
   progressPercent?: number;

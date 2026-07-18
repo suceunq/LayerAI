@@ -15,7 +15,7 @@ import { registerInvoiceHandlers } from "./ipc/invoice.handlers.js";
 import { registerProjectRecoveryHandlers } from "./ipc/project-recovery.handlers.js";
 import { registerDonationHandlers } from "./ipc/donation.handlers.js";
 import { buildAppMenu } from "./menu.js";
-import { setupAutoUpdater, checkForUpdates } from "./autoUpdater.js";
+import { setupAutoUpdater, startAutomaticUpdateChecks, confirmApplicationHealthy } from "./autoUpdater.js";
 import { readSettings } from "./settings-store.js";
 import { setMainLanguage } from "./localization.js";
 
@@ -62,6 +62,9 @@ function createMainWindow(): void {
     if (shouldMaximize) mainWindow.maximize();
     mainWindow.show();
     if (isDev) mainWindow.webContents.openDevTools({ mode: "detach" });
+    // The renderer painted its first frame: the just-installed version isn't a crash loop or a
+    // white screen, so the rollback watchdog (see update-rollback.ts) no longer needs to revert it.
+    if (!isDev) void confirmApplicationHealthy();
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -106,8 +109,8 @@ app.whenReady().then(async () => {
   createMainWindow();
 
   if (!isDev) {
-    setupAutoUpdater();
-    if (settings.checkUpdatesOnStartup !== false) void checkForUpdates();
+    await setupAutoUpdater();
+    if (settings.checkUpdatesOnStartup !== false) startAutomaticUpdateChecks();
   }
 
   app.on("activate", () => {

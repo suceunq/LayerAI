@@ -46,10 +46,7 @@ export const IpcChannels = {
   aiTestProvider: "ai:test-provider",
   aiDiagnosePhoto: "ai:diagnose-photo",
   updateCheck: "update:check",
-  updateDownload: "update:download",
-  updateCancelDownload: "update:cancel-download",
-  updateInstall: "update:install",
-  updatePostpone: "update:postpone",
+  updateAcknowledgeReleaseNotes: "update:acknowledge-release-notes",
   updateGetState: "update:get-state",
   updateStateChanged: "update:state-changed",
 } as const;

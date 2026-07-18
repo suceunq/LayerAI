@@ -103,10 +103,7 @@ export interface LayerAiApi {
   testAiProvider: (request: TestAiProviderRequest) => Promise<TestAiProviderResponse>;
   diagnosePrintPhoto: (request: DiagnosePhotoRequest) => Promise<DiagnosePhotoResponse>;
   checkForUpdates: () => Promise<void>;
-  downloadUpdate: () => Promise<void>;
-  cancelUpdateDownload: () => Promise<void>;
-  installUpdate: () => Promise<void>;
-  postponeUpdate: (version: string) => Promise<void>;
+  acknowledgeReleaseNotes: () => Promise<void>;
   getUpdateState: () => Promise<UpdateState>;
   onUpdateStateChanged: (callback: (state: UpdateState) => void) => () => void;
 }

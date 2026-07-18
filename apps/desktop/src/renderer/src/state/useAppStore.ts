@@ -53,7 +53,6 @@ interface AppState {
   updateDialogOpen: boolean;
   updateState: UpdateState | null;
   checkUpdatesOnStartup: boolean;
-  postponedUpdateVersion: string | undefined;
   costSettings: CostSettings;
   companySettings: CompanySettings | null;
   welcomeDialogOpen: boolean;
@@ -179,7 +178,7 @@ interface AppState {
   setUpdateState: (state: UpdateState) => void;
   openUpdateDialogAndCheck: () => void;
   setCheckUpdatesOnStartup: (enabled: boolean) => Promise<void>;
-  postponeAvailableUpdate: () => void;
+  acknowledgeReleaseNotes: () => void;
 
   setCostSettings: (costs: CostSettings) => Promise<void>;
   setCompanySettings: (company: CompanySettings) => Promise<void>;
@@ -259,7 +258,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateDialogOpen: false,
   updateState: null,
   checkUpdatesOnStartup: true,
-  postponedUpdateVersion: undefined,
   costSettings: { currency: "€", filamentPricePerKg: null, printerPowerW: null, electricityPricePerKwh: null },
   companySettings: null,
   welcomeDialogOpen: false,
@@ -716,10 +714,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ languagePreference: settings.languagePreference ?? settings.language ?? "system" });
       if (settings.theme) set({ theme: settings.theme });
       if (settings.interfaceMode) set({ interfaceMode: settings.interfaceMode });
-      set({
-        checkUpdatesOnStartup: settings.checkUpdatesOnStartup ?? true,
-        postponedUpdateVersion: settings.postponedUpdateVersion,
-      });
+      set({ checkUpdatesOnStartup: settings.checkUpdatesOnStartup ?? true });
       if (settings.costs) set({ costSettings: settings.costs });
       if (settings.company) set({ companySettings: settings.company });
     } catch (err) {
@@ -1041,10 +1036,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleUpdateDialog: () => set((s) => ({ updateDialogOpen: !s.updateDialogOpen })),
   setUpdateState: (state) => {
     set({ updateState: state });
-    const s = get();
-    if (state.status === "available" && state.availableVersion && state.availableVersion !== s.postponedUpdateVersion) {
-      set({ updateDialogOpen: true });
-    }
+    // Downloading and installing happen silently in the background - the dialog only pops up
+    // on its own once there are release notes to show for a version that was just installed.
+    if (state.status === "installed") set({ updateDialogOpen: true });
   },
   openUpdateDialogAndCheck: () => {
     set({ updateDialogOpen: true });
@@ -1058,10 +1052,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ error: err instanceof Error ? err.message : String(err) });
     }
   },
-  postponeAvailableUpdate: () => {
-    const version = get().updateState?.availableVersion;
-    set({ updateDialogOpen: false, postponedUpdateVersion: version });
-    if (version) void window.api.postponeUpdate(version);
+  acknowledgeReleaseNotes: () => {
+    set({ updateDialogOpen: false });
+    void window.api.acknowledgeReleaseNotes();
   },
 }));
 

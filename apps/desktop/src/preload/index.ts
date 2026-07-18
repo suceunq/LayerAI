@@ -55,10 +55,7 @@ const api: LayerAiApi = {
   testAiProvider: (request) => ipcRenderer.invoke(IpcChannels.aiTestProvider, request),
   diagnosePrintPhoto: (request) => ipcRenderer.invoke(IpcChannels.aiDiagnosePhoto, request),
   checkForUpdates: () => ipcRenderer.invoke(IpcChannels.updateCheck),
-  downloadUpdate: () => ipcRenderer.invoke(IpcChannels.updateDownload),
-  cancelUpdateDownload: () => ipcRenderer.invoke(IpcChannels.updateCancelDownload),
-  installUpdate: () => ipcRenderer.invoke(IpcChannels.updateInstall),
-  postponeUpdate: (version) => ipcRenderer.invoke(IpcChannels.updatePostpone, version),
+  acknowledgeReleaseNotes: () => ipcRenderer.invoke(IpcChannels.updateAcknowledgeReleaseNotes),
   getUpdateState: () => ipcRenderer.invoke(IpcChannels.updateGetState),
   onUpdateStateChanged: (callback) => {
     const listener = (_event: Electron.IpcRendererEvent, state: UpdateState): void => callback(state);

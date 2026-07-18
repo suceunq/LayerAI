@@ -1,10 +1,26 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, powerMonitor } from "electron";
 import { autoUpdater, CancellationToken } from "electron-updater";
 import { IpcChannels } from "../shared/ipc-channels.js";
 import type { UpdateState } from "../shared/ipc-types.js";
+import {
+  acknowledgeInstalledUpdate,
+  isVersionBlocked,
+  markCurrentVersionHealthy,
+  prepareRollbackTransaction,
+  recoverInterruptedUpdate,
+  startRollbackWatchdog,
+} from "./update-rollback.js";
+import { logUpdate, updaterLogger } from "./update-logger.js";
+
+const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1_000;
+const STARTUP_CHECK_DELAY_MS = 12_000;
+const RETRY_DELAYS_MS = [0, 5_000, 30_000, 2 * 60_000];
 
 let state: UpdateState = { status: "idle", currentVersion: app.getVersion() };
-let cancellationToken: CancellationToken | null = null;
+let checking = false;
+let downloadRunning = false;
+let installFlowStarted = false;
+let periodicTimer: NodeJS.Timeout | null = null;
 
 function broadcast(): void {
   for (const window of BrowserWindow.getAllWindows()) {
@@ -17,29 +33,96 @@ function setState(patch: Partial<UpdateState>): void {
   broadcast();
 }
 
-/**
- * Wires electron-updater's events into a single UpdateState broadcast to every renderer window.
- * autoDownload stays false so a download only ever starts from an explicit user action (via
- * downloadUpdate), which is what makes cancelDownload's CancellationToken meaningful.
- */
-export function setupAutoUpdater(): void {
+function releaseNotesOf(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (!Array.isArray(value)) return undefined;
+  return value
+    .map((entry) => (entry && typeof entry === "object" && "note" in entry && typeof entry.note === "string" ? entry.note : ""))
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+async function downloadAutomatically(): Promise<void> {
+  if (downloadRunning || installFlowStarted) return;
+  downloadRunning = true;
+  let lastError: unknown;
+  try {
+    for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt += 1) {
+      const delay = RETRY_DELAYS_MS[attempt] ?? 0;
+      if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+      try {
+        logUpdate("info", "download-attempt", { attempt: attempt + 1, version: state.availableVersion });
+        await autoUpdater.downloadUpdate(new CancellationToken());
+        return;
+      } catch (error) {
+        lastError = error;
+        logUpdate("warn", "download-retry", { attempt: attempt + 1, message: error instanceof Error ? error.message : String(error) });
+      }
+    }
+    setState({ status: "error", errorMessage: lastError instanceof Error ? lastError.message : String(lastError) });
+  } finally {
+    downloadRunning = false;
+  }
+}
+
+async function installAutomatically(version: string, releaseNotes?: string): Promise<void> {
+  if (installFlowStarted) return;
+  installFlowStarted = true;
+  try {
+    setState({ status: "preparing", availableVersion: version, releaseNotes });
+    logUpdate("info", "integrity-verified", { version });
+    await prepareRollbackTransaction(version, releaseNotes);
+    await startRollbackWatchdog();
+    setState({ status: "installing", availableVersion: version, progressPercent: 100 });
+    logUpdate("info", "silent-install-started", { fromVersion: app.getVersion(), toVersion: version });
+    setTimeout(() => autoUpdater.quitAndInstall(true, true), 1_500).unref();
+  } catch (error) {
+    installFlowStarted = false;
+    logUpdate("error", "install-preparation-failed", error instanceof Error ? error.message : String(error));
+    setState({ status: "error", errorMessage: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+export async function setupAutoUpdater(): Promise<void> {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.autoRunAppAfterInstall = true;
+  autoUpdater.fullChangelog = false;
+  autoUpdater.disableWebInstaller = true;
+  autoUpdater.logger = updaterLogger;
+
+  const installed = await recoverInterruptedUpdate();
+  if (installed) {
+    state = {
+      status: "installed",
+      currentVersion: app.getVersion(),
+      previousVersion: installed.previousVersion,
+      availableVersion: installed.version,
+      releaseNotes: installed.releaseNotes,
+    };
+  }
 
   autoUpdater.on("checking-for-update", () => {
-    setState({ status: "checking", errorMessage: undefined });
+    logUpdate("info", "checking", { currentVersion: app.getVersion() });
+    if (state.status !== "installed") setState({ status: "checking", errorMessage: undefined });
   });
 
   autoUpdater.on("update-available", (info) => {
-    setState({
-      status: "available",
-      availableVersion: info.version,
-      releaseNotes: typeof info.releaseNotes === "string" ? info.releaseNotes : undefined,
-    });
+    const releaseNotes = releaseNotesOf(info.releaseNotes);
+    void (async () => {
+      if (await isVersionBlocked(info.version)) {
+        logUpdate("warn", "blocked-version-skipped", { version: info.version });
+        setState({ status: "not-available", availableVersion: undefined });
+        return;
+      }
+      setState({ status: "available", availableVersion: info.version, releaseNotes, errorMessage: undefined });
+      await downloadAutomatically();
+    })();
   });
 
   autoUpdater.on("update-not-available", () => {
-    setState({ status: "not-available", availableVersion: undefined });
+    logUpdate("info", "up-to-date", { currentVersion: app.getVersion() });
+    if (state.status !== "installed") setState({ status: "not-available", availableVersion: undefined });
   });
 
   autoUpdater.on("download-progress", (progress) => {
@@ -53,11 +136,13 @@ export function setupAutoUpdater(): void {
   });
 
   autoUpdater.on("update-downloaded", (info) => {
-    setState({ status: "downloaded", availableVersion: info.version, progressPercent: 100 });
+    const releaseNotes = releaseNotesOf(info.releaseNotes) ?? state.releaseNotes;
+    setState({ status: "downloaded", availableVersion: info.version, releaseNotes, progressPercent: 100 });
+    void installAutomatically(info.version, releaseNotes);
   });
 
   autoUpdater.on("error", (error) => {
-    setState({ status: "error", errorMessage: error.message });
+    logUpdate("warn", "updater-error", error.message);
   });
 }
 
@@ -70,32 +155,40 @@ export async function checkForUpdates(): Promise<void> {
     setState({ status: "dev-unavailable" });
     return;
   }
+  if (checking || downloadRunning || installFlowStarted || state.status === "installed") return;
+  checking = true;
+  let lastError: unknown;
   try {
-    await autoUpdater.checkForUpdates();
-  } catch (error) {
-    setState({ status: "error", errorMessage: error instanceof Error ? error.message : String(error) });
-  }
-}
-
-export async function downloadUpdate(): Promise<void> {
-  if (!app.isPackaged) return;
-  cancellationToken = new CancellationToken();
-  try {
-    await autoUpdater.downloadUpdate(cancellationToken);
-  } catch (error) {
-    if (!cancellationToken.cancelled) {
-      setState({ status: "error", errorMessage: error instanceof Error ? error.message : String(error) });
+    for (let attempt = 0; attempt < RETRY_DELAYS_MS.length; attempt += 1) {
+      const delay = RETRY_DELAYS_MS[attempt] ?? 0;
+      if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+      try {
+        await autoUpdater.checkForUpdates();
+        return;
+      } catch (error) {
+        lastError = error;
+        logUpdate("warn", "check-retry", { attempt: attempt + 1, message: error instanceof Error ? error.message : String(error) });
+      }
     }
+    setState({ status: "error", errorMessage: lastError instanceof Error ? lastError.message : String(lastError) });
   } finally {
-    cancellationToken = null;
+    checking = false;
   }
 }
 
-export function cancelDownload(): void {
-  cancellationToken?.cancel();
-  setState({ status: "available", progressPercent: undefined, bytesPerSecond: undefined, transferredBytes: undefined });
+export function startAutomaticUpdateChecks(): void {
+  setTimeout(() => void checkForUpdates(), STARTUP_CHECK_DELAY_MS).unref();
+  periodicTimer = setInterval(() => void checkForUpdates(), CHECK_INTERVAL_MS);
+  periodicTimer.unref();
+  powerMonitor.on("resume", () => setTimeout(() => void checkForUpdates(), 15_000).unref());
 }
 
-export function installUpdate(): void {
-  autoUpdater.quitAndInstall();
+export async function confirmApplicationHealthy(): Promise<void> {
+  await markCurrentVersionHealthy();
 }
+
+export async function acknowledgeReleaseNotes(): Promise<void> {
+  await acknowledgeInstalledUpdate();
+  setState({ status: "idle", releaseNotes: undefined, previousVersion: undefined, availableVersion: undefined });
+}
+
