@@ -1,13 +1,13 @@
-# LayerAI 1.7.25 — Configuration PayPal protégée
+# LayerAI 1.7.26 — Mises à jour entièrement automatiques
 
 ## Améliorations
 
-- Le lien PayPal n’est plus affiché ni modifiable dans les paramètres de l’application.
-- L’onglet Soutien conserve uniquement le réglage d’affichage de la fenêtre de bienvenue au démarrage.
-- Le renderer ne reçoit plus l’adresse PayPal : il connaît seulement l’état configuré ou indisponible.
-- L’ouverture de la page de don reste entièrement gérée et validée par le processus principal sécurisé.
+- Les mises à jour sont désormais recherchées, téléchargées et installées automatiquement en arrière-plan, sans aucune confirmation à donner.
+- Une fenêtre affiche une seule fois les nouveautés après un redémarrage automatique pour installer une mise à jour.
+- Filet de sécurité : la version précédente est téléchargée et vérifiée (SHA-512) avant toute installation, puis restaurée automatiquement si la nouvelle version ne démarre pas correctement dans les minutes qui suivent.
+- Journalisation détaillée de chaque étape (recherche, téléchargement, installation, éventuel retour arrière) dans un fichier local avec rotation automatique.
+- Une version dont l'installation a échoué n'est plus proposée à nouveau au prochain lancement.
 
 ## Configuration
 
-- L’adresse officielle reste administrable sans recompilation via le fichier interne `donation.json` et l’asset distant de la dernière release GitHub.
-- La configuration PayPal LayerAI actuelle demeure active avec l’identifiant marchand fourni et les paiements en euros.
+- Le réglage existant « Rechercher les mises à jour au démarrage » reste disponible dans les Paramètres et continue de gouverner l'activation des vérifications automatiques.
