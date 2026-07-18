@@ -5,8 +5,18 @@ import { Button } from "../components/ui/Button.js";
 import { AI_PROVIDERS, providerMeta, type AiProviderId } from "../../../shared/ai-providers.js";
 import type { AiSettingsPublic, CompanyLegalStatus, CompanySettings } from "../../../shared/ipc-types.js";
 import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
+import { SUPPORTED_LANGUAGES, type LanguagePreference } from "../../../shared/languages.js";
 
 type TestState = "idle" | "testing" | "success" | { error: string };
+
+const LANGUAGE_LABEL_KEYS: Record<LanguagePreference, string> = {
+  system: "settings.language.system",
+  fr: "settings.language.french",
+  en: "settings.language.english",
+  de: "settings.language.german",
+  es: "settings.language.spanish",
+  it: "settings.language.italian",
+};
 
 const DEFAULT_COMPANY: CompanySettings = {
   legalStatus: "auto-entrepreneur",
@@ -45,6 +55,7 @@ export function SettingsDialog(): React.JSX.Element | null {
   const open = useAppStore((s) => s.settingsDialogOpen);
   const toggleOpen = useAppStore((s) => s.toggleSettingsDialog);
   const language = useAppStore((s) => s.language);
+  const languagePreference = useAppStore((s) => s.languagePreference);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
@@ -421,16 +432,16 @@ export function SettingsDialog(): React.JSX.Element | null {
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-2">
                 <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.language.title")}</span>
-                {(["fr", "en"] as const).map((lang) => (
+                {(["system", ...SUPPORTED_LANGUAGES] as const).map((preference) => (
                   <button
-                    key={lang}
-                    onClick={() => void setLanguage(lang)}
+                    key={preference}
+                    onClick={() => void setLanguage(preference)}
                     className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
-                      language === lang ? "border-accent bg-accent/10 text-accent" : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
+                      languagePreference === preference ? "border-accent bg-accent/10 text-accent" : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
                     }`}
                   >
-                    {t(lang === "fr" ? "settings.language.french" : "settings.language.english")}
-                    {language === lang && <span>✓</span>}
+                    <span>{t(LANGUAGE_LABEL_KEYS[preference])}{preference === "system" ? ` · ${language.toUpperCase()}` : ""}</span>
+                    {languagePreference === preference && <span aria-hidden="true">✓</span>}
                   </button>
                 ))}
               </div>

@@ -80,7 +80,7 @@ export interface LayerAiApi {
   clearProjectRecovery: () => Promise<void>;
   getSettings: () => Promise<AppSettings>;
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
-  setLanguage: (language: SupportedLanguage) => Promise<void>;
+  setLanguage: (language: import("../shared/ipc-types.js").LanguagePreference) => Promise<SupportedLanguage>;
   setTheme: (theme: SupportedTheme) => Promise<void>;
   setInterfaceMode: (mode: import("../shared/ipc-types.js").SupportedInterfaceMode) => Promise<void>;
   setCheckUpdatesOnStartup: (enabled: boolean) => Promise<void>;

@@ -19,3 +19,18 @@ test("signale un texte sans intention reconnue", () => {
   assert.equal(result.unrecognized, true);
   assert.deepEqual(result.weights, []);
 });
+
+test("reconnaît les intentions allemandes, espagnoles et italiennes", () => {
+  const cases = [
+    ["Ich möchte ein sehr stabiles mechanisches Teil", "de", "strength"],
+    ["Quiero imprimir una pieza lo más rápido posible", "es", "speed"],
+    ["Voglio una finitura perfetta e la massima qualità", "it", "quality"],
+  ] as const;
+
+  for (const [sentence, language, tag] of cases) {
+    const result = resolveIntent(sentence);
+    assert.equal(result.unrecognized, false, sentence);
+    assert.equal(result.languageDetected, language, sentence);
+    assert.ok(result.weights.some((weight) => weight.tag === tag), sentence);
+  }
+});

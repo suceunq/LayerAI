@@ -1,6 +1,7 @@
 import { Worker } from "node:worker_threads";
 import { join } from "node:path";
 import type { AnalyzedMesh, MeshGeometryData } from "@layerai/shared-types";
+import { mainT } from "./localization.js";
 
 type JobPayload =
   | { kind: "analyze"; format: "stl" | "obj" | "3mf"; data: Uint8Array }
@@ -28,14 +29,14 @@ function ensureWorker(): Worker {
     if (!request) return;
     pending.delete(reply.id);
     if (reply.result) request.resolve(reply.result);
-    else request.reject(new Error(reply.error ?? "Le processus d’analyse a échoué."));
+    else request.reject(new Error(reply.error ?? mainT("native.worker.failed")));
   });
   instance.on("error", (error) => {
-    rejectAll(`Le processus d’analyse s’est arrêté : ${error.message}`);
+    rejectAll(mainT("native.worker.stopped", { message: error.message }));
     if (worker === instance) worker = null;
   });
   instance.on("exit", (code) => {
-    if (pending.size > 0) rejectAll(`Le processus d’analyse s’est arrêté avec le code ${code}.`);
+    if (pending.size > 0) rejectAll(mainT("native.worker.exited", { code }));
     if (worker === instance) worker = null;
   });
   return instance;

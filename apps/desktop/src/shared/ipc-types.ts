@@ -10,6 +10,9 @@ import type {
 } from "@layerai/shared-types";
 import type { ImportedFilePayload } from "../preload/api.js";
 import type { AiProviderId } from "./ai-providers.js";
+import type { LanguagePreference, SupportedLanguage } from "./languages.js";
+
+export type { LanguagePreference, SupportedLanguage } from "./languages.js";
 
 export interface AnalysisRunRequest {
   file: ImportedFilePayload;
@@ -207,8 +210,6 @@ export interface RecordOutcomeRequest {
   notes?: string;
 }
 
-export type SupportedLanguage = "fr" | "en";
-
 export type SupportedTheme = "dark" | "light";
 export type SupportedInterfaceMode = "simple" | "expert";
 
@@ -225,6 +226,7 @@ export interface AppSettings {
   bambuStudioPath?: string;
   crealityPrintPath?: string;
   language?: SupportedLanguage;
+  languagePreference?: LanguagePreference;
   theme?: SupportedTheme;
   interfaceMode?: SupportedInterfaceMode;
   checkUpdatesOnStartup?: boolean;

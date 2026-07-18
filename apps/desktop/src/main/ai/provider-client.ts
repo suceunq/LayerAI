@@ -1,14 +1,15 @@
 import { providerMeta, type AiProviderId } from "../../shared/ai-providers.js";
 import { validateProviderBaseUrl } from "../security/input-policy.js";
+import { mainT } from "../localization.js";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 
 async function readJson<T>(res: Response): Promise<T> {
   const declared = Number(res.headers.get("content-length") ?? 0);
-  if (declared > MAX_RESPONSE_BYTES) throw new Error("Réponse du fournisseur anormalement volumineuse.");
+  if (declared > MAX_RESPONSE_BYTES) throw new Error(mainT("native.provider.tooLarge"));
   const text = await res.text();
-  if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) throw new Error("Réponse du fournisseur anormalement volumineuse.");
+  if (Buffer.byteLength(text, "utf8") > MAX_RESPONSE_BYTES) throw new Error(mainT("native.provider.tooLarge"));
   return JSON.parse(text) as T;
 }
 
@@ -35,7 +36,7 @@ async function extractError(res: Response): Promise<string> {
 }
 
 async function anthropicChat({ apiKey, model, prompt, image }: ChatParams): Promise<string> {
-  if (!apiKey) throw new Error("Clé API manquante");
+  if (!apiKey) throw new Error(mainT("native.provider.apiKeyMissing"));
   const content = image
     ? [{ type: "image", source: { type: "base64", media_type: image.mimeType, data: image.base64 } }, { type: "text", text: prompt }]
     : prompt;
@@ -55,7 +56,7 @@ async function anthropicChat({ apiKey, model, prompt, image }: ChatParams): Prom
 }
 
 async function geminiChat({ apiKey, model, prompt, image }: ChatParams): Promise<string> {
-  if (!apiKey) throw new Error("Clé API manquante");
+  if (!apiKey) throw new Error(mainT("native.provider.apiKeyMissing"));
   const modelName = model || providerMeta("gemini").defaultModel;
   const parts = image ? [{ text: prompt }, { inline_data: { mime_type: image.mimeType, data: image.base64 } }] : [{ text: prompt }];
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
@@ -108,7 +109,7 @@ async function lmStudioChat({ model, baseUrl, prompt, image }: ChatParams): Prom
     if (!modelsRes.ok) throw new Error(await extractError(modelsRes));
     const modelsData = await readJson<{ data?: { id?: string }[] }>(modelsRes);
     resolvedModel = modelsData.data?.[0]?.id;
-    if (!resolvedModel) throw new Error("Aucun modèle chargé dans LM Studio. Chargez un modèle dans l'application LM Studio, puis réessayez.");
+    if (!resolvedModel) throw new Error(mainT("native.provider.noModel"));
   }
 
   const content = image
@@ -147,8 +148,8 @@ export async function testConnection(
   params: Omit<ChatParams, "prompt">
 ): Promise<{ success: true } | { success: false; message: string }> {
   try {
-    const reply = await chatComplete(id, { ...params, prompt: "Réponds uniquement par: OK" });
-    if (!reply.trim()) throw new Error("Réponse vide du fournisseur");
+    const reply = await chatComplete(id, { ...params, prompt: "Reply only with: OK" });
+    if (!reply.trim()) throw new Error(mainT("native.provider.emptyResponse"));
     return { success: true };
   } catch (err) {
     return { success: false, message: err instanceof Error ? err.message : String(err) };

@@ -1,6 +1,7 @@
 import type { DiagnosePhotoResponse, PhotoDiagnosisCorrection, PhotoDiagnosisResult, PrintDefectId } from "../../shared/ipc-types.js";
 import * as providerStore from "./provider-store.js";
 import { chatComplete } from "./provider-client.js";
+import type { SupportedLanguage } from "../../shared/languages.js";
 
 const DEFECT_IDS: PrintDefectId[] = [
   "stringing",
@@ -33,8 +34,39 @@ const CORRECTABLE_KEYS = new Set([
   "skirts",
 ]);
 
-function buildPrompt(language: "fr" | "en"): string {
-  const outputLanguage = language === "en" ? "English" : "French";
+const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
+  fr: "French",
+  en: "English",
+  de: "German",
+  es: "Spanish",
+  it: "Italian",
+};
+
+const PHOTO_MESSAGES: Record<SupportedLanguage, { noProvider: string; invalidResponse: string }> = {
+  fr: {
+    noProvider: "Aucun fournisseur IA configuré. Ajoutez-en un dans Paramètres → Clés API pour utiliser le diagnostic photo.",
+    invalidResponse: "Réponse de l'IA illisible. Réessayez, ou changez de fournisseur dans Paramètres.",
+  },
+  en: {
+    noProvider: "No AI provider configured. Add one in Settings → API Keys to use the photo diagnosis.",
+    invalidResponse: "Couldn't parse the AI's response. Try again, or switch providers in Settings.",
+  },
+  de: {
+    noProvider: "Kein KI-Anbieter konfiguriert. Fügen Sie unter Einstellungen → API-Schlüssel einen hinzu, um die Fotodiagnose zu verwenden.",
+    invalidResponse: "Die KI-Antwort konnte nicht gelesen werden. Versuchen Sie es erneut oder wechseln Sie den Anbieter in den Einstellungen.",
+  },
+  es: {
+    noProvider: "No hay ningún proveedor de IA configurado. Añada uno en Ajustes → Claves API para usar el diagnóstico fotográfico.",
+    invalidResponse: "No se pudo interpretar la respuesta de la IA. Inténtelo de nuevo o cambie de proveedor en Ajustes.",
+  },
+  it: {
+    noProvider: "Nessun provider IA configurato. Aggiungine uno in Impostazioni → Chiavi API per usare la diagnosi fotografica.",
+    invalidResponse: "Impossibile interpretare la risposta dell'IA. Riprova o cambia provider nelle Impostazioni.",
+  },
+};
+
+function buildPrompt(language: SupportedLanguage): string {
+  const outputLanguage = LANGUAGE_NAMES[language];
   return `You are an expert 3D printing failure analyst. You are shown a photo of a 3D printed part (or a print in progress). Identify the single most visible print defect from this exact list: ${DEFECT_IDS.join(", ")} (use "none" if the print looks clean, "other" for a real defect not covered by the list).
 Respond with ONLY a JSON object (no markdown fences, no text outside the JSON) with this exact shape:
 {
@@ -101,15 +133,12 @@ function parseResult(raw: string): PhotoDiagnosisResult | null {
  * has no on-device fallback. Requires the user to have configured and selected a default AI
  * provider in Settings - the caller surfaces that requirement as a normal (non-error) message.
  */
-export async function diagnosePrintPhoto(imageBase64: string, mimeType: string, language: "fr" | "en"): Promise<DiagnosePhotoResponse> {
+export async function diagnosePrintPhoto(imageBase64: string, mimeType: string, language: SupportedLanguage): Promise<DiagnosePhotoResponse> {
   const providerId = await providerStore.getDefaultProviderId();
   if (!providerId) {
     return {
       success: false,
-      message:
-        language === "en"
-          ? "No AI provider configured. Add one in Settings → API Keys to use the photo diagnosis."
-          : "Aucun fournisseur IA configuré. Ajoutez-en un dans Paramètres → Clés API pour utiliser le diagnostic photo.",
+      message: PHOTO_MESSAGES[language].noProvider,
     };
   }
 
@@ -127,10 +156,7 @@ export async function diagnosePrintPhoto(imageBase64: string, mimeType: string, 
     if (!result) {
       return {
         success: false,
-        message:
-          language === "en"
-            ? "Couldn't parse the AI's response. Try again, or switch providers in Settings."
-            : "Réponse de l'IA illisible. Réessayez, ou changez de fournisseur dans Paramètres.",
+        message: PHOTO_MESSAGES[language].invalidResponse,
       };
     }
     return { success: true, result };

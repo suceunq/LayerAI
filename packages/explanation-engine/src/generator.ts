@@ -2,6 +2,7 @@ import type { ExplanationSet, GeneratedConfig, IntentResult, MeshAnalysisResult,
 import { introFor } from "./family-intros.js";
 import { clauseFor } from "./parameter-clauses.js";
 import { intentLabels } from "./intent-labels.js";
+import type { ExplanationLanguage } from "./language.js";
 
 const SUMMARY_TEXT = {
   fr: {
@@ -16,9 +17,27 @@ const SUMMARY_TEXT = {
     risks: (count: number, ids: string) => `${count} point${count > 1 ? "s" : ""} of attention detected on the model (${ids}).`,
     noRisks: "No particular risk detected on the model.",
   },
+  de: {
+    goals: (goals: string) => `Erkannte Ziele: ${goals}.`,
+    noGoals: "Kein bestimmtes Ziel erkannt – Standardeinstellungen angewendet.",
+    risks: (count: number, ids: string) => `${count} Hinweis${count === 1 ? "" : "e"} am Modell erkannt (${ids}).`,
+    noRisks: "Keine besonderen Risiken am Modell erkannt.",
+  },
+  es: {
+    goals: (goals: string) => `Objetivos detectados: ${goals}.`,
+    noGoals: "No se detectó ningún objetivo específico; se aplicaron los ajustes estándar.",
+    risks: (count: number, ids: string) => `Se ${count === 1 ? "detectó" : "detectaron"} ${count} punto${count === 1 ? "" : "s"} de atención en el modelo (${ids}).`,
+    noRisks: "No se detectó ningún riesgo particular en el modelo.",
+  },
+  it: {
+    goals: (goals: string) => `Obiettivi rilevati: ${goals}.`,
+    noGoals: "Nessun obiettivo specifico rilevato; sono state applicate le impostazioni standard.",
+    risks: (count: number, ids: string) => `${count} punt${count === 1 ? "o" : "i"} di attenzione rilevat${count === 1 ? "o" : "i"} sul modello (${ids}).`,
+    noRisks: "Nessun rischio particolare rilevato sul modello.",
+  },
 };
 
-function buildSummary(intent: IntentResult, analysis: MeshAnalysisResult, language: "fr" | "en"): string {
+function buildSummary(intent: IntentResult, analysis: MeshAnalysisResult, language: ExplanationLanguage): string {
   const text = SUMMARY_TEXT[language];
   const labels = intentLabels(language);
   const detectedGoals = intent.weights
@@ -38,7 +57,7 @@ export function generateExplanations(
   config: GeneratedConfig,
   intent: IntentResult,
   analysis: MeshAnalysisResult,
-  language: "fr" | "en" = "fr"
+  language: ExplanationLanguage = "fr"
 ): ExplanationSet {
   const parameters: ParameterExplanation[] = Object.entries(config).map(([parameterKey, entry]) => ({
     parameterKey,

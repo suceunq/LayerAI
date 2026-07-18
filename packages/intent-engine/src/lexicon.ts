@@ -37,6 +37,9 @@ export const LEXICON: LexiconRule[] = [
       "tough",
       "wont break",
       "load bearing",
+      "stark", "starkes", "stabil", "stabiles", "robust", "robustes", "bruchsicher",
+      "resistente", "fuerte", "robusta", "no se rompa",
+      "resistente", "robusto", "solido", "non si rompa",
     ],
   },
   {
@@ -56,6 +59,9 @@ export const LEXICON: LexiconRule[] = [
       "quickly",
       "asap",
       "speed",
+      "schnell", "so schnell wie moglich", "geschwindigkeit",
+      "rapido", "lo mas rapido posible", "velocidad",
+      "veloce", "il piu velocemente possibile", "rapidita",
     ],
   },
   {
@@ -78,13 +84,16 @@ export const LEXICON: LexiconRule[] = [
       "high quality",
       "detailed",
       "precise",
+      "hochste qualitat", "perfekte oberflache", "prazise",
+      "maxima calidad", "acabado perfecto", "precisa",
+      "massima qualita", "finitura perfetta", "preciso",
     ],
   },
   {
     id: "compromise.speed_quality",
     tags: ["speed", "quality"],
     weight: 0.5,
-    patterns: ["compromis", "equilibre entre", "balance between", "tradeoff", "un peu des deux"],
+    patterns: ["compromis", "equilibre entre", "balance between", "tradeoff", "un peu des deux", "kompromiss", "equilibrio", "compromesso"],
   },
   {
     id: "heat_resistance.core",
@@ -103,6 +112,9 @@ export const LEXICON: LexiconRule[] = [
       "high temperature",
       "withstand heat",
       "thermal",
+      "hitzebestandig", "hohe temperatur", "warme",
+      "resistente al calor", "alta temperatura", "termica",
+      "resistente al calore", "alta temperatura", "termica",
     ],
   },
   {
@@ -120,6 +132,9 @@ export const LEXICON: LexiconRule[] = [
       "save material",
       "minimize material",
       "economical",
+      "filament sparen", "material sparen", "sparsam",
+      "ahorrar filamento", "ahorrar material", "economico",
+      "risparmiare filamento", "risparmiare materiale", "economico",
     ],
   },
   {
@@ -138,6 +153,9 @@ export const LEXICON: LexiconRule[] = [
       "outside",
       "uv resistant",
       "weatherproof",
+      "aussen", "im freien", "witterungsbestandig",
+      "exterior", "al aire libre", "intemperie",
+      "esterno", "all aperto", "intemperie",
     ],
   },
   {
@@ -153,6 +171,9 @@ export const LEXICON: LexiconRule[] = [
       "silent",
       "quiet",
       "low noise",
+      "leise", "gerauscharm", "leiser druck",
+      "silenciosa", "sin ruido", "poco ruido",
+      "silenziosa", "senza rumore", "poco rumore",
     ],
   },
   {
@@ -169,13 +190,16 @@ export const LEXICON: LexiconRule[] = [
       "minimize supports",
       "avoid supports",
       "without supports",
+      "weniger stutzen", "ohne stutzen", "stutzen vermeiden",
+      "limitar los soportes", "sin soportes", "evitar soportes",
+      "limitare i supporti", "senza supporti", "evitare i supporti",
     ],
   },
   {
     id: "figurine.core",
     tags: ["figurine"],
     weight: 0.85,
-    patterns: ["figurine", "statuette", "miniature", "buste", "personnage", "figure de collection", "collectible", "statue"],
+    patterns: ["figurine", "statuette", "miniature", "buste", "personnage", "figure de collection", "collectible", "statue", "figur", "sammelfigur", "figura", "estatuilla", "statuetta"],
   },
   {
     id: "mechanical_part.core",
@@ -192,21 +216,24 @@ export const LEXICON: LexiconRule[] = [
       "gear",
       "functional part",
       "engineering part",
+      "mechanisches teil", "funktionales teil", "zahnrad",
+      "pieza mecanica", "pieza funcional", "engranaje",
+      "parte meccanica", "parte funzionale", "ingranaggio",
     ],
   },
   {
     id: "prototype.core",
     tags: ["prototype"],
     weight: 0.75,
-    patterns: ["prototype", "brouillon", "juste pour tester", "test rapide", "ebauche", "version test", "draft", "just testing", "quick test"],
+    patterns: ["prototype", "brouillon", "juste pour tester", "test rapide", "ebauche", "version test", "draft", "just testing", "quick test", "prototyp", "schneller test", "prototipo", "prueba rapida", "prova rapida"],
   },
   {
     id: "flexibility.core",
     tags: ["flexibility"],
     weight: 0.85,
-    patterns: ["flexible", "souple", "doit plier", "elastique", "pliable", "bendable", "elastic"],
+    patterns: ["flexible", "souple", "doit plier", "elastique", "pliable", "bendable", "elastic", "flexibel", "biegsam", "elastisch", "flessibile", "pieghevole"],
   },
 ];
 
-export const INTENSITY_BOOSTERS = ["tres ", "vraiment ", "extremement ", "super ", "hyper ", "very ", "really ", "extremely "];
-export const INTENSITY_DAMPENERS = ["un peu ", "legerement ", "plutot ", "slightly ", "a bit "];
+export const INTENSITY_BOOSTERS = ["tres ", "vraiment ", "extremement ", "super ", "hyper ", "very ", "really ", "extremely ", "sehr ", "extrem ", "muy ", "estremamente ", "molto "];
+export const INTENSITY_DAMPENERS = ["un peu ", "legerement ", "plutot ", "slightly ", "a bit ", "etwas ", "un poco ", "leggermente "];

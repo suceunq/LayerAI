@@ -9,6 +9,7 @@ import { getPrinterModel, getFilamentBase } from "@layerai/prusa-profile-db";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { OpenInSlicerRequest, OpenInSlicerResponse, AppSettings } from "../../shared/ipc-types.js";
 import { readSettings, updateSettings } from "../settings-store.js";
+import { mainT } from "../localization.js";
 
 interface SlicerTarget {
   displayName: string;
@@ -63,8 +64,8 @@ async function locateSlicerExecutable(target: SlicerTarget, window: BrowserWindo
   }
 
   const dialogOptions: Electron.OpenDialogOptions = {
-    title: `${target.displayName} introuvable — sélectionnez son exécutable`,
-    filters: [{ name: "Exécutable", extensions: ["exe"] }],
+    title: mainT("native.slicer.notFound", { slicer: target.displayName }),
+    filters: [{ name: mainT("native.slicer.executable"), extensions: ["exe"] }],
     properties: ["openFile"],
   };
   const result = window ? await dialog.showOpenDialog(window, dialogOptions) : await dialog.showOpenDialog(dialogOptions);
@@ -79,8 +80,8 @@ export function registerSlicerHandlers(): void {
   ipcMain.handle(IpcChannels.slicerOpen, async (event, request: OpenInSlicerRequest): Promise<OpenInSlicerResponse> => {
     const printer = getPrinterModel(request.printerId);
     const filament = getFilamentBase(request.filamentId);
-    if (!printer) return { opened: false, canceled: false, message: `Imprimante inconnue : ${request.printerId}` };
-    if (!filament) return { opened: false, canceled: false, message: `Filament inconnu : ${request.filamentId}` };
+    if (!printer) return { opened: false, canceled: false, message: mainT("native.printer.unknown", { id: request.printerId }) };
+    if (!filament) return { opened: false, canceled: false, message: mainT("native.filament.unknown", { id: request.filamentId }) };
 
     const target = slicerTargetFor(printer.vendor);
     const window = BrowserWindow.fromWebContents(event.sender);

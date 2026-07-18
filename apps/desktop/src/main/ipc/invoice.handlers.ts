@@ -5,6 +5,7 @@ import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { GenerateInvoiceRequest, GenerateInvoiceResponse } from "../../shared/ipc-types.js";
 import { readSettings } from "../settings-store.js";
 import { allocateNextInvoiceNumber } from "../invoice-store.js";
+import { mainT } from "../localization.js";
 
 function slugify(text: string): string {
   return (
@@ -22,7 +23,7 @@ export function registerInvoiceHandlers(): void {
     const settings = await readSettings();
     const company = settings.company;
     if (!company) {
-      return { saved: false, error: "Renseignez d'abord les informations de votre société dans Paramètres → Ma société." };
+      return { saved: false, error: mainT("native.invoice.companyRequired") };
     }
 
     // The save dialog runs before the invoice number is allocated - allocating first (and only
@@ -30,9 +31,9 @@ export function registerInvoiceHandlers(): void {
     // gap in the legally-required sequential numbering.
     const window = BrowserWindow.fromWebContents(event.sender);
     const dialogOptions: Electron.SaveDialogOptions = {
-      title: "Générer la facture",
-      filters: [{ name: "Facture PDF", extensions: ["pdf"] }],
-      defaultPath: `facture-${slugify(request.client.name)}.pdf`,
+      title: mainT("native.invoice.title"),
+      filters: [{ name: mainT("native.invoice.filter"), extensions: ["pdf"] }],
+      defaultPath: `${mainT("native.filename.invoice")}-${slugify(request.client.name)}.pdf`,
     };
     const result = window ? await dialog.showSaveDialog(window, dialogOptions) : await dialog.showSaveDialog(dialogOptions);
     if (result.canceled || !result.filePath) return { saved: false };
@@ -43,6 +44,7 @@ export function registerInvoiceHandlers(): void {
     dueDate.setDate(dueDate.getDate() + company.paymentTermsDays);
 
     const pdf = await generateInvoicePdf({
+      language: settings.language ?? "fr",
       invoiceNumber,
       invoiceDate: invoiceDate.toISOString(),
       dueDate: dueDate.toISOString(),

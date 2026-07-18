@@ -16,6 +16,7 @@ import { registerProjectRecoveryHandlers } from "./ipc/project-recovery.handlers
 import { buildAppMenu } from "./menu.js";
 import { setupAutoUpdater, checkForUpdates } from "./autoUpdater.js";
 import { readSettings } from "./settings-store.js";
+import { setMainLanguage } from "./localization.js";
 
 const isDev = !app.isPackaged;
 
@@ -84,6 +85,7 @@ app.whenReady().then(async () => {
   if (process.platform === "win32") app.setAppUserModelId("com.layerai.app");
 
   const settings = await readSettings();
+  setMainLanguage(settings.language ?? "fr");
   nativeTheme.themeSource = settings.theme ?? "dark";
   buildAppMenu(settings.language ?? "fr");
   registerImportHandlers();

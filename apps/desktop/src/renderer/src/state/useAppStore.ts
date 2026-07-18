@@ -21,6 +21,7 @@ import type {
   RecentProject,
   SupportedTheme,
   SupportedInterfaceMode,
+  LanguagePreference,
   UpdateState,
 } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
@@ -29,6 +30,7 @@ import type { Language } from "../i18n/translations.js";
 import { translate } from "../i18n/useTranslation.js";
 import { quaternionRestingFace, computeGridArrangement } from "@layerai/mesh-analysis";
 import { clampConfig } from "@layerai/config-generator";
+import { generateExplanations } from "@layerai/explanation-engine";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
@@ -42,6 +44,7 @@ interface AppState {
   helpDialogOpen: boolean;
   helpDialogTab: HelpDialogTab;
   language: Language;
+  languagePreference: LanguagePreference;
   theme: SupportedTheme;
   interfaceMode: SupportedInterfaceMode;
   settingsDialogOpen: boolean;
@@ -154,7 +157,7 @@ interface AppState {
   handleMenuAction: (action: string) => void;
 
   loadLanguage: () => Promise<void>;
-  setLanguage: (language: Language) => Promise<void>;
+  setLanguage: (preference: LanguagePreference) => Promise<void>;
   setTheme: (theme: SupportedTheme) => Promise<void>;
   setInterfaceMode: (mode: SupportedInterfaceMode) => Promise<void>;
   toggleSettingsDialog: () => void;
@@ -235,6 +238,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   helpDialogOpen: false,
   helpDialogTab: "aide",
   language: "fr",
+  languagePreference: "system",
   theme: "dark",
   interfaceMode: "simple",
   settingsDialogOpen: false,
@@ -496,7 +500,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!analysis || !intentResult || !config || !explanations || !comparison) return;
     try {
       await window.api.exportPdfReport({
-        fileName: importedFile?.fileName ?? "modele.stl",
+        fileName: importedFile?.fileName ?? translate(get().language, "native.filename.defaultModel"),
         printerId: selectedPrinterId,
         filamentId: selectedFilamentId,
         analysis,
@@ -691,6 +695,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const settings = await window.api.getSettings();
       if (settings.language) set({ language: settings.language });
+      set({ languagePreference: settings.languagePreference ?? settings.language ?? "system" });
       if (settings.theme) set({ theme: settings.theme });
       if (settings.interfaceMode) set({ interfaceMode: settings.interfaceMode });
       set({
@@ -786,10 +791,20 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  setLanguage: async (language) => {
-    set({ language });
+  setLanguage: async (preference) => {
     try {
-      await window.api.setLanguage(language);
+      const language = await window.api.setLanguage(preference);
+      set((state) => ({
+        language,
+        languagePreference: preference,
+        error: null,
+        slicerNotice: null,
+        toolNotice: null,
+        explanations:
+          state.config && state.intentResult && state.analysis
+            ? generateExplanations(state.config, state.intentResult, state.analysis, language)
+            : state.explanations,
+      }));
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }

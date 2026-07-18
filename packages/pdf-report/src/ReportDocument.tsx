@@ -1,8 +1,8 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { ReportData } from "./types.js";
-import { RISK_LABELS_FR } from "./risk-labels.js";
-import { formatDurationFr } from "./duration.js";
+import { formatDuration } from "./duration.js";
+import { REPORT_TEXT } from "./translations.js";
 
 const ORANGE = "#FF6600";
 const DARK = "#1a1a1d";
@@ -37,93 +37,97 @@ function SectionTitle({ children }: { children: string }): React.JSX.Element {
 }
 
 export function ReportDocument({ data }: { data: ReportData }): React.JSX.Element {
-  const { fileName, printer, filament, analysis, config, explanations, comparison, generatedAt, quantity = 1 } = data;
+  const { fileName, printer, filament, analysis, config, explanations, comparison, generatedAt, quantity = 1, language } = data;
+  const text = REPORT_TEXT[language];
 
   const costPerKg = filament.costPerKg ?? 0;
   const estimatedCost = (comparison.aiFilamentG / 1000) * costPerKg;
   const batchEstimatedCost = estimatedCost * quantity;
 
   return (
-    <Document title={`Rapport LayerAI - ${fileName}`}>
+    <Document title={`${text.documentTitle} - ${fileName}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <Text style={styles.brand}>
             Layer<Text style={styles.brandAccent}>AI</Text>
           </Text>
-          <Text style={styles.meta}>{new Date(generatedAt).toLocaleString("fr-FR")}</Text>
+          <Text style={styles.meta}>{new Date(generatedAt).toLocaleString(text.locale)}</Text>
         </View>
         <Text style={styles.meta}>
           {fileName} — {printer.name} / {filament.name}
         </Text>
 
         <View style={styles.section}>
-          <SectionTitle>Résumé</SectionTitle>
+          <SectionTitle>{text.summary}</SectionTitle>
           <Text>{explanations.summary}</Text>
         </View>
 
         <View style={styles.section}>
-          <SectionTitle>Estimations</SectionTitle>
+          <SectionTitle>{text.estimates}</SectionTitle>
           <View style={styles.statGrid}>
             <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Temps estimé</Text>
-              <Text style={styles.statValue}>{formatDurationFr(comparison.aiEstimatedTimeMin)}</Text>
+              <Text style={styles.statLabel}>{text.estimatedTime}</Text>
+              <Text style={styles.statValue}>{formatDuration(comparison.aiEstimatedTimeMin, language)}</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Poids / consommation</Text>
+              <Text style={styles.statLabel}>{text.weight}</Text>
               <Text style={styles.statValue}>{comparison.aiFilamentG.toFixed(1)} g</Text>
             </View>
             <View style={styles.statBox}>
-              <Text style={styles.statLabel}>Coût matière estimé</Text>
+              <Text style={styles.statLabel}>{text.materialCost}</Text>
               <Text style={styles.statValue}>{estimatedCost > 0 ? `${estimatedCost.toFixed(2)} €` : "—"}</Text>
             </View>
           </View>
           {quantity > 1 && (
             <Text style={{ marginTop: 8, fontSize: 9, color: GRAY }}>
-              Lot de {quantity} exemplaires : ≈{formatDurationFr(comparison.aiEstimatedTimeMin * quantity)} ·{" "}
-              {(comparison.aiFilamentG * quantity).toFixed(1)} g
-              {batchEstimatedCost > 0 ? ` · ${batchEstimatedCost.toFixed(2)} €` : ""} au total.
+              {text.batch(
+                quantity,
+                formatDuration(comparison.aiEstimatedTimeMin * quantity, language),
+                (comparison.aiFilamentG * quantity).toFixed(1),
+                batchEstimatedCost > 0 ? ` · ${batchEstimatedCost.toFixed(2)} €` : "",
+              )}
             </Text>
           )}
         </View>
 
         <View style={styles.section}>
-          <SectionTitle>Analyse du modèle</SectionTitle>
+          <SectionTitle>{text.modelAnalysis}</SectionTitle>
           <View style={styles.row}>
-            <Text style={styles.label}>Dimensions</Text>
+            <Text style={styles.label}>{text.dimensions}</Text>
             <Text style={styles.value}>
               {analysis.dimensionsMm.x.toFixed(1)} × {analysis.dimensionsMm.y.toFixed(1)} × {analysis.dimensionsMm.z.toFixed(1)} mm
             </Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Volume</Text>
+            <Text style={styles.label}>{text.volume}</Text>
             <Text style={styles.value}>{(analysis.volumeMm3 / 1000).toFixed(1)} cm³</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Triangles</Text>
+            <Text style={styles.label}>{text.triangles}</Text>
             <Text style={styles.value}>{analysis.triangleCount}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Confiance de l'analyse</Text>
+            <Text style={styles.label}>{text.confidence}</Text>
             <Text style={styles.value}>{Math.round(analysis.analysisConfidence * 100)}%</Text>
           </View>
         </View>
 
         {analysis.riskFlags.length > 0 && (
           <View style={styles.section}>
-            <SectionTitle>Problèmes détectés et corrections proposées</SectionTitle>
+            <SectionTitle>{text.issues}</SectionTitle>
             {analysis.riskFlags.map((flag) => (
               <View key={flag.id} style={styles.riskRow}>
                 <Text style={styles.riskTitle}>
-                  {RISK_LABELS_FR[flag.id]} ({flag.severity === "high" ? "élevé" : "modéré"})
+                  {text.riskLabels[flag.id]} ({text.severity[flag.severity]})
                 </Text>
-                <Text style={styles.paramWhy}>{flag.description}</Text>
+                <Text style={styles.paramWhy}>{text.riskDetails[flag.id](flag.description)}</Text>
               </View>
             ))}
           </View>
         )}
 
         <View style={styles.section} break={Object.keys(config).length > 10}>
-          <SectionTitle>Réglages appliqués</SectionTitle>
+          <SectionTitle>{text.settings}</SectionTitle>
           {explanations.parameters.map((p) => (
             <View key={p.parameterKey} style={styles.paramRow}>
               <Text style={styles.paramKey}>{p.parameterKey}</Text>
@@ -136,18 +140,17 @@ export function ReportDocument({ data }: { data: ReportData }): React.JSX.Elemen
         </View>
 
         <View style={styles.section}>
-          <SectionTitle>Recommandations</SectionTitle>
-          {analysis.riskFlags.length === 0 && <Text>Aucun point d'attention particulier détecté sur ce modèle.</Text>}
+          <SectionTitle>{text.recommendations}</SectionTitle>
+          {analysis.riskFlags.length === 0 && <Text>{text.noIssues}</Text>}
           {analysis.riskFlags.map((flag) => (
             <Text key={flag.id} style={{ marginBottom: 3 }}>
-              • {RISK_LABELS_FR[flag.id]} : {flag.description}
+              • {text.riskLabels[flag.id]} : {text.riskDetails[flag.id](flag.description)}
             </Text>
           ))}
         </View>
 
         <Text style={styles.footer}>
-          Rapport généré automatiquement par LayerAI. Les temps, poids et coûts sont des estimations indicatives et ne remplacent pas le
-          calcul réel effectué par PrusaSlicer lors du tranchage.
+          {text.footer}
         </Text>
       </Page>
     </Document>

@@ -13,14 +13,15 @@ import * as providerStore from "../ai/provider-store.js";
 import { testConnection } from "../ai/provider-client.js";
 import { diagnosePrintPhoto } from "../ai/photo-diagnosis.js";
 import { validatePhotoPayload, validateProviderBaseUrl, validateProviderText } from "../security/input-policy.js";
+import { mainT } from "../localization.js";
 
 export function registerAiHandlers(): void {
   ipcMain.handle(IpcChannels.aiGetSettings, async (): Promise<AiSettingsPublic> => providerStore.getPublicSettings());
 
   ipcMain.handle(IpcChannels.aiSaveProvider, async (_event, request: SaveAiProviderRequest): Promise<void> => {
     await providerStore.saveProvider({ ...request,
-      apiKey: validateProviderText(request.apiKey, "Clé API", 16_384),
-      model: validateProviderText(request.model, "Nom du modèle", 256),
+      apiKey: validateProviderText(request.apiKey, mainT("settings.apiKeys.apiKey"), 16_384),
+      model: validateProviderText(request.model, mainT("settings.apiKeys.model"), 256),
       baseUrl: validateProviderBaseUrl(request.id, request.baseUrl),
     });
   });

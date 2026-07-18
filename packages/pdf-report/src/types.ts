@@ -9,6 +9,7 @@ import type {
 } from "@layerai/shared-types";
 
 export interface ReportData {
+  language: "fr" | "en" | "de" | "es" | "it";
   fileName: string;
   printer: PrinterProfile;
   filament: FilamentProfile;
