@@ -13,5 +13,5 @@
       "@renderer/*": ["src/renderer/src/*"]
     }
   },
-  "include": ["src/renderer/src/**/*", "src/preload/index.d.ts", "src/preload/api.ts", "src/shared/ipc-types.ts", "src/shared/ai-providers.ts"]
+  "include": ["src/renderer/src/**/*", "src/preload/index.d.ts", "src/preload/api.ts", "src/shared/ipc-types.ts", "src/shared/ai-providers.ts", "src/shared/languages.ts"]
 }

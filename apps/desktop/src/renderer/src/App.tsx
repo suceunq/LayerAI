@@ -16,6 +16,7 @@ import { PhotoDiagnosisDialog } from "./app/PhotoDiagnosisDialog.js";
 import { InvoiceDialog } from "./app/InvoiceDialog.js";
 import { FeedbackDialog } from "./app/FeedbackDialog.js";
 import { ProjectRecoveryDialog } from "./app/ProjectRecoveryDialog.js";
+import { WelcomeDialog } from "./app/WelcomeDialog.js";
 import { ProgressBar } from "./components/ui/ProgressBar.js";
 import { useTranslation } from "./i18n/useTranslation.js";
 
@@ -58,6 +59,7 @@ export default function App(): React.JSX.Element {
   const selectedFilamentId = useAppStore((s) => s.selectedFilamentId);
   const intentText = useAppStore((s) => s.intentText);
   const loadProjectRecovery = useAppStore((s) => s.loadProjectRecovery);
+  const loadWelcome = useAppStore((s) => s.loadWelcome);
 
   const [surfaceInspect, setSurfaceInspect] = useState<{
     x: number;
@@ -85,8 +87,9 @@ export default function App(): React.JSX.Element {
     void loadRecentProjects();
     void checkOnboarding();
     void loadLanguage();
+    void loadWelcome();
     void loadProjectRecovery();
-  }, [loadProfileDb, loadCustomProfiles, loadRecentProjects, checkOnboarding, loadLanguage, loadProjectRecovery]);
+  }, [loadProfileDb, loadCustomProfiles, loadRecentProjects, checkOnboarding, loadLanguage, loadWelcome, loadProjectRecovery]);
 
   useEffect(() => {
     if (!importedFile || step === "import" || step === "analyzing") return;
@@ -316,6 +319,7 @@ export default function App(): React.JSX.Element {
         <FeedbackDialog />
         <ProjectRecoveryDialog />
         <OnboardingTour />
+        <WelcomeDialog />
 
         {toolNotice && (
           <div role="status" aria-live="polite" className="absolute left-1/2 top-4 z-50 max-w-md -translate-x-1/2 rounded-lg border border-border-subtle bg-surface-1 px-4 py-2 text-sm text-text-primary shadow-xl">

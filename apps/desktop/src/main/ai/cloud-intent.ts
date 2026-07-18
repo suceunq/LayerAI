@@ -20,7 +20,7 @@ const INTENT_TAGS: IntentTag[] = [
 
 function buildPrompt(text: string): string {
   return `You are a print-intent classifier for a 3D printing assistant. Given a user's free-text description of what they want printed, output ONLY a JSON object (no markdown, no explanation) with this exact shape:
-{"weights": [{"tag": "<tag>", "weight": <0..1>}], "languageDetected": "fr"|"en"|"unknown"}
+{"weights": [{"tag": "<tag>", "weight": <0..1>}], "languageDetected": "fr"|"en"|"de"|"es"|"it"|"unknown"}
 Only include tags from this list, and only if clearly relevant (weight >= 0.15): ${INTENT_TAGS.join(", ")}.
 User text: """${text}"""`;
 }
@@ -33,7 +33,10 @@ function parseCloudResponse(raw: string, rawText: string): IntentResult | null {
     const weights = (parsed.weights ?? [])
       .filter((w): w is { tag: IntentTag; weight: number } => INTENT_TAGS.includes(w.tag as IntentTag) && typeof w.weight === "number")
       .map((w) => ({ tag: w.tag, weight: Math.max(0, Math.min(1, w.weight)), matchedPhrases: [] }));
-    const languageDetected = parsed.languageDetected === "fr" || parsed.languageDetected === "en" ? parsed.languageDetected : "unknown";
+    const supportedLanguages = new Set(["fr", "en", "de", "es", "it"] as const);
+    const languageDetected = supportedLanguages.has(parsed.languageDetected as "fr")
+      ? (parsed.languageDetected as "fr" | "en" | "de" | "es" | "it")
+      : "unknown";
     return { rawText, weights, unrecognized: weights.length === 0, languageDetected };
   } catch {
     return null;

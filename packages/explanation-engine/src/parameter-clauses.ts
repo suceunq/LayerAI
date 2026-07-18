@@ -1,4 +1,5 @@
 import type { ConfigPrimitive } from "@layerai/shared-types";
+import type { ExplanationLanguage } from "./language.js";
 
 const FILL_PATTERN_LABELS_FR: Record<string, string> = {
   grid: "grille",
@@ -27,6 +28,13 @@ const SUPPORT_STYLE_LABELS_EN: Record<string, string> = {
   snug: "snug",
   organic: "organic",
 };
+
+const FILL_PATTERN_LABELS_DE: Record<string, string> = { grid: "Gitter", gyroid: "Gyroid", cubic: "kubisch", lines: "Linien", honeycomb: "Waben" };
+const FILL_PATTERN_LABELS_ES: Record<string, string> = { grid: "cuadrícula", gyroid: "giroide", cubic: "cúbico", lines: "líneas", honeycomb: "panal" };
+const FILL_PATTERN_LABELS_IT: Record<string, string> = { grid: "griglia", gyroid: "giroide", cubic: "cubico", lines: "linee", honeycomb: "nido d'ape" };
+const SUPPORT_STYLE_LABELS_DE: Record<string, string> = { grid: "Gitter", snug: "angepasst", organic: "organisch" };
+const SUPPORT_STYLE_LABELS_ES: Record<string, string> = { grid: "cuadrícula", snug: "ajustado", organic: "orgánico" };
+const SUPPORT_STYLE_LABELS_IT: Record<string, string> = { grid: "griglia", snug: "aderente", organic: "organico" };
 
 type ClauseFn = (value: ConfigPrimitive) => string;
 
@@ -82,9 +90,66 @@ const PARAMETER_CLAUSES_EN: Record<string, ClauseFn> = {
   raft_layers: (v) => (Number(v) > 0 ? `a raft of ${v} layers is added` : "no raft is added"),
 };
 
-export function clauseFor(parameterKey: string, value: ConfigPrimitive, language: "fr" | "en"): string {
-  const clauses = language === "en" ? PARAMETER_CLAUSES_EN : PARAMETER_CLAUSES_FR;
-  const clause = clauses[parameterKey];
+const PARAMETER_CLAUSES_DE: Record<string, ClauseFn> = {
+  layer_height: (v) => `die Schichthöhe ist auf ${v} mm eingestellt`, perimeters: (v) => `die Anzahl der Wände ist auf ${v} eingestellt`,
+  top_solid_layers: (v) => `${v} volle Schichten sind an der Oberseite vorgesehen`, bottom_solid_layers: (v) => `${v} volle Schichten sind an der Unterseite vorgesehen`,
+  fill_density: (v) => `die Fülldichte ist auf ${v}% eingestellt`, fill_pattern: (v) => `das gewählte Füllmuster ist „${FILL_PATTERN_LABELS_DE[String(v)] ?? v}“`,
+  perimeter_speed: (v) => `die Wandgeschwindigkeit ist auf ${v} mm/s eingestellt`, infill_speed: (v) => `die Füllgeschwindigkeit ist auf ${v} mm/s eingestellt`,
+  travel_speed: (v) => `die Verfahrgeschwindigkeit ist auf ${v} mm/s eingestellt`, bridge_speed: (v) => `die Brückengeschwindigkeit ist auf ${v} mm/s eingestellt`,
+  default_acceleration: (v) => `die Beschleunigung ist auf ${v} mm/s² eingestellt`, temperature: (v) => `die Düsentemperatur ist auf ${v} °C eingestellt`,
+  first_layer_temperature: (v) => `die Düsentemperatur der ersten Schicht ist auf ${v} °C eingestellt`, bed_temperature: (v) => `die Betttemperatur ist auf ${v} °C eingestellt`,
+  first_layer_bed_temperature: (v) => `die Betttemperatur der ersten Schicht ist auf ${v} °C eingestellt`, min_fan_speed: (v) => `die minimale Lüfterdrehzahl ist auf ${v}% eingestellt`,
+  max_fan_speed: (v) => `die maximale Lüfterdrehzahl ist auf ${v}% eingestellt`, support_material: (v) => (v ? "Stützen sind aktiviert" : "es werden keine Stützen erzeugt"),
+  support_material_buildplate_only: (v) => (v ? "Stützen beginnen nur auf der Bauplatte" : "Stützen können bei Bedarf überall platziert werden"),
+  support_material_style: (v) => `der gewählte Stützstil ist „${SUPPORT_STYLE_LABELS_DE[String(v)] ?? v}“`,
+  brim_width: (v) => (Number(v) > 0 ? `ein ${v} mm breiter Rand wird hinzugefügt` : "es wird kein Rand hinzugefügt"),
+  skirts: (v) => `${v} Startkontur${Number(v) === 1 ? " ist" : "en sind"} vorgesehen`, raft_layers: (v) => (Number(v) > 0 ? `ein Raft mit ${v} Schichten wird hinzugefügt` : "es wird kein Raft hinzugefügt"),
+};
+
+const PARAMETER_CLAUSES_ES: Record<string, ClauseFn> = {
+  layer_height: (v) => `la altura de capa está ajustada a ${v} mm`, perimeters: (v) => `el número de paredes está ajustado a ${v}`,
+  top_solid_layers: (v) => `se han previsto ${v} capas sólidas en la parte superior`, bottom_solid_layers: (v) => `se han previsto ${v} capas sólidas en la parte inferior`,
+  fill_density: (v) => `el relleno está ajustado al ${v}%`, fill_pattern: (v) => `el patrón de relleno elegido es «${FILL_PATTERN_LABELS_ES[String(v)] ?? v}»`,
+  perimeter_speed: (v) => `la velocidad de las paredes está ajustada a ${v} mm/s`, infill_speed: (v) => `la velocidad de relleno está ajustada a ${v} mm/s`,
+  travel_speed: (v) => `la velocidad de desplazamiento está ajustada a ${v} mm/s`, bridge_speed: (v) => `la velocidad de los puentes está ajustada a ${v} mm/s`,
+  default_acceleration: (v) => `la aceleración está ajustada a ${v} mm/s²`, temperature: (v) => `la temperatura de la boquilla está ajustada a ${v} °C`,
+  first_layer_temperature: (v) => `la temperatura de la boquilla de la primera capa está ajustada a ${v} °C`, bed_temperature: (v) => `la temperatura de la cama está ajustada a ${v} °C`,
+  first_layer_bed_temperature: (v) => `la temperatura de la cama para la primera capa está ajustada a ${v} °C`, min_fan_speed: (v) => `la ventilación mínima está ajustada al ${v}%`,
+  max_fan_speed: (v) => `la ventilación máxima está ajustada al ${v}%`, support_material: (v) => (v ? "los soportes están activados" : "no se generan soportes"),
+  support_material_buildplate_only: (v) => (v ? "los soportes parten únicamente de la base" : "los soportes pueden colocarse en cualquier lugar si la geometría lo exige"),
+  support_material_style: (v) => `el estilo de soporte elegido es «${SUPPORT_STYLE_LABELS_ES[String(v)] ?? v}»`,
+  brim_width: (v) => (Number(v) > 0 ? `se añade un borde de ${v} mm` : "no se añade ningún borde"),
+  skirts: (v) => `se ${Number(v) === 1 ? "ha" : "han"} previsto ${v} contorno(s) inicial(es)`, raft_layers: (v) => (Number(v) > 0 ? `se añade una balsa de ${v} capas` : "no se añade ninguna balsa"),
+};
+
+const PARAMETER_CLAUSES_IT: Record<string, ClauseFn> = {
+  layer_height: (v) => `l'altezza dello strato è impostata a ${v} mm`, perimeters: (v) => `il numero di pareti è impostato a ${v}`,
+  top_solid_layers: (v) => `sono previsti ${v} strati pieni nella parte superiore`, bottom_solid_layers: (v) => `sono previsti ${v} strati pieni nella parte inferiore`,
+  fill_density: (v) => `il riempimento è impostato al ${v}%`, fill_pattern: (v) => `il motivo di riempimento scelto è «${FILL_PATTERN_LABELS_IT[String(v)] ?? v}»`,
+  perimeter_speed: (v) => `la velocità delle pareti è impostata a ${v} mm/s`, infill_speed: (v) => `la velocità di riempimento è impostata a ${v} mm/s`,
+  travel_speed: (v) => `la velocità di spostamento è impostata a ${v} mm/s`, bridge_speed: (v) => `la velocità dei ponti è impostata a ${v} mm/s`,
+  default_acceleration: (v) => `l'accelerazione è impostata a ${v} mm/s²`, temperature: (v) => `la temperatura dell'ugello è impostata a ${v} °C`,
+  first_layer_temperature: (v) => `la temperatura dell'ugello del primo strato è impostata a ${v} °C`, bed_temperature: (v) => `la temperatura del piano è impostata a ${v} °C`,
+  first_layer_bed_temperature: (v) => `la temperatura del piano per il primo strato è impostata a ${v} °C`, min_fan_speed: (v) => `la ventilazione minima è impostata al ${v}%`,
+  max_fan_speed: (v) => `la ventilazione massima è impostata al ${v}%`, support_material: (v) => (v ? "i supporti sono attivati" : "non viene generato alcun supporto"),
+  support_material_buildplate_only: (v) => (v ? "i supporti partono solo dal piano" : "i supporti possono essere posizionati ovunque se richiesto dalla geometria"),
+  support_material_style: (v) => `lo stile di supporto scelto è «${SUPPORT_STYLE_LABELS_IT[String(v)] ?? v}»`,
+  brim_width: (v) => (Number(v) > 0 ? `viene aggiunto un bordo di ${v} mm` : "non viene aggiunto alcun bordo"),
+  skirts: (v) => `${v} contorn${Number(v) === 1 ? "o iniziale è previsto" : "i iniziali sono previsti"}`, raft_layers: (v) => (Number(v) > 0 ? `viene aggiunto un raft di ${v} strati` : "non viene aggiunto alcun raft"),
+};
+
+const PARAMETER_CLAUSES: Record<ExplanationLanguage, Record<string, ClauseFn>> = {
+  fr: PARAMETER_CLAUSES_FR, en: PARAMETER_CLAUSES_EN, de: PARAMETER_CLAUSES_DE, es: PARAMETER_CLAUSES_ES, it: PARAMETER_CLAUSES_IT,
+};
+
+const FALLBACK_CLAUSE: Record<ExplanationLanguage, (key: string, value: ConfigPrimitive) => string> = {
+  fr: (key, value) => `${key} est réglé à ${value}`, en: (key, value) => `${key} is set to ${value}`,
+  de: (key, value) => `${key} ist auf ${value} eingestellt`, es: (key, value) => `${key} está ajustado a ${value}`,
+  it: (key, value) => `${key} è impostato a ${value}`,
+};
+
+export function clauseFor(parameterKey: string, value: ConfigPrimitive, language: ExplanationLanguage): string {
+  const clause = PARAMETER_CLAUSES[language][parameterKey];
   if (clause) return clause(value);
-  return language === "en" ? `${parameterKey} is set to ${value}` : `${parameterKey} est réglé à ${value}`;
+  return FALLBACK_CLAUSE[language](parameterKey, value);
 }

@@ -37,6 +37,7 @@ export interface InvoiceLineItem {
 }
 
 export interface InvoiceData {
+  language: "fr" | "en" | "de" | "es" | "it";
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string;

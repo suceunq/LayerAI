@@ -14,6 +14,8 @@ files:
 extraResources:
   - from: ../../docs/licensing
     to: licensing
+  - from: resources/donation.json
+    to: donation.json
 
 win:
   target:
@@ -25,6 +27,8 @@ win:
 
 nsis:
   oneClick: false
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
   perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true

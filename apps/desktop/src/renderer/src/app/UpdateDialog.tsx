@@ -50,35 +50,37 @@ export function UpdateDialog(): React.JSX.Element | null {
   const open = useAppStore((s) => s.updateDialogOpen);
   const toggleOpen = useAppStore((s) => s.toggleUpdateDialog);
   const updateState = useAppStore((s) => s.updateState);
-  const postponeAvailableUpdate = useAppStore((s) => s.postponeAvailableUpdate);
+  const acknowledgeReleaseNotes = useAppStore((s) => s.acknowledgeReleaseNotes);
   const { t } = useTranslation();
-  const dialogRef = useModalAccessibility(open, toggleOpen);
+  // "installed" is the one state the user must explicitly dismiss (it carries release notes for a
+  // version already applied); every other state is purely informational and closes like any dialog.
+  const close = updateState?.status === "installed" ? acknowledgeReleaseNotes : toggleOpen;
+  const dialogRef = useModalAccessibility(open, close);
 
   if (!open) return null;
 
   const status = updateState?.status ?? "idle";
   const currentVersion = updateState?.currentVersion ?? "";
 
-  const handleDownload = (): void => void window.api.downloadUpdate();
-  const handleCancel = (): void => void window.api.cancelUpdateDownload();
-  const handleInstall = (): void => void window.api.installUpdate();
   const handleCheckAgain = (): void => void window.api.checkForUpdates();
 
+  const title = status === "installed" ? t("update.installed", { version: updateState?.availableVersion ?? "" }) : t("update.title");
+
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
+    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={close}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="update-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="flex w-[460px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
-          <h2 id="update-dialog-title" className="text-base font-semibold text-text-primary">{t("update.title")}</h2>
-          <button onClick={toggleOpen} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
+          <h2 id="update-dialog-title" className="text-base font-semibold text-text-primary">{title}</h2>
+          <button onClick={close} aria-label={t("accessibility.closeDialog")} className="text-text-muted hover:text-text-primary">
             ✕
           </button>
         </div>
 
         <div className="flex flex-col gap-3 p-5" aria-live="polite">
-          <p className="text-xs text-text-muted">{t("update.currentVersion", { version: currentVersion })}</p>
+          {status !== "installed" && <p className="text-xs text-text-muted">{t("update.currentVersion", { version: currentVersion })}</p>}
 
           {status === "checking" && <p className="text-sm text-text-secondary">{t("update.checking")}</p>}
 
@@ -88,21 +90,12 @@ export function UpdateDialog(): React.JSX.Element | null {
 
           {status === "error" && <p role="alert" className="text-sm text-confidence-low">{t("update.error", { message: updateState?.errorMessage ?? "" })}</p>}
 
-          {(status === "available" || status === "downloading" || status === "downloaded") && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-accent">
-                {t("update.available", { version: updateState?.availableVersion ?? "" })}
-              </p>
-              {updateState?.releaseNotes && (
-                <div className="rounded-lg border border-border-subtle bg-surface-1 p-3">
-                  <p className="mb-1 text-xs uppercase tracking-wide text-text-muted">{t("update.changelogTitle")}</p>
-                  <div
-                    className="release-notes max-h-40 overflow-y-auto text-xs text-text-secondary"
-                    dangerouslySetInnerHTML={{ __html: sanitizeReleaseNotesHtml(updateState.releaseNotes) }}
-                  />
-                </div>
-              )}
-            </div>
+          {/* Downloading and installing happen automatically without any confirmation - these states are shown for
+              transparency only, there is nothing left for the user to trigger here. */}
+          {(status === "available" || status === "downloading" || status === "downloaded" || status === "preparing" || status === "installing") && (
+            <p className="text-sm font-medium text-accent">
+              {t("update.available", { version: updateState?.availableVersion ?? "" })}
+            </p>
           )}
 
           {status === "downloading" && (
@@ -131,29 +124,26 @@ export function UpdateDialog(): React.JSX.Element | null {
           )}
 
           {status === "downloaded" && <p className="text-sm text-confidence-high">{t("update.downloaded")}</p>}
+          {status === "preparing" && <p className="text-sm text-text-secondary">{t("update.preparing")}</p>}
+          {status === "installing" && <p className="text-sm text-text-secondary">{t("update.installing")}</p>}
+
+          {status === "installed" && updateState?.releaseNotes && (
+            <div className="rounded-lg border border-border-subtle bg-surface-1 p-3">
+              <div
+                className="release-notes max-h-60 overflow-y-auto text-xs text-text-secondary"
+                dangerouslySetInnerHTML={{ __html: sanitizeReleaseNotesHtml(updateState.releaseNotes) }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-2 border-t border-border-subtle px-5 py-3">
-          {status === "available" && (
-            <>
-              <Button variant="secondary" onClick={postponeAvailableUpdate}>
-                {t("update.postpone")}
-              </Button>
-              <Button onClick={handleDownload}>{t("update.download")}</Button>
-            </>
-          )}
-          {status === "downloading" && (
-            <Button variant="secondary" onClick={handleCancel}>
-              {t("update.cancelDownload")}
-            </Button>
-          )}
-          {status === "downloaded" && <Button onClick={handleInstall}>{t("update.installRestart")}</Button>}
           {(status === "not-available" || status === "error") && (
             <Button variant="secondary" onClick={handleCheckAgain}>
               {t("update.checkAgain")}
             </Button>
           )}
-          <Button variant="ghost" onClick={toggleOpen}>
+          <Button variant={status === "installed" ? "primary" : "ghost"} onClick={close}>
             {t("update.close")}
           </Button>
         </div>

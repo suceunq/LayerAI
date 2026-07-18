@@ -3,6 +3,7 @@ import { readFile, writeFile, mkdir, rename, rm } from "node:fs/promises";
 import { join } from "node:path";
 import type { AiProviderId } from "../../shared/ai-providers.js";
 import type { AiProviderPublic, SaveAiProviderRequest } from "../../shared/ipc-types.js";
+import { mainT } from "../localization.js";
 
 interface StoredAiProvider {
   id: AiProviderId;
@@ -42,13 +43,13 @@ async function writeStore(store: AiStoreFile): Promise<void> {
 
 /** OS-level encryption (DPAPI on Windows) via Electron safeStorage. A key is never persisted if secure encryption is unavailable. */
 function encryptKey(plain: string): string {
-  if (!safeStorage.isEncryptionAvailable()) throw new Error("Le stockage sécurisé du système n’est pas disponible : la clé API n’a pas été enregistrée.");
+  if (!safeStorage.isEncryptionAvailable()) throw new Error(mainT("native.secureStorage.saveUnavailable"));
   return safeStorage.encryptString(plain).toString("base64");
 }
 
 function decryptKey(encryptedBase64: string): string {
   const buf = Buffer.from(encryptedBase64, "base64");
-  if (!safeStorage.isEncryptionAvailable()) throw new Error("Le stockage sécurisé du système n’est pas disponible.");
+  if (!safeStorage.isEncryptionAvailable()) throw new Error(mainT("native.secureStorage.unavailable"));
   return safeStorage.decryptString(buf);
 }
 

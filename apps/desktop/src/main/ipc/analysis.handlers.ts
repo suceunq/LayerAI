@@ -18,6 +18,7 @@ import type {
 } from "../../shared/ipc-types.js";
 import { getLearningDb } from "./learning.handlers.js";
 import { runAnalysisJob } from "../analysis-worker-client.js";
+import { mainT } from "../localization.js";
 
 const INTENT_TAG_THRESHOLD = 0.15;
 
@@ -54,8 +55,8 @@ export function registerAnalysisHandlers(): void {
   ipcMain.handle(IpcChannels.configGenerate, async (_event, request: ConfigGenerateRequest): Promise<ConfigGenerateResponse> => {
     const printer = getPrinterModel(request.printerId);
     const filament = getFilamentBase(request.filamentId);
-    if (!printer) throw new Error(`Imprimante inconnue : ${request.printerId}`);
-    if (!filament) throw new Error(`Filament inconnu : ${request.filamentId}`);
+    if (!printer) throw new Error(mainT("native.printer.unknown", { id: request.printerId }));
+    if (!filament) throw new Error(mainT("native.filament.unknown", { id: request.filamentId }));
 
     const intent = await resolveIntentWithOptionalCloud(request.intentText);
     let config = generateConfig({ analysis: request.analysis, intent, printer, filament });

@@ -7,16 +7,18 @@
   "types": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/*.test.ts",
     "lint": "echo no-lint"
   },
   "dependencies": {
     "@layerai/shared-types": "workspace:*",
-    "three": "^0.185.1",
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2",
     "@types/three": "^0.185.0",
-    "@types/node": "^22.10.2"
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }

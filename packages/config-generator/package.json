@@ -11,12 +11,12 @@
     "lint": "echo no-lint"
   },
   "dependencies": {
-    "@layerai/shared-types": "workspace:*",
-    "@layerai/prusa-profile-db": "workspace:*"
+    "@layerai/prusa-profile-db": "workspace:*",
+    "@layerai/shared-types": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
     "tsx": "^4.20.6",
-    "typescript": "^5.7.2"
+    "typescript": "^5.9.3"
   }
 }

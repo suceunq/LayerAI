@@ -67,6 +67,7 @@ export function buildAppMenu(language: SupportedLanguage = "fr"): void {
         { label: m.helpCheckUpdates, click: () => sendToRenderer("help:check-updates") },
         { label: m.helpDocs, click: () => sendToRenderer("help:docs") },
         { label: m.helpTutorials, click: () => sendToRenderer("help:tutorials") },
+        { label: m.helpSupport, click: () => sendToRenderer("help:support") },
         { type: "separator" },
         { label: m.helpAbout, click: () => sendToRenderer("help:about") },
       ],

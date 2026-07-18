@@ -5,8 +5,18 @@ import { Button } from "../components/ui/Button.js";
 import { AI_PROVIDERS, providerMeta, type AiProviderId } from "../../../shared/ai-providers.js";
 import type { AiSettingsPublic, CompanyLegalStatus, CompanySettings } from "../../../shared/ipc-types.js";
 import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
+import { SUPPORTED_LANGUAGES, type LanguagePreference } from "../../../shared/languages.js";
 
 type TestState = "idle" | "testing" | "success" | { error: string };
+
+const LANGUAGE_LABEL_KEYS: Record<LanguagePreference, string> = {
+  system: "settings.language.system",
+  fr: "settings.language.french",
+  en: "settings.language.english",
+  de: "settings.language.german",
+  es: "settings.language.spanish",
+  it: "settings.language.italian",
+};
 
 const DEFAULT_COMPANY: CompanySettings = {
   legalStatus: "auto-entrepreneur",
@@ -45,6 +55,7 @@ export function SettingsDialog(): React.JSX.Element | null {
   const open = useAppStore((s) => s.settingsDialogOpen);
   const toggleOpen = useAppStore((s) => s.toggleSettingsDialog);
   const language = useAppStore((s) => s.language);
+  const languagePreference = useAppStore((s) => s.languagePreference);
   const setLanguage = useAppStore((s) => s.setLanguage);
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
@@ -55,19 +66,24 @@ export function SettingsDialog(): React.JSX.Element | null {
   const setCostSettings = useAppStore((s) => s.setCostSettings);
   const companySettings = useAppStore((s) => s.companySettings);
   const setCompanySettings = useAppStore((s) => s.setCompanySettings);
+  const tab = useAppStore((s) => s.settingsDialogTab);
+  const setTab = useAppStore((s) => s.setSettingsDialogTab);
+  const showWelcomeOnStartup = useAppStore((s) => s.showWelcomeOnStartup);
+  const setDonationSettings = useAppStore((s) => s.setDonationSettings);
   const { t } = useTranslation();
   const dialogRef = useModalAccessibility(open, toggleOpen);
 
-  const [tab, setTab] = useState<"apiKeys" | "language" | "updates" | "costs" | "company">("apiKeys");
   const [costsForm, setCostsForm] = useState(costSettings);
   const [companyForm, setCompanyForm] = useState<CompanySettings>(companySettings ?? DEFAULT_COMPANY);
+  const [showWelcomeForm, setShowWelcomeForm] = useState(showWelcomeOnStartup);
 
   useEffect(() => {
     if (open) {
       setCostsForm(costSettings);
       setCompanyForm(companySettings ?? DEFAULT_COMPANY);
+      setShowWelcomeForm(showWelcomeOnStartup);
     }
-  }, [open, costSettings, companySettings]);
+  }, [open, costSettings, companySettings, showWelcomeOnStartup]);
   const [providers, setProviders] = useState<EditableProvider[]>([]);
   const [defaultProviderId, setDefaultProviderId] = useState<AiProviderId | null>(null);
   const [cloudIntentEnabled, setCloudIntentEnabledState] = useState(false);
@@ -128,6 +144,7 @@ export function SettingsDialog(): React.JSX.Element | null {
       await window.api.setCloudIntentEnabled(cloudIntentEnabled);
       await setCostSettings(costsForm);
       await setCompanySettings(companyForm);
+      await setDonationSettings(showWelcomeForm);
       toggleOpen();
     } finally {
       setSaving(false);
@@ -138,7 +155,7 @@ export function SettingsDialog(): React.JSX.Element | null {
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[85vh] w-[560px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
+        className="flex max-h-[85vh] w-[620px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
           <h2 id="settings-dialog-title" className="text-base font-semibold text-text-primary">{t("settings.title")}</h2>
@@ -147,7 +164,7 @@ export function SettingsDialog(): React.JSX.Element | null {
           </button>
         </div>
 
-        <div className="flex border-b border-border-subtle px-5" role="tablist" aria-label={t("settings.title")}>
+        <div className="flex overflow-x-auto border-b border-border-subtle px-5" role="tablist" aria-label={t("settings.title")}>
           <button
             role="tab" aria-selected={tab === "apiKeys"} aria-controls="settings-tabpanel"
             onClick={() => setTab("apiKeys")}
@@ -170,6 +187,13 @@ export function SettingsDialog(): React.JSX.Element | null {
             {t("settings.tabUpdates")}
           </button>
           <button
+            role="tab" aria-selected={tab === "support"} aria-controls="settings-tabpanel"
+            onClick={() => setTab("support")}
+            className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${tab === "support" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
+          >
+            {t("settings.tabSupport")}
+          </button>
+          <button
             role="tab" aria-selected={tab === "costs"} aria-controls="settings-tabpanel"
             onClick={() => setTab("costs")}
             className={`border-b-2 px-3 py-2 text-sm ${tab === "costs" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
@@ -186,7 +210,28 @@ export function SettingsDialog(): React.JSX.Element | null {
         </div>
 
         <div id="settings-tabpanel" role="tabpanel" className="flex-1 overflow-y-auto p-5">
-          {tab === "company" ? (
+          {tab === "support" ? (
+            <div className="flex flex-col gap-5">
+              <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+                <p className="font-medium text-text-primary">{t("settings.support.title")}</p>
+                <p className="mt-1 text-xs leading-5 text-text-muted">{t("settings.support.intro")}</p>
+              </div>
+
+              <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-surface-1 p-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showWelcomeForm}
+                  onChange={(event) => setShowWelcomeForm(event.target.checked)}
+                  className="mt-0.5 accent-accent"
+                />
+                <span>
+                  <span className="block text-text-secondary">{t("settings.support.showWelcome")}</span>
+                  <span className="mt-0.5 block text-xs text-text-muted">{t("settings.support.showWelcomeHint")}</span>
+                </span>
+              </label>
+
+            </div>
+          ) : tab === "company" ? (
             <div className="flex flex-col gap-4">
               <p className="text-xs text-text-muted">{t("settings.company.intro")}</p>
 
@@ -421,16 +466,16 @@ export function SettingsDialog(): React.JSX.Element | null {
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-2">
                 <span className="text-xs uppercase tracking-wide text-text-muted">{t("settings.language.title")}</span>
-                {(["fr", "en"] as const).map((lang) => (
+                {(["system", ...SUPPORTED_LANGUAGES] as const).map((preference) => (
                   <button
-                    key={lang}
-                    onClick={() => void setLanguage(lang)}
+                    key={preference}
+                    onClick={() => void setLanguage(preference)}
                     className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
-                      language === lang ? "border-accent bg-accent/10 text-accent" : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
+                      languagePreference === preference ? "border-accent bg-accent/10 text-accent" : "border-border-subtle text-text-secondary hover:border-accent hover:text-text-primary"
                     }`}
                   >
-                    {t(lang === "fr" ? "settings.language.french" : "settings.language.english")}
-                    {language === lang && <span>✓</span>}
+                    <span>{t(LANGUAGE_LABEL_KEYS[preference])}{preference === "system" ? ` · ${language.toUpperCase()}` : ""}</span>
+                    {languagePreference === preference && <span aria-hidden="true">✓</span>}
                   </button>
                 ))}
               </div>

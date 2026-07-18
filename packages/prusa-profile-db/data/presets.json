@@ -1,0 +1,1175 @@
+[
+  {
+    "printerId": "COREONEL",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "COREONELMMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "COREONE",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "COREONEMMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "COREONEOAK",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MK4S",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MK4SMMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK4IS",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MK4ISMMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3.9S",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MK3.9SMMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3.9",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MK3.9MMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3.5",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MK3.5MMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MINIIS",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3S",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3SMMU3",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3SMMU2S",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK3MMU2",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "XLIS",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "XL2IS",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "XL5IS",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MK2.5S",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK2.5",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK2.5SMMU2S",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK2.5MMU2",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK2S",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK2SMM",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "MK4",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "MINI",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.25,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "XL",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "XL2",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "XL5",
+    "minLayerHeightMm": 0.07,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_A1_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_A1_MINI_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_A2L_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_H2C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_H2D_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_H2D_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_H2S_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_P1P_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_P1S_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_P2S_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_X1_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_X1_CARBON_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_X1E_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "BAMBU_LAB_X2D_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.28,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-10_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-10_SE_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-10_SMART_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-10_SMART_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-10S_PRO_V2_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-20_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-30_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-6_SE_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-M4_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_CR-M4_SE_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-2_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_MAX_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_MAX_NEO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_NEO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_S1_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_S1_PLUS_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_S1_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_V2_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_V3_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_V3_KE_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_V3_PLUS_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_V3_SE_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-3_V4_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-5_MAX_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.36,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-5_PLUS_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_ENDER-5_S1_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_GS-01_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_GS-02_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_GS-03_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_GS-04_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_HI_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1_MAX_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1_MAX_2025_CFS-C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1_MAX_CFS-C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1_SE_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1_SE_CFS-C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1C_2025_CFS-C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1C_CFS-C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K1_CFS-C_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K2_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K2_PLUS_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K2_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_K2_SE_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_SERMOON_D3_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_SERMOON_D3_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.3,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_SERMOON_M300_0.4_NOZZLE",
+    "minLayerHeightMm": 0.1,
+    "maxLayerHeightMm": 0.35,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_SERMOON_V1_PRO_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.2,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2
+    ]
+  },
+  {
+    "printerId": "CREALITY_SONIC_ENDER-3_S1_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_SONIC_ENDER-5_S1_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "CREALITY_Z2_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  {
+    "printerId": "SPARKX_I7_0.4_NOZZLE",
+    "minLayerHeightMm": 0.08,
+    "maxLayerHeightMm": 0.32,
+    "standardLayerHeightsMm": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  }
+]

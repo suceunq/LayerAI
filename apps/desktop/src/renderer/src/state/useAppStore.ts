@@ -21,6 +21,7 @@ import type {
   RecentProject,
   SupportedTheme,
   SupportedInterfaceMode,
+  LanguagePreference,
   UpdateState,
 } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
@@ -29,10 +30,12 @@ import type { Language } from "../i18n/translations.js";
 import { translate } from "../i18n/useTranslation.js";
 import { quaternionRestingFace, computeGridArrangement } from "@layerai/mesh-analysis";
 import { clampConfig } from "@layerai/config-generator";
+import { generateExplanations } from "@layerai/explanation-engine";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
 export type HelpDialogTab = "aide" | "apropos";
+export type SettingsDialogTab = "apiKeys" | "language" | "updates" | "costs" | "company" | "support";
 
 interface AppState {
   step: AppStep;
@@ -42,15 +45,20 @@ interface AppState {
   helpDialogOpen: boolean;
   helpDialogTab: HelpDialogTab;
   language: Language;
+  languagePreference: LanguagePreference;
   theme: SupportedTheme;
   interfaceMode: SupportedInterfaceMode;
   settingsDialogOpen: boolean;
+  settingsDialogTab: SettingsDialogTab;
   updateDialogOpen: boolean;
   updateState: UpdateState | null;
   checkUpdatesOnStartup: boolean;
-  postponedUpdateVersion: string | undefined;
   costSettings: CostSettings;
   companySettings: CompanySettings | null;
+  welcomeDialogOpen: boolean;
+  showWelcomeOnStartup: boolean;
+  donationConfigured: boolean;
+  donationError: string | null;
 
   photoDiagnosisDialogOpen: boolean;
   photoDiagnosisLoading: boolean;
@@ -154,16 +162,23 @@ interface AppState {
   handleMenuAction: (action: string) => void;
 
   loadLanguage: () => Promise<void>;
-  setLanguage: (language: Language) => Promise<void>;
+  loadWelcome: () => Promise<void>;
+  setLanguage: (preference: LanguagePreference) => Promise<void>;
   setTheme: (theme: SupportedTheme) => Promise<void>;
   setInterfaceMode: (mode: SupportedInterfaceMode) => Promise<void>;
   toggleSettingsDialog: () => void;
+  setSettingsDialogTab: (tab: SettingsDialogTab) => void;
+  openWelcomeDialog: () => void;
+  closeWelcomeLater: () => void;
+  dismissWelcomePermanently: () => Promise<void>;
+  openDonationPage: () => Promise<void>;
+  setDonationSettings: (showWelcomeOnStartup: boolean) => Promise<void>;
 
   toggleUpdateDialog: () => void;
   setUpdateState: (state: UpdateState) => void;
   openUpdateDialogAndCheck: () => void;
   setCheckUpdatesOnStartup: (enabled: boolean) => Promise<void>;
-  postponeAvailableUpdate: () => void;
+  acknowledgeReleaseNotes: () => void;
 
   setCostSettings: (costs: CostSettings) => Promise<void>;
   setCompanySettings: (company: CompanySettings) => Promise<void>;
@@ -235,15 +250,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   helpDialogOpen: false,
   helpDialogTab: "aide",
   language: "fr",
+  languagePreference: "system",
   theme: "dark",
   interfaceMode: "simple",
   settingsDialogOpen: false,
+  settingsDialogTab: "apiKeys",
   updateDialogOpen: false,
   updateState: null,
   checkUpdatesOnStartup: true,
-  postponedUpdateVersion: undefined,
   costSettings: { currency: "€", filamentPricePerKg: null, printerPowerW: null, electricityPricePerKwh: null },
   companySettings: null,
+  welcomeDialogOpen: false,
+  showWelcomeOnStartup: true,
+  donationConfigured: false,
+  donationError: null,
 
   photoDiagnosisDialogOpen: false,
   photoDiagnosisLoading: false,
@@ -496,7 +516,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!analysis || !intentResult || !config || !explanations || !comparison) return;
     try {
       await window.api.exportPdfReport({
-        fileName: importedFile?.fileName ?? "modele.stl",
+        fileName: importedFile?.fileName ?? translate(get().language, "native.filename.defaultModel"),
         printerId: selectedPrinterId,
         filamentId: selectedFilamentId,
         analysis,
@@ -691,12 +711,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const settings = await window.api.getSettings();
       if (settings.language) set({ language: settings.language });
+      set({ languagePreference: settings.languagePreference ?? settings.language ?? "system" });
       if (settings.theme) set({ theme: settings.theme });
       if (settings.interfaceMode) set({ interfaceMode: settings.interfaceMode });
-      set({
-        checkUpdatesOnStartup: settings.checkUpdatesOnStartup ?? true,
-        postponedUpdateVersion: settings.postponedUpdateVersion,
-      });
+      set({ checkUpdatesOnStartup: settings.checkUpdatesOnStartup ?? true });
       if (settings.costs) set({ costSettings: settings.costs });
       if (settings.company) set({ companySettings: settings.company });
     } catch (err) {
@@ -786,10 +804,20 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  setLanguage: async (language) => {
-    set({ language });
+  setLanguage: async (preference) => {
     try {
-      await window.api.setLanguage(language);
+      const language = await window.api.setLanguage(preference);
+      set((state) => ({
+        language,
+        languagePreference: preference,
+        error: null,
+        slicerNotice: null,
+        toolNotice: null,
+        explanations:
+          state.config && state.intentResult && state.analysis
+            ? generateExplanations(state.config, state.intentResult, state.analysis, language)
+            : state.explanations,
+      }));
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
     }
@@ -801,6 +829,24 @@ export const useAppStore = create<AppState>((set, get) => ({
       await window.api.setTheme(theme);
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  loadWelcome: async () => {
+    try {
+      const [settings, config] = await Promise.all([window.api.getSettings(), window.api.getDonationConfig()]);
+      const showWelcomeOnStartup = settings.showWelcomeOnStartup ?? true;
+      set({
+        welcomeDialogOpen: showWelcomeOnStartup,
+        showWelcomeOnStartup,
+        donationConfigured: config.configured,
+        donationError: null,
+      });
+    } catch (err) {
+      set({
+        welcomeDialogOpen: true,
+        donationError: err instanceof Error ? err.message : String(err),
+      });
     }
   },
 
@@ -857,6 +903,46 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   toggleSettingsDialog: () => set((s) => ({ settingsDialogOpen: !s.settingsDialogOpen })),
+  setSettingsDialogTab: (settingsDialogTab) => set({ settingsDialogTab }),
+  openWelcomeDialog: () => set({ welcomeDialogOpen: true, donationError: null }),
+  closeWelcomeLater: () => set({ welcomeDialogOpen: false, donationError: null }),
+  dismissWelcomePermanently: async () => {
+    try {
+      const config = await window.api.setDonationSettings({
+        showWelcomeOnStartup: false,
+      });
+      set({
+        welcomeDialogOpen: false,
+        showWelcomeOnStartup: false,
+        donationConfigured: config.configured,
+        donationError: null,
+      });
+    } catch (err) {
+      set({ donationError: err instanceof Error ? err.message : String(err) });
+    }
+  },
+  openDonationPage: async () => {
+    try {
+      await window.api.openDonationPage();
+      set({ donationError: null });
+    } catch (err) {
+      set({ donationError: err instanceof Error ? err.message : String(err) });
+    }
+  },
+  setDonationSettings: async (showWelcomeOnStartup) => {
+    try {
+      const config = await window.api.setDonationSettings({ showWelcomeOnStartup });
+      set({
+        donationConfigured: config.configured,
+        showWelcomeOnStartup,
+        donationError: null,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ donationError: message });
+      throw err;
+    }
+  },
 
   showToolNotice: (message) => {
     set({ toolNotice: message });
@@ -935,6 +1021,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       case "help:tutorials":
         s.replayOnboarding();
         break;
+      case "help:support":
+        s.openWelcomeDialog();
+        break;
       case "help:about":
         s.openHelpDialog("apropos");
         break;
@@ -947,10 +1036,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleUpdateDialog: () => set((s) => ({ updateDialogOpen: !s.updateDialogOpen })),
   setUpdateState: (state) => {
     set({ updateState: state });
-    const s = get();
-    if (state.status === "available" && state.availableVersion && state.availableVersion !== s.postponedUpdateVersion) {
-      set({ updateDialogOpen: true });
-    }
+    // Downloading and installing happen silently in the background - the dialog only pops up
+    // on its own once there are release notes to show for a version that was just installed.
+    if (state.status === "installed") set({ updateDialogOpen: true });
   },
   openUpdateDialogAndCheck: () => {
     set({ updateDialogOpen: true });
@@ -964,10 +1052,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ error: err instanceof Error ? err.message : String(err) });
     }
   },
-  postponeAvailableUpdate: () => {
-    const version = get().updateState?.availableVersion;
-    set({ updateDialogOpen: false, postponedUpdateVersion: version });
-    if (version) void window.api.postponeUpdate(version);
+  acknowledgeReleaseNotes: () => {
+    set({ updateDialogOpen: false });
+    void window.api.acknowledgeReleaseNotes();
   },
 }));
 

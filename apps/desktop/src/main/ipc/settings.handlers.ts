@@ -5,12 +5,15 @@ import type {
   CompanySettings,
   CostSettings,
   LastSelectionRequest,
+  LanguagePreference,
   SupportedLanguage,
   SupportedTheme,
   SupportedInterfaceMode,
 } from "../../shared/ipc-types.js";
+import { isLanguagePreference, resolveSupportedLanguage } from "../../shared/languages.js";
 import { readSettings, updateSettings } from "../settings-store.js";
 import { buildAppMenu } from "../menu.js";
+import { mainT, setMainLanguage } from "../localization.js";
 
 export function registerSettingsHandlers(): void {
   ipcMain.handle(IpcChannels.settingsGet, async (): Promise<AppSettings> => readSettings());
@@ -19,9 +22,13 @@ export function registerSettingsHandlers(): void {
     await updateSettings({ onboardingCompleted: completed });
   });
 
-  ipcMain.handle(IpcChannels.settingsSetLanguage, async (_event, language: SupportedLanguage): Promise<void> => {
-    await updateSettings({ language });
+  ipcMain.handle(IpcChannels.settingsSetLanguage, async (_event, preference: LanguagePreference): Promise<SupportedLanguage> => {
+    if (!isLanguagePreference(preference)) throw new Error(mainT("native.language.unsupported"));
+    const language = preference === "system" ? resolveSupportedLanguage(app.getLocale()) : preference;
+    await updateSettings({ language: preference === "system" ? undefined : language, languagePreference: preference });
+    setMainLanguage(language);
     buildAppMenu(language);
+    return language;
   });
 
   ipcMain.handle(IpcChannels.settingsSetTheme, async (_event, theme: SupportedTheme): Promise<void> => {

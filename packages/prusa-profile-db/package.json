@@ -13,7 +13,7 @@
     "@layerai/shared-types": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "@types/node": "^22.10.2"
+    "@types/node": "^22.10.2",
+    "typescript": "^5.9.3"
   }
 }

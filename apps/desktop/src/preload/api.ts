@@ -42,6 +42,8 @@ import type {
   DiagnosePhotoRequest,
   DiagnosePhotoResponse,
   UpdateState,
+  DonationSettingsRequest,
+  DonationConfigResponse,
 } from "../shared/ipc-types.js";
 import type { AiProviderId } from "../shared/ai-providers.js";
 
@@ -80,13 +82,16 @@ export interface LayerAiApi {
   clearProjectRecovery: () => Promise<void>;
   getSettings: () => Promise<AppSettings>;
   setOnboardingCompleted: (completed: boolean) => Promise<void>;
-  setLanguage: (language: SupportedLanguage) => Promise<void>;
+  setLanguage: (language: import("../shared/ipc-types.js").LanguagePreference) => Promise<SupportedLanguage>;
   setTheme: (theme: SupportedTheme) => Promise<void>;
   setInterfaceMode: (mode: import("../shared/ipc-types.js").SupportedInterfaceMode) => Promise<void>;
   setCheckUpdatesOnStartup: (enabled: boolean) => Promise<void>;
   setCostSettings: (costs: CostSettings) => Promise<void>;
   setLastSelection: (request: LastSelectionRequest) => Promise<void>;
   setCompanySettings: (company: CompanySettings) => Promise<void>;
+  setDonationSettings: (settings: DonationSettingsRequest) => Promise<DonationConfigResponse>;
+  getDonationConfig: () => Promise<DonationConfigResponse>;
+  openDonationPage: () => Promise<boolean>;
   generateInvoice: (request: GenerateInvoiceRequest) => Promise<GenerateInvoiceResponse>;
   onMenuAction: (callback: (action: string) => void) => () => void;
   getAppVersion: () => Promise<string>;
@@ -98,10 +103,7 @@ export interface LayerAiApi {
   testAiProvider: (request: TestAiProviderRequest) => Promise<TestAiProviderResponse>;
   diagnosePrintPhoto: (request: DiagnosePhotoRequest) => Promise<DiagnosePhotoResponse>;
   checkForUpdates: () => Promise<void>;
-  downloadUpdate: () => Promise<void>;
-  cancelUpdateDownload: () => Promise<void>;
-  installUpdate: () => Promise<void>;
-  postponeUpdate: (version: string) => Promise<void>;
+  acknowledgeReleaseNotes: () => Promise<void>;
   getUpdateState: () => Promise<UpdateState>;
   onUpdateStateChanged: (callback: (state: UpdateState) => void) => () => void;
 }

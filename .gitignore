@@ -5,13 +5,13 @@ release/
 update-a-publier/
 .turbo/
 *.log
+*.obj
+apps/website/*-dist.zip
 .DS_Store
 Thumbs.db
 .env
 .env.local
 .claude/
 *.tsbuildinfo
-packages/prusa-profile-db/data/*.json
-!packages/prusa-profile-db/data/.gitkeep
 apps/desktop/src/renderer/dist/
 logiciel fini/

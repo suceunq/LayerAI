@@ -30,5 +30,5 @@ export interface IntentResult {
   weights: IntentWeight[];
   /** True if no rule matched anything in the input text. */
   unrecognized: boolean;
-  languageDetected: "fr" | "en" | "unknown";
+  languageDetected: "fr" | "en" | "de" | "es" | "it" | "unknown";
 }

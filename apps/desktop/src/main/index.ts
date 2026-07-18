@@ -13,9 +13,11 @@ import { registerAiHandlers } from "./ipc/ai.handlers.js";
 import { registerUpdateHandlers } from "./ipc/update.handlers.js";
 import { registerInvoiceHandlers } from "./ipc/invoice.handlers.js";
 import { registerProjectRecoveryHandlers } from "./ipc/project-recovery.handlers.js";
+import { registerDonationHandlers } from "./ipc/donation.handlers.js";
 import { buildAppMenu } from "./menu.js";
-import { setupAutoUpdater, checkForUpdates } from "./autoUpdater.js";
+import { setupAutoUpdater, startAutomaticUpdateChecks, confirmApplicationHealthy } from "./autoUpdater.js";
 import { readSettings } from "./settings-store.js";
+import { setMainLanguage } from "./localization.js";
 
 const isDev = !app.isPackaged;
 
@@ -60,6 +62,9 @@ function createMainWindow(): void {
     if (shouldMaximize) mainWindow.maximize();
     mainWindow.show();
     if (isDev) mainWindow.webContents.openDevTools({ mode: "detach" });
+    // The renderer painted its first frame: the just-installed version isn't a crash loop or a
+    // white screen, so the rollback watchdog (see update-rollback.ts) no longer needs to revert it.
+    if (!isDev) void confirmApplicationHealthy();
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -84,6 +89,7 @@ app.whenReady().then(async () => {
   if (process.platform === "win32") app.setAppUserModelId("com.layerai.app");
 
   const settings = await readSettings();
+  setMainLanguage(settings.language ?? "fr");
   nativeTheme.themeSource = settings.theme ?? "dark";
   buildAppMenu(settings.language ?? "fr");
   registerImportHandlers();
@@ -98,12 +104,13 @@ app.whenReady().then(async () => {
   registerUpdateHandlers();
   registerInvoiceHandlers();
   registerProjectRecoveryHandlers();
+  registerDonationHandlers();
 
   createMainWindow();
 
   if (!isDev) {
-    setupAutoUpdater();
-    if (settings.checkUpdatesOnStartup !== false) void checkForUpdates();
+    await setupAutoUpdater();
+    if (settings.checkUpdatesOnStartup !== false) startAutomaticUpdateChecks();
   }
 
   app.on("activate", () => {

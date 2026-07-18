@@ -3,6 +3,7 @@ import { copyFile, mkdir, readFile, rename, rm, writeFile } from "node:fs/promis
 import { join } from "node:path";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { ProjectRecoverySnapshot, SaveProjectRecoveryRequest } from "../../shared/ipc-types.js";
+import { mainT } from "../localization.js";
 
 function snapshotPath(): string {
   return join(app.getPath("userData"), "project-recovery.json");
@@ -42,7 +43,7 @@ async function writeSnapshot(snapshot: ProjectRecoverySnapshot): Promise<void> {
   try { await copyFile(destination, backupPath()); } catch { /* First save has no previous file. */ }
   await writeFile(temporary, JSON.stringify(snapshot, null, 2), "utf8");
   const verified = await readCandidate(temporary);
-  if (!verified) throw new Error("La sauvegarde de récupération générée est invalide.");
+  if (!verified) throw new Error(mainT("native.recovery.invalidSave"));
   await rm(destination, { force: true });
   await rename(temporary, destination);
 }
@@ -51,7 +52,7 @@ export function registerProjectRecoveryHandlers(): void {
   ipcMain.handle(IpcChannels.projectRecoveryGet, () => readSnapshot());
   ipcMain.handle(IpcChannels.projectRecoverySave, async (_event, request: SaveProjectRecoveryRequest): Promise<ProjectRecoverySnapshot> => {
     const snapshot: ProjectRecoverySnapshot = { ...request, schemaVersion: 1, updatedAt: new Date().toISOString() };
-    if (!isSnapshot(snapshot)) throw new Error("Données de récupération invalides.");
+    if (!isSnapshot(snapshot)) throw new Error(mainT("native.recovery.invalidData"));
     await writeSnapshot(snapshot);
     return snapshot;
   });

@@ -4,6 +4,7 @@ import { extname, basename } from "node:path";
 import { IpcChannels } from "../../shared/ipc-channels.js";
 import type { ImportedFilePayload } from "../../preload/api.js";
 import { MAX_MODEL_FILE_BYTES } from "../security/input-policy.js";
+import { mainT } from "../localization.js";
 
 const SUPPORTED_EXTENSIONS = new Set(["stl", "obj", "3mf"]);
 
@@ -14,10 +15,10 @@ function detectFormat(filePath: string): ImportedFilePayload["format"] | null {
 
 async function readModelFile(filePath: string): Promise<ImportedFilePayload> {
   const format = detectFormat(filePath);
-  if (!format) throw new Error(`Format de fichier non supporté : ${filePath}`);
+  if (!format) throw new Error(mainT("native.import.unsupported", { path: filePath }));
   const info = await stat(filePath);
-  if (!info.isFile()) throw new Error("Le chemin sélectionné n’est pas un fichier.");
-  if (info.size <= 0 || info.size > MAX_MODEL_FILE_BYTES) throw new Error("Le modèle doit peser moins de 250 Mo.");
+  if (!info.isFile()) throw new Error(mainT("native.import.notFile"));
+  if (info.size <= 0 || info.size > MAX_MODEL_FILE_BYTES) throw new Error(mainT("native.import.tooLarge"));
   const data = await readFile(filePath);
   return { fileName: basename(filePath), filePath, format, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
 }
@@ -26,9 +27,9 @@ export function registerImportHandlers(): void {
   ipcMain.handle(IpcChannels.importOpenDialog, async (event) => {
     const window = BrowserWindow.fromWebContents(event.sender);
     const dialogOptions: Electron.OpenDialogOptions = {
-      title: "Importer un modèle 3D",
+      title: mainT("native.import.title"),
       properties: ["openFile"],
-      filters: [{ name: "Modèles 3D", extensions: ["stl", "obj", "3mf"] }],
+      filters: [{ name: mainT("native.import.filter"), extensions: ["stl", "obj", "3mf"] }],
     };
     const result = window
       ? await dialog.showOpenDialog(window, dialogOptions)
