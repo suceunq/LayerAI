@@ -1,16 +1,13 @@
-# LayerAI 1.7.24 — Bienvenue et soutien du projet
+# LayerAI 1.7.25 — Configuration PayPal protégée
 
-## Nouveautés
+## Améliorations
 
-- Nouvelle fenêtre de bienvenue au lancement, adaptée à l’identité visuelle de LayerAI.
-- Présentation rapide du logiciel, remerciement et accès direct à la page officielle de don PayPal.
-- Actions « Plus tard » et « Ne plus afficher », avec réouverture depuis le menu Aide.
-- Nouvel onglet Paramètres → Soutien pour gérer le lien PayPal et l’affichage au démarrage.
+- Le lien PayPal n’est plus affiché ni modifiable dans les paramètres de l’application.
+- L’onglet Soutien conserve uniquement le réglage d’affichage de la fenêtre de bienvenue au démarrage.
+- Le renderer ne reçoit plus l’adresse PayPal : il connaît seulement l’état configuré ou indisponible.
+- L’ouverture de la page de don reste entièrement gérée et validée par le processus principal sécurisé.
 
-## Configuration et sécurité
+## Configuration
 
-- Ouverture des dons dans le navigateur par défaut, sans page intermédiaire dans l’application.
-- Validation stricte des liens : HTTPS et domaines officiels PayPal uniquement.
-- Lien modifiable sans recompilation depuis les paramètres, le fichier `donation.json` installé ou l’asset distant de la dernière release GitHub.
-- Configuration officielle activée pour l’identifiant marchand PayPal de LayerAI, avec paiements en euros.
-- Interface entièrement traduite en français, anglais, allemand, espagnol et italien.
+- L’adresse officielle reste administrable sans recompilation via le fichier interne `donation.json` et l’asset distant de la dernière release GitHub.
+- La configuration PayPal LayerAI actuelle demeure active avec l’identifiant marchand fourni et les paiements en euros.

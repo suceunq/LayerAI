@@ -1,15 +1,18 @@
 import { app } from "electron";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { DonationConfigResponse } from "../shared/ipc-types.js";
-import { readSettings } from "./settings-store.js";
 import { parsePayPalDonationUrl } from "./security/donation-url.js";
 
 const REMOTE_CONFIG_URL = "https://github.com/suceunq/LayerAI/releases/latest/download/donation.json";
 const REMOTE_REFRESH_MS = 15 * 60 * 1000;
 const MAX_CONFIG_BYTES = 4096;
 
-let memoryConfig: DonationConfigResponse | null = null;
+export interface ResolvedDonationConfig {
+  url: string | null;
+  source: "remote" | "local" | "cache" | "none";
+}
+
+let memoryConfig: ResolvedDonationConfig | null = null;
 let lastRemoteAttempt = 0;
 
 function cachePath(): string {
@@ -20,7 +23,7 @@ function localConfigPath(): string {
   return app.isPackaged ? join(process.resourcesPath, "donation.json") : join(app.getAppPath(), "resources", "donation.json");
 }
 
-async function readCachedConfig(): Promise<DonationConfigResponse | null> {
+async function readCachedConfig(): Promise<ResolvedDonationConfig | null> {
   try {
     const parsed = JSON.parse(await readFile(cachePath(), "utf8")) as { paypalUrl?: unknown };
     if (typeof parsed.paypalUrl !== "string") return null;
@@ -31,7 +34,7 @@ async function readCachedConfig(): Promise<DonationConfigResponse | null> {
   }
 }
 
-async function readLocalConfig(): Promise<DonationConfigResponse | null> {
+async function readLocalConfig(): Promise<ResolvedDonationConfig | null> {
   try {
     const parsed = JSON.parse(await readFile(localConfigPath(), "utf8")) as { paypalUrl?: unknown };
     if (typeof parsed.paypalUrl !== "string" || !parsed.paypalUrl.trim()) return null;
@@ -42,7 +45,7 @@ async function readLocalConfig(): Promise<DonationConfigResponse | null> {
   }
 }
 
-async function fetchRemoteConfig(): Promise<DonationConfigResponse | null> {
+async function fetchRemoteConfig(): Promise<ResolvedDonationConfig | null> {
   try {
     const response = await fetch(REMOTE_CONFIG_URL, {
       headers: { Accept: "application/json" },
@@ -64,22 +67,10 @@ async function fetchRemoteConfig(): Promise<DonationConfigResponse | null> {
   }
 }
 
-export async function resolveDonationConfig(forceRefresh = false): Promise<DonationConfigResponse> {
-  const settings = await readSettings();
-  if (settings.donationUrl) {
-    const url = parsePayPalDonationUrl(settings.donationUrl);
-    if (url) return { url, source: "settings" };
-    // Ignore an invalid value left by an older/manual settings edit and continue with remote config.
-  }
-
+export async function resolveDonationConfig(forceRefresh = false): Promise<ResolvedDonationConfig> {
   const now = Date.now();
   if (!forceRefresh && memoryConfig && now - lastRemoteAttempt < REMOTE_REFRESH_MS) return memoryConfig;
   lastRemoteAttempt = now;
   memoryConfig = (await fetchRemoteConfig()) ?? (await readLocalConfig()) ?? (await readCachedConfig()) ?? { url: null, source: "none" };
   return memoryConfig;
-}
-
-export function clearDonationConfigMemory(): void {
-  memoryConfig = null;
-  lastRemoteAttempt = 0;
 }

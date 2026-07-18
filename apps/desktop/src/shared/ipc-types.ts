@@ -235,18 +235,15 @@ export interface AppSettings {
   lastPrinterId?: string;
   lastFilamentId?: string;
   company?: CompanySettings;
-  donationUrl?: string;
   showWelcomeOnStartup?: boolean;
 }
 
 export interface DonationSettingsRequest {
-  donationUrl?: string;
   showWelcomeOnStartup: boolean;
 }
 
 export interface DonationConfigResponse {
-  url: string | null;
-  source: "settings" | "remote" | "local" | "cache" | "none";
+  configured: boolean;
 }
 
 export interface LastSelectionRequest {

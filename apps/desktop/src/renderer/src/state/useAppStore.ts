@@ -23,7 +23,6 @@ import type {
   SupportedInterfaceMode,
   LanguagePreference,
   UpdateState,
-  DonationConfigResponse,
 } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
 import { filamentGroupForVendor, filamentGroupOfId } from "../lib/vendor-filament.js";
@@ -59,9 +58,7 @@ interface AppState {
   companySettings: CompanySettings | null;
   welcomeDialogOpen: boolean;
   showWelcomeOnStartup: boolean;
-  donationUrl: string | null;
-  donationUrlOverride: string;
-  donationConfigSource: DonationConfigResponse["source"];
+  donationConfigured: boolean;
   donationError: string | null;
 
   photoDiagnosisDialogOpen: boolean;
@@ -172,12 +169,11 @@ interface AppState {
   setInterfaceMode: (mode: SupportedInterfaceMode) => Promise<void>;
   toggleSettingsDialog: () => void;
   setSettingsDialogTab: (tab: SettingsDialogTab) => void;
-  openDonationSettings: () => void;
   openWelcomeDialog: () => void;
   closeWelcomeLater: () => void;
   dismissWelcomePermanently: () => Promise<void>;
   openDonationPage: () => Promise<void>;
-  setDonationSettings: (donationUrl: string, showWelcomeOnStartup: boolean) => Promise<void>;
+  setDonationSettings: (showWelcomeOnStartup: boolean) => Promise<void>;
 
   toggleUpdateDialog: () => void;
   setUpdateState: (state: UpdateState) => void;
@@ -268,9 +264,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   companySettings: null,
   welcomeDialogOpen: false,
   showWelcomeOnStartup: true,
-  donationUrl: null,
-  donationUrlOverride: "",
-  donationConfigSource: "none",
+  donationConfigured: false,
   donationError: null,
 
   photoDiagnosisDialogOpen: false,
@@ -850,9 +844,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({
         welcomeDialogOpen: showWelcomeOnStartup,
         showWelcomeOnStartup,
-        donationUrl: config.url,
-        donationUrlOverride: settings.donationUrl ?? "",
-        donationConfigSource: config.source,
+        donationConfigured: config.configured,
         donationError: null,
       });
     } catch (err) {
@@ -917,21 +909,17 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   toggleSettingsDialog: () => set((s) => ({ settingsDialogOpen: !s.settingsDialogOpen })),
   setSettingsDialogTab: (settingsDialogTab) => set({ settingsDialogTab }),
-  openDonationSettings: () => set({ settingsDialogOpen: true, settingsDialogTab: "support", welcomeDialogOpen: false, donationError: null }),
   openWelcomeDialog: () => set({ welcomeDialogOpen: true, donationError: null }),
   closeWelcomeLater: () => set({ welcomeDialogOpen: false, donationError: null }),
   dismissWelcomePermanently: async () => {
-    const state = get();
     try {
       const config = await window.api.setDonationSettings({
-        donationUrl: state.donationUrlOverride || undefined,
         showWelcomeOnStartup: false,
       });
       set({
         welcomeDialogOpen: false,
         showWelcomeOnStartup: false,
-        donationUrl: config.url,
-        donationConfigSource: config.source,
+        donationConfigured: config.configured,
         donationError: null,
       });
     } catch (err) {
@@ -946,13 +934,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ donationError: err instanceof Error ? err.message : String(err) });
     }
   },
-  setDonationSettings: async (donationUrl, showWelcomeOnStartup) => {
+  setDonationSettings: async (showWelcomeOnStartup) => {
     try {
-      const config = await window.api.setDonationSettings({ donationUrl: donationUrl.trim() || undefined, showWelcomeOnStartup });
+      const config = await window.api.setDonationSettings({ showWelcomeOnStartup });
       set({
-        donationUrl: config.url,
-        donationUrlOverride: donationUrl.trim(),
-        donationConfigSource: config.source,
+        donationConfigured: config.configured,
         showWelcomeOnStartup,
         donationError: null,
       });

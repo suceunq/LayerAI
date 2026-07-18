@@ -68,10 +68,6 @@ export function SettingsDialog(): React.JSX.Element | null {
   const setCompanySettings = useAppStore((s) => s.setCompanySettings);
   const tab = useAppStore((s) => s.settingsDialogTab);
   const setTab = useAppStore((s) => s.setSettingsDialogTab);
-  const donationUrl = useAppStore((s) => s.donationUrl);
-  const donationUrlOverride = useAppStore((s) => s.donationUrlOverride);
-  const donationConfigSource = useAppStore((s) => s.donationConfigSource);
-  const donationError = useAppStore((s) => s.donationError);
   const showWelcomeOnStartup = useAppStore((s) => s.showWelcomeOnStartup);
   const setDonationSettings = useAppStore((s) => s.setDonationSettings);
   const { t } = useTranslation();
@@ -79,17 +75,15 @@ export function SettingsDialog(): React.JSX.Element | null {
 
   const [costsForm, setCostsForm] = useState(costSettings);
   const [companyForm, setCompanyForm] = useState<CompanySettings>(companySettings ?? DEFAULT_COMPANY);
-  const [donationUrlForm, setDonationUrlForm] = useState(donationUrlOverride);
   const [showWelcomeForm, setShowWelcomeForm] = useState(showWelcomeOnStartup);
 
   useEffect(() => {
     if (open) {
       setCostsForm(costSettings);
       setCompanyForm(companySettings ?? DEFAULT_COMPANY);
-      setDonationUrlForm(donationUrlOverride);
       setShowWelcomeForm(showWelcomeOnStartup);
     }
-  }, [open, costSettings, companySettings, donationUrlOverride, showWelcomeOnStartup]);
+  }, [open, costSettings, companySettings, showWelcomeOnStartup]);
   const [providers, setProviders] = useState<EditableProvider[]>([]);
   const [defaultProviderId, setDefaultProviderId] = useState<AiProviderId | null>(null);
   const [cloudIntentEnabled, setCloudIntentEnabledState] = useState(false);
@@ -150,7 +144,7 @@ export function SettingsDialog(): React.JSX.Element | null {
       await window.api.setCloudIntentEnabled(cloudIntentEnabled);
       await setCostSettings(costsForm);
       await setCompanySettings(companyForm);
-      await setDonationSettings(donationUrlForm, showWelcomeForm);
+      await setDonationSettings(showWelcomeForm);
       toggleOpen();
     } finally {
       setSaving(false);
@@ -223,28 +217,6 @@ export function SettingsDialog(): React.JSX.Element | null {
                 <p className="mt-1 text-xs leading-5 text-text-muted">{t("settings.support.intro")}</p>
               </div>
 
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">{t("settings.support.paypalUrl")}</span>
-                <input
-                  type="url"
-                  value={donationUrlForm}
-                  onChange={(event) => setDonationUrlForm(event.target.value)}
-                  placeholder="https://www.paypal.com/donate/?hosted_button_id=…"
-                  autoComplete="url"
-                  spellCheck={false}
-                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
-                />
-                <span className="text-xs leading-5 text-text-muted">{t("settings.support.paypalHint")}</span>
-              </label>
-
-              {donationUrl && (
-                <div className="rounded-lg border border-border-subtle bg-surface-1 px-3 py-2 text-xs text-text-secondary">
-                  <p className="font-medium text-text-primary">{t("settings.support.activeLink")}</p>
-                  <p className="mt-1 break-all font-mono">{donationUrl}</p>
-                  <p className="mt-1 text-text-muted">{t(`settings.support.source.${donationConfigSource}`)}</p>
-                </div>
-              )}
-
               <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-surface-1 p-3 text-sm">
                 <input
                   type="checkbox"
@@ -258,7 +230,6 @@ export function SettingsDialog(): React.JSX.Element | null {
                 </span>
               </label>
 
-              {donationError && <p role="alert" className="text-xs text-confidence-low">{donationError}</p>}
             </div>
           ) : tab === "company" ? (
             <div className="flex flex-col gap-4">

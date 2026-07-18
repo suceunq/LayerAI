@@ -4,12 +4,11 @@ import { useModalAccessibility } from "../hooks/useModalAccessibility.js";
 
 export function WelcomeDialog(): React.JSX.Element | null {
   const open = useAppStore((state) => state.welcomeDialogOpen);
-  const donationUrl = useAppStore((state) => state.donationUrl);
+  const donationConfigured = useAppStore((state) => state.donationConfigured);
   const donationError = useAppStore((state) => state.donationError);
   const closeLater = useAppStore((state) => state.closeWelcomeLater);
   const dismissPermanently = useAppStore((state) => state.dismissWelcomePermanently);
   const openDonationPage = useAppStore((state) => state.openDonationPage);
-  const openDonationSettings = useAppStore((state) => state.openDonationSettings);
   const { t } = useTranslation();
   const dialogRef = useModalAccessibility(open, closeLater);
 
@@ -61,10 +60,11 @@ export function WelcomeDialog(): React.JSX.Element | null {
 
           <div className="mt-6 grid w-full grid-cols-2 gap-3">
             <button
-              onClick={() => donationUrl ? void openDonationPage() : openDonationSettings()}
-              className="rounded-xl bg-accent px-4 py-3 text-sm font-bold text-surface-0 shadow-lg shadow-accent/15 transition hover:bg-accent-glow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              onClick={() => void openDonationPage()}
+              disabled={!donationConfigured}
+              className="rounded-xl bg-accent px-4 py-3 text-sm font-bold text-surface-0 shadow-lg shadow-accent/15 transition hover:bg-accent-glow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {donationUrl ? `💛 ${t("welcome.donate")}` : t("welcome.configureDonation")}
+              💛 {t("welcome.donate")}
             </button>
             <button
               onClick={closeLater}
