@@ -14,6 +14,8 @@ files:
 extraResources:
   - from: ../../docs/licensing
     to: licensing
+  - from: resources/donation.json
+    to: donation.json
 
 win:
   target:

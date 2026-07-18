@@ -29,6 +29,7 @@ export interface MenuLabels {
   helpCheckUpdates: string;
   helpDocs: string;
   helpTutorials: string;
+  helpSupport: string;
   helpAbout: string;
   updatesUnavailableTitle: string;
   updatesUnavailableDetail: string;
@@ -64,6 +65,7 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     helpCheckUpdates: "Vérifier les mises à jour",
     helpDocs: "Documentation",
     helpTutorials: "Tutoriels",
+    helpSupport: "Soutenir LayerAI…",
     helpAbout: "À propos de LayerAI",
     updatesUnavailableTitle: "Vérification des mises à jour indisponible",
     updatesUnavailableDetail: "Cette fonctionnalité n'est disponible que dans la version installée de LayerAI.",
@@ -97,6 +99,7 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     helpCheckUpdates: "Check for updates",
     helpDocs: "Documentation",
     helpTutorials: "Tutorials",
+    helpSupport: "Support LayerAI…",
     helpAbout: "About LayerAI",
     updatesUnavailableTitle: "Update check unavailable",
     updatesUnavailableDetail: "This feature is only available in the installed version of LayerAI.",
@@ -130,6 +133,7 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     helpCheckUpdates: "Nach Updates suchen",
     helpDocs: "Dokumentation",
     helpTutorials: "Anleitungen",
+    helpSupport: "LayerAI unterstützen…",
     helpAbout: "Über LayerAI",
     updatesUnavailableTitle: "Update-Prüfung nicht verfügbar",
     updatesUnavailableDetail: "Diese Funktion ist nur in der installierten Version von LayerAI verfügbar.",
@@ -163,6 +167,7 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     helpCheckUpdates: "Buscar actualizaciones",
     helpDocs: "Documentación",
     helpTutorials: "Tutoriales",
+    helpSupport: "Apoyar a LayerAI…",
     helpAbout: "Acerca de LayerAI",
     updatesUnavailableTitle: "Comprobación de actualizaciones no disponible",
     updatesUnavailableDetail: "Esta función solo está disponible en la versión instalada de LayerAI.",
@@ -196,6 +201,7 @@ export const MENU_TRANSLATIONS: Record<SupportedLanguage, MenuLabels> = {
     helpCheckUpdates: "Controlla aggiornamenti",
     helpDocs: "Documentazione",
     helpTutorials: "Tutorial",
+    helpSupport: "Sostieni LayerAI…",
     helpAbout: "Informazioni su LayerAI",
     updatesUnavailableTitle: "Controllo aggiornamenti non disponibile",
     updatesUnavailableDetail: "Questa funzione è disponibile solo nella versione installata di LayerAI.",

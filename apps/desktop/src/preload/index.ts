@@ -37,6 +37,9 @@ const api: LayerAiApi = {
   setCostSettings: (costs) => ipcRenderer.invoke(IpcChannels.settingsSetCosts, costs),
   setLastSelection: (request) => ipcRenderer.invoke(IpcChannels.settingsSetLastSelection, request),
   setCompanySettings: (company) => ipcRenderer.invoke(IpcChannels.settingsSetCompany, company),
+  setDonationSettings: (settings) => ipcRenderer.invoke(IpcChannels.settingsSetDonation, settings),
+  getDonationConfig: () => ipcRenderer.invoke(IpcChannels.donationGetConfig),
+  openDonationPage: () => ipcRenderer.invoke(IpcChannels.donationOpen),
   generateInvoice: (request) => ipcRenderer.invoke(IpcChannels.invoiceGenerate, request),
   onMenuAction: (callback) => {
     const listener = (_event: Electron.IpcRendererEvent, action: string): void => callback(action);

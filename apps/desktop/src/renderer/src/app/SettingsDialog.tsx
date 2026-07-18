@@ -66,19 +66,30 @@ export function SettingsDialog(): React.JSX.Element | null {
   const setCostSettings = useAppStore((s) => s.setCostSettings);
   const companySettings = useAppStore((s) => s.companySettings);
   const setCompanySettings = useAppStore((s) => s.setCompanySettings);
+  const tab = useAppStore((s) => s.settingsDialogTab);
+  const setTab = useAppStore((s) => s.setSettingsDialogTab);
+  const donationUrl = useAppStore((s) => s.donationUrl);
+  const donationUrlOverride = useAppStore((s) => s.donationUrlOverride);
+  const donationConfigSource = useAppStore((s) => s.donationConfigSource);
+  const donationError = useAppStore((s) => s.donationError);
+  const showWelcomeOnStartup = useAppStore((s) => s.showWelcomeOnStartup);
+  const setDonationSettings = useAppStore((s) => s.setDonationSettings);
   const { t } = useTranslation();
   const dialogRef = useModalAccessibility(open, toggleOpen);
 
-  const [tab, setTab] = useState<"apiKeys" | "language" | "updates" | "costs" | "company">("apiKeys");
   const [costsForm, setCostsForm] = useState(costSettings);
   const [companyForm, setCompanyForm] = useState<CompanySettings>(companySettings ?? DEFAULT_COMPANY);
+  const [donationUrlForm, setDonationUrlForm] = useState(donationUrlOverride);
+  const [showWelcomeForm, setShowWelcomeForm] = useState(showWelcomeOnStartup);
 
   useEffect(() => {
     if (open) {
       setCostsForm(costSettings);
       setCompanyForm(companySettings ?? DEFAULT_COMPANY);
+      setDonationUrlForm(donationUrlOverride);
+      setShowWelcomeForm(showWelcomeOnStartup);
     }
-  }, [open, costSettings, companySettings]);
+  }, [open, costSettings, companySettings, donationUrlOverride, showWelcomeOnStartup]);
   const [providers, setProviders] = useState<EditableProvider[]>([]);
   const [defaultProviderId, setDefaultProviderId] = useState<AiProviderId | null>(null);
   const [cloudIntentEnabled, setCloudIntentEnabledState] = useState(false);
@@ -139,6 +150,7 @@ export function SettingsDialog(): React.JSX.Element | null {
       await window.api.setCloudIntentEnabled(cloudIntentEnabled);
       await setCostSettings(costsForm);
       await setCompanySettings(companyForm);
+      await setDonationSettings(donationUrlForm, showWelcomeForm);
       toggleOpen();
     } finally {
       setSaving(false);
@@ -149,7 +161,7 @@ export function SettingsDialog(): React.JSX.Element | null {
     <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/60" onClick={toggleOpen}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="settings-dialog-title" tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[85vh] w-[560px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
+        className="flex max-h-[85vh] w-[620px] flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-0 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
           <h2 id="settings-dialog-title" className="text-base font-semibold text-text-primary">{t("settings.title")}</h2>
@@ -158,7 +170,7 @@ export function SettingsDialog(): React.JSX.Element | null {
           </button>
         </div>
 
-        <div className="flex border-b border-border-subtle px-5" role="tablist" aria-label={t("settings.title")}>
+        <div className="flex overflow-x-auto border-b border-border-subtle px-5" role="tablist" aria-label={t("settings.title")}>
           <button
             role="tab" aria-selected={tab === "apiKeys"} aria-controls="settings-tabpanel"
             onClick={() => setTab("apiKeys")}
@@ -181,6 +193,13 @@ export function SettingsDialog(): React.JSX.Element | null {
             {t("settings.tabUpdates")}
           </button>
           <button
+            role="tab" aria-selected={tab === "support"} aria-controls="settings-tabpanel"
+            onClick={() => setTab("support")}
+            className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${tab === "support" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
+          >
+            {t("settings.tabSupport")}
+          </button>
+          <button
             role="tab" aria-selected={tab === "costs"} aria-controls="settings-tabpanel"
             onClick={() => setTab("costs")}
             className={`border-b-2 px-3 py-2 text-sm ${tab === "costs" ? "border-accent text-accent" : "border-transparent text-text-muted hover:text-text-primary"}`}
@@ -197,7 +216,51 @@ export function SettingsDialog(): React.JSX.Element | null {
         </div>
 
         <div id="settings-tabpanel" role="tabpanel" className="flex-1 overflow-y-auto p-5">
-          {tab === "company" ? (
+          {tab === "support" ? (
+            <div className="flex flex-col gap-5">
+              <div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+                <p className="font-medium text-text-primary">{t("settings.support.title")}</p>
+                <p className="mt-1 text-xs leading-5 text-text-muted">{t("settings.support.intro")}</p>
+              </div>
+
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold uppercase tracking-wide text-text-muted">{t("settings.support.paypalUrl")}</span>
+                <input
+                  type="url"
+                  value={donationUrlForm}
+                  onChange={(event) => setDonationUrlForm(event.target.value)}
+                  placeholder="https://www.paypal.com/donate/?hosted_button_id=…"
+                  autoComplete="url"
+                  spellCheck={false}
+                  className="rounded-lg border border-border-subtle bg-surface-2 px-3 py-2 text-sm text-text-primary outline-none focus:border-accent"
+                />
+                <span className="text-xs leading-5 text-text-muted">{t("settings.support.paypalHint")}</span>
+              </label>
+
+              {donationUrl && (
+                <div className="rounded-lg border border-border-subtle bg-surface-1 px-3 py-2 text-xs text-text-secondary">
+                  <p className="font-medium text-text-primary">{t("settings.support.activeLink")}</p>
+                  <p className="mt-1 break-all font-mono">{donationUrl}</p>
+                  <p className="mt-1 text-text-muted">{t(`settings.support.source.${donationConfigSource}`)}</p>
+                </div>
+              )}
+
+              <label className="flex items-start gap-3 rounded-lg border border-border-subtle bg-surface-1 p-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={showWelcomeForm}
+                  onChange={(event) => setShowWelcomeForm(event.target.checked)}
+                  className="mt-0.5 accent-accent"
+                />
+                <span>
+                  <span className="block text-text-secondary">{t("settings.support.showWelcome")}</span>
+                  <span className="mt-0.5 block text-xs text-text-muted">{t("settings.support.showWelcomeHint")}</span>
+                </span>
+              </label>
+
+              {donationError && <p role="alert" className="text-xs text-confidence-low">{donationError}</p>}
+            </div>
+          ) : tab === "company" ? (
             <div className="flex flex-col gap-4">
               <p className="text-xs text-text-muted">{t("settings.company.intro")}</p>
 

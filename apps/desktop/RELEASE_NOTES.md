@@ -1,15 +1,16 @@
-# LayerAI 1.7.23 — Interface multilingue complète
+# LayerAI 1.7.24 — Bienvenue et soutien du projet
 
 ## Nouveautés
 
-- Ajout de l’allemand, de l’espagnol et de l’italien aux langues française et anglaise.
-- Sélection automatique de la langue selon les paramètres du système, avec repli sûr en français.
-- Nouveau choix « Langue du système » et changement manuel immédiat dans les paramètres.
-- Localisation des menus natifs, boutons, messages, notifications, boîtes de dialogue et erreurs.
-- Explications, intentions, diagnostic photo, rapports PDF et factures générés dans la langue active.
+- Nouvelle fenêtre de bienvenue au lancement, adaptée à l’identité visuelle de LayerAI.
+- Présentation rapide du logiciel, remerciement et accès direct à la page officielle de don PayPal.
+- Actions « Plus tard » et « Ne plus afficher », avec réouverture depuis le menu Aide.
+- Nouvel onglet Paramètres → Soutien pour gérer le lien PayPal et l’affichage au démarrage.
 
-## Qualité
+## Configuration et sécurité
 
-- Catalogues séparés et typés pour faciliter l’ajout de nouvelles langues.
-- Tests automatiques de parité des clés, des variables dynamiques et des textes visibles codés en dur.
-- Reconnaissance des intentions utilisateur en français, anglais, allemand, espagnol et italien.
+- Ouverture des dons dans le navigateur par défaut, sans page intermédiaire dans l’application.
+- Validation stricte des liens : HTTPS et domaines officiels PayPal uniquement.
+- Lien modifiable sans recompilation depuis les paramètres, le fichier `donation.json` installé ou l’asset distant de la dernière release GitHub.
+- Configuration officielle activée pour l’identifiant marchand PayPal de LayerAI, avec paiements en euros.
+- Interface entièrement traduite en français, anglais, allemand, espagnol et italien.

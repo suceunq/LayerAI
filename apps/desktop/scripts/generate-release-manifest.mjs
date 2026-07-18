@@ -12,7 +12,9 @@ const repoRoot = dirname(dirname(desktopDir));
 const releaseDir = join(desktopDir, "release");
 const updateDir = join(repoRoot, "update-a-publier");
 
-const ARTIFACT_NAMES = ["LayerAI_Setup.exe", "LayerAI_Setup.exe.blockmap", "latest.yml"];
+const BUILD_ARTIFACT_NAMES = ["LayerAI_Setup.exe", "LayerAI_Setup.exe.blockmap", "latest.yml"];
+const DONATION_CONFIG_NAME = "donation.json";
+const ARTIFACT_NAMES = [...BUILD_ARTIFACT_NAMES, DONATION_CONFIG_NAME];
 const MANIFEST_FILE_NAME = "layerai-release-manifest.json";
 
 function fail(message) {
@@ -61,11 +63,14 @@ function verifyLatestYmlVersion(expectedVersion) {
 
 function copyArtifacts() {
   mkdirSync(updateDir, { recursive: true });
-  for (const name of ARTIFACT_NAMES) {
+  for (const name of BUILD_ARTIFACT_NAMES) {
     const source = join(releaseDir, name);
     if (!existsSync(source)) fail(`Fichier de build manquant : ${source}`);
     copyFileSync(source, join(updateDir, name));
   }
+  const donationConfig = join(desktopDir, "resources", DONATION_CONFIG_NAME);
+  if (!existsSync(donationConfig)) fail(`Configuration de don manquante : ${donationConfig}`);
+  copyFileSync(donationConfig, join(updateDir, DONATION_CONFIG_NAME));
 }
 
 function writeManifest(version, title, changelog) {

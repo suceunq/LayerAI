@@ -13,6 +13,7 @@ import { registerAiHandlers } from "./ipc/ai.handlers.js";
 import { registerUpdateHandlers } from "./ipc/update.handlers.js";
 import { registerInvoiceHandlers } from "./ipc/invoice.handlers.js";
 import { registerProjectRecoveryHandlers } from "./ipc/project-recovery.handlers.js";
+import { registerDonationHandlers } from "./ipc/donation.handlers.js";
 import { buildAppMenu } from "./menu.js";
 import { setupAutoUpdater, checkForUpdates } from "./autoUpdater.js";
 import { readSettings } from "./settings-store.js";
@@ -100,6 +101,7 @@ app.whenReady().then(async () => {
   registerUpdateHandlers();
   registerInvoiceHandlers();
   registerProjectRecoveryHandlers();
+  registerDonationHandlers();
 
   createMainWindow();
 

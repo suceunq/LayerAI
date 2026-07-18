@@ -23,6 +23,7 @@ import type {
   SupportedInterfaceMode,
   LanguagePreference,
   UpdateState,
+  DonationConfigResponse,
 } from "../../../shared/ipc-types.js";
 import { computeSizeFit } from "../lib/size-fit.js";
 import { filamentGroupForVendor, filamentGroupOfId } from "../lib/vendor-filament.js";
@@ -35,6 +36,7 @@ import { generateExplanations } from "@layerai/explanation-engine";
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
 export type HelpDialogTab = "aide" | "apropos";
+export type SettingsDialogTab = "apiKeys" | "language" | "updates" | "costs" | "company" | "support";
 
 interface AppState {
   step: AppStep;
@@ -48,12 +50,19 @@ interface AppState {
   theme: SupportedTheme;
   interfaceMode: SupportedInterfaceMode;
   settingsDialogOpen: boolean;
+  settingsDialogTab: SettingsDialogTab;
   updateDialogOpen: boolean;
   updateState: UpdateState | null;
   checkUpdatesOnStartup: boolean;
   postponedUpdateVersion: string | undefined;
   costSettings: CostSettings;
   companySettings: CompanySettings | null;
+  welcomeDialogOpen: boolean;
+  showWelcomeOnStartup: boolean;
+  donationUrl: string | null;
+  donationUrlOverride: string;
+  donationConfigSource: DonationConfigResponse["source"];
+  donationError: string | null;
 
   photoDiagnosisDialogOpen: boolean;
   photoDiagnosisLoading: boolean;
@@ -157,10 +166,18 @@ interface AppState {
   handleMenuAction: (action: string) => void;
 
   loadLanguage: () => Promise<void>;
+  loadWelcome: () => Promise<void>;
   setLanguage: (preference: LanguagePreference) => Promise<void>;
   setTheme: (theme: SupportedTheme) => Promise<void>;
   setInterfaceMode: (mode: SupportedInterfaceMode) => Promise<void>;
   toggleSettingsDialog: () => void;
+  setSettingsDialogTab: (tab: SettingsDialogTab) => void;
+  openDonationSettings: () => void;
+  openWelcomeDialog: () => void;
+  closeWelcomeLater: () => void;
+  dismissWelcomePermanently: () => Promise<void>;
+  openDonationPage: () => Promise<void>;
+  setDonationSettings: (donationUrl: string, showWelcomeOnStartup: boolean) => Promise<void>;
 
   toggleUpdateDialog: () => void;
   setUpdateState: (state: UpdateState) => void;
@@ -242,12 +259,19 @@ export const useAppStore = create<AppState>((set, get) => ({
   theme: "dark",
   interfaceMode: "simple",
   settingsDialogOpen: false,
+  settingsDialogTab: "apiKeys",
   updateDialogOpen: false,
   updateState: null,
   checkUpdatesOnStartup: true,
   postponedUpdateVersion: undefined,
   costSettings: { currency: "€", filamentPricePerKg: null, printerPowerW: null, electricityPricePerKwh: null },
   companySettings: null,
+  welcomeDialogOpen: false,
+  showWelcomeOnStartup: true,
+  donationUrl: null,
+  donationUrlOverride: "",
+  donationConfigSource: "none",
+  donationError: null,
 
   photoDiagnosisDialogOpen: false,
   photoDiagnosisLoading: false,
@@ -819,6 +843,26 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  loadWelcome: async () => {
+    try {
+      const [settings, config] = await Promise.all([window.api.getSettings(), window.api.getDonationConfig()]);
+      const showWelcomeOnStartup = settings.showWelcomeOnStartup ?? true;
+      set({
+        welcomeDialogOpen: showWelcomeOnStartup,
+        showWelcomeOnStartup,
+        donationUrl: config.url,
+        donationUrlOverride: settings.donationUrl ?? "",
+        donationConfigSource: config.source,
+        donationError: null,
+      });
+    } catch (err) {
+      set({
+        welcomeDialogOpen: true,
+        donationError: err instanceof Error ? err.message : String(err),
+      });
+    }
+  },
+
   loadProjectRecovery: async () => {
     try {
       set({ recoverySnapshot: await window.api.getProjectRecovery() });
@@ -872,6 +916,52 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   toggleSettingsDialog: () => set((s) => ({ settingsDialogOpen: !s.settingsDialogOpen })),
+  setSettingsDialogTab: (settingsDialogTab) => set({ settingsDialogTab }),
+  openDonationSettings: () => set({ settingsDialogOpen: true, settingsDialogTab: "support", welcomeDialogOpen: false, donationError: null }),
+  openWelcomeDialog: () => set({ welcomeDialogOpen: true, donationError: null }),
+  closeWelcomeLater: () => set({ welcomeDialogOpen: false, donationError: null }),
+  dismissWelcomePermanently: async () => {
+    const state = get();
+    try {
+      const config = await window.api.setDonationSettings({
+        donationUrl: state.donationUrlOverride || undefined,
+        showWelcomeOnStartup: false,
+      });
+      set({
+        welcomeDialogOpen: false,
+        showWelcomeOnStartup: false,
+        donationUrl: config.url,
+        donationConfigSource: config.source,
+        donationError: null,
+      });
+    } catch (err) {
+      set({ donationError: err instanceof Error ? err.message : String(err) });
+    }
+  },
+  openDonationPage: async () => {
+    try {
+      await window.api.openDonationPage();
+      set({ donationError: null });
+    } catch (err) {
+      set({ donationError: err instanceof Error ? err.message : String(err) });
+    }
+  },
+  setDonationSettings: async (donationUrl, showWelcomeOnStartup) => {
+    try {
+      const config = await window.api.setDonationSettings({ donationUrl: donationUrl.trim() || undefined, showWelcomeOnStartup });
+      set({
+        donationUrl: config.url,
+        donationUrlOverride: donationUrl.trim(),
+        donationConfigSource: config.source,
+        showWelcomeOnStartup,
+        donationError: null,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ donationError: message });
+      throw err;
+    }
+  },
 
   showToolNotice: (message) => {
     set({ toolNotice: message });
@@ -949,6 +1039,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         break;
       case "help:tutorials":
         s.replayOnboarding();
+        break;
+      case "help:support":
+        s.openWelcomeDialog();
         break;
       case "help:about":
         s.openHelpDialog("apropos");

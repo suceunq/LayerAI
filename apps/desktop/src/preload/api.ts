@@ -42,6 +42,8 @@ import type {
   DiagnosePhotoRequest,
   DiagnosePhotoResponse,
   UpdateState,
+  DonationSettingsRequest,
+  DonationConfigResponse,
 } from "../shared/ipc-types.js";
 import type { AiProviderId } from "../shared/ai-providers.js";
 
@@ -87,6 +89,9 @@ export interface LayerAiApi {
   setCostSettings: (costs: CostSettings) => Promise<void>;
   setLastSelection: (request: LastSelectionRequest) => Promise<void>;
   setCompanySettings: (company: CompanySettings) => Promise<void>;
+  setDonationSettings: (settings: DonationSettingsRequest) => Promise<DonationConfigResponse>;
+  getDonationConfig: () => Promise<DonationConfigResponse>;
+  openDonationPage: () => Promise<boolean>;
   generateInvoice: (request: GenerateInvoiceRequest) => Promise<GenerateInvoiceResponse>;
   onMenuAction: (callback: (action: string) => void) => () => void;
   getAppVersion: () => Promise<string>;
