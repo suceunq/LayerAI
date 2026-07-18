@@ -1,5 +1,6 @@
 export const IpcChannels = {
   importOpenDialog: "import:open-dialog",
+  importOpenBatchDialog: "import:open-batch-dialog",
   importReadDropped: "import:read-dropped",
   analysisRun: "analysis:run",
   analysisRescale: "analysis:rescale",
@@ -10,6 +11,7 @@ export const IpcChannels = {
   exportThreeMf: "export:threemf",
   exportPdfReport: "export:pdf-report",
   exportIni: "export:ini",
+  exportBatchIni: "export:batch-ini",
   exportBambuProfile: "export:bambu-profile",
   exportCaptureImage: "export:capture-image",
   slicerOpen: "slicer:open",

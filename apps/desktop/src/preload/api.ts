@@ -12,6 +12,8 @@ import type {
   ExportThreeMfResponse,
   ExportIniRequest,
   ExportIniResponse,
+  ExportBatchIniRequest,
+  ExportBatchIniResponse,
   ExportBambuProfileRequest,
   ExportBambuProfileResponse,
   ExportCaptureImageRequest,
@@ -55,8 +57,14 @@ export interface ImportedFilePayload {
   data: Uint8Array;
 }
 
+export interface ImportBatchDialogResult {
+  files: ImportedFilePayload[];
+  failed: { path: string; error: string }[];
+}
+
 export interface LayerAiApi {
   importOpenDialog: () => Promise<ImportedFilePayload | null>;
+  importOpenBatchDialog: () => Promise<ImportBatchDialogResult>;
   importReadDropped: (filePath: string) => Promise<ImportedFilePayload>;
   getPrinters: () => Promise<PrinterProfile[]>;
   getFilaments: () => Promise<FilamentProfile[]>;
@@ -66,6 +74,7 @@ export interface LayerAiApi {
   generateConfig: (request: ConfigGenerateRequest) => Promise<ConfigGenerateResponse>;
   exportThreeMf: (request: ExportThreeMfRequest) => Promise<ExportThreeMfResponse>;
   exportIni: (request: ExportIniRequest) => Promise<ExportIniResponse>;
+  exportBatchIni: (request: ExportBatchIniRequest) => Promise<ExportBatchIniResponse>;
   exportBambuProfile: (request: ExportBambuProfileRequest) => Promise<ExportBambuProfileResponse>;
   exportCaptureImage: (request: ExportCaptureImageRequest) => Promise<ExportCaptureImageResponse>;
   exportPdfReport: (request: ExportPdfReportRequest) => Promise<ExportPdfReportResponse>;

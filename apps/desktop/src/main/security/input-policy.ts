@@ -2,6 +2,7 @@ import type { AiProviderId } from "../../shared/ai-providers.js";
 import { mainT } from "../localization.js";
 
 export const MAX_MODEL_FILE_BYTES = 250 * 1024 * 1024;
+export const MAX_BATCH_FILES = 50;
 export const MAX_PHOTO_BYTES = 12 * 1024 * 1024;
 export const ALLOWED_PHOTO_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 

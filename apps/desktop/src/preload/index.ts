@@ -5,6 +5,7 @@ import type { LayerAiApi } from "./api.js";
 
 const api: LayerAiApi = {
   importOpenDialog: () => ipcRenderer.invoke(IpcChannels.importOpenDialog),
+  importOpenBatchDialog: () => ipcRenderer.invoke(IpcChannels.importOpenBatchDialog),
   importReadDropped: (filePath) => ipcRenderer.invoke(IpcChannels.importReadDropped, filePath),
   getPrinters: () => ipcRenderer.invoke(IpcChannels.profileDbGetPrinters),
   getFilaments: () => ipcRenderer.invoke(IpcChannels.profileDbGetFilaments),
@@ -14,6 +15,7 @@ const api: LayerAiApi = {
   generateConfig: (request) => ipcRenderer.invoke(IpcChannels.configGenerate, request),
   exportThreeMf: (request) => ipcRenderer.invoke(IpcChannels.exportThreeMf, request),
   exportIni: (request) => ipcRenderer.invoke(IpcChannels.exportIni, request),
+  exportBatchIni: (request) => ipcRenderer.invoke(IpcChannels.exportBatchIni, request),
   exportBambuProfile: (request) => ipcRenderer.invoke(IpcChannels.exportBambuProfile, request),
   exportCaptureImage: (request) => ipcRenderer.invoke(IpcChannels.exportCaptureImage, request),
   exportPdfReport: (payload) => ipcRenderer.invoke(IpcChannels.exportPdfReport, payload),

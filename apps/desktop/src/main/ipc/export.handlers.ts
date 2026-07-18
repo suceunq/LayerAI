@@ -1,5 +1,6 @@
 import { ipcMain, dialog, BrowserWindow } from "electron";
 import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import {
   buildThreeMf,
   buildStandaloneIniText,
@@ -16,6 +17,9 @@ import type {
   ExportThreeMfResponse,
   ExportIniRequest,
   ExportIniResponse,
+  ExportBatchIniRequest,
+  ExportBatchIniResponse,
+  ExportBatchIniResultItem,
   ExportBambuProfileRequest,
   ExportBambuProfileResponse,
   ExportCaptureImageRequest,
@@ -53,6 +57,11 @@ async function writeAndVerifyPng(path: string, bytes: Uint8Array): Promise<void>
   if (written.byteLength < PNG_SIGNATURE.length || !written.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
     throw new Error(mainT("native.export.invalidPng"));
   }
+}
+
+function sanitizeFileNameStem(fileName: string): string {
+  const stem = fileName.replace(/\.[^./\\]+$/, "").replace(/[\\/:*?"<>|]+/g, "_").trim();
+  return stem || mainT("native.filename.profile");
 }
 
 function resolvePrinterAndFilament(printerId: string, filamentId: string) {
@@ -102,6 +111,36 @@ export function registerExportHandlers(): void {
 
     await writeAndVerifyText(result.filePath, buildStandaloneIniText(request.config, printer, filament), validateStandaloneIniText);
     return { saved: true, filePath: result.filePath };
+  });
+
+  ipcMain.handle(IpcChannels.exportBatchIni, async (event, request: ExportBatchIniRequest): Promise<ExportBatchIniResponse> => {
+    const { printer, filament } = resolvePrinterAndFilament(request.printerId, request.filamentId);
+
+    const window = BrowserWindow.fromWebContents(event.sender);
+    const dialogOptions: Electron.OpenDialogOptions = {
+      title: mainT("native.export.batchFolderTitle"),
+      properties: ["openDirectory", "createDirectory"],
+    };
+    const result = window ? await dialog.showOpenDialog(window, dialogOptions) : await dialog.showOpenDialog(dialogOptions);
+    if (result.canceled || result.filePaths.length === 0) return { folderPath: null, results: [] };
+    const folderPath = result.filePaths[0]!;
+
+    const usedNames = new Set<string>();
+    const results: ExportBatchIniResultItem[] = [];
+    for (const item of request.items) {
+      const stem = sanitizeFileNameStem(item.fileName);
+      let name = stem;
+      for (let n = 2; usedNames.has(name); n += 1) name = `${stem}-${n}`;
+      usedNames.add(name);
+      const filePath = join(folderPath, `${name}.ini`);
+      try {
+        await writeAndVerifyText(filePath, buildStandaloneIniText(item.config, printer, filament), validateStandaloneIniText);
+        results.push({ fileName: item.fileName, saved: true, filePath });
+      } catch (err) {
+        results.push({ fileName: item.fileName, saved: false, error: err instanceof Error ? err.message : String(err) });
+      }
+    }
+    return { folderPath, results };
   });
 
   ipcMain.handle(IpcChannels.exportBambuProfile, async (event, request: ExportBambuProfileRequest): Promise<ExportBambuProfileResponse> => {

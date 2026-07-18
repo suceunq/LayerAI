@@ -10,6 +10,7 @@ import { OnboardingTour } from "./app/OnboardingTour.js";
 import { LeftToolRail } from "./app/LeftToolRail.js";
 import { ResizePanel } from "./app/ResizePanel.js";
 import { HelpAboutDialog } from "./app/HelpAboutDialog.js";
+import { BatchPanel } from "./app/BatchPanel.js";
 import { SettingsDialog } from "./app/SettingsDialog.js";
 import { UpdateDialog } from "./app/UpdateDialog.js";
 import { PhotoDiagnosisDialog } from "./app/PhotoDiagnosisDialog.js";
@@ -322,6 +323,7 @@ export default function App(): React.JSX.Element {
         <AdvancedPanel />
         <ResizePanel />
         <HelpAboutDialog />
+        <BatchPanel />
         <SettingsDialog />
         <UpdateDialog />
         <PhotoDiagnosisDialog />

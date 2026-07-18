@@ -34,6 +34,16 @@ import { generateExplanations } from "@layerai/explanation-engine";
 
 export type AppStep = "import" | "analyzing" | "intent" | "generating" | "review";
 
+export type BatchItemStatus = "pending" | "analyzing" | "generating" | "ready" | "error";
+
+export interface BatchItem {
+  id: string;
+  file: ImportedFilePayload;
+  status: BatchItemStatus;
+  errorMessage: string | null;
+  config: GeneratedConfig | null;
+}
+
 export type HelpDialogTab = "aide" | "apropos";
 export type SettingsDialogTab = "apiKeys" | "language" | "updates" | "costs" | "company" | "support";
 
@@ -81,6 +91,10 @@ interface AppState {
   geometry: MeshGeometryData | null;
   analysis: MeshAnalysisResult | null;
 
+  batchPanelOpen: boolean;
+  batchQueue: BatchItem[];
+  batchRunning: boolean;
+
   intentText: string;
   intentResult: IntentResult | null;
   config: GeneratedConfig | null;
@@ -114,6 +128,12 @@ interface AppState {
   setFilament: (id: string) => void;
   importFromDialog: () => Promise<void>;
   importDroppedPath: (filePath: string) => Promise<void>;
+  toggleBatchPanel: () => void;
+  addFilesToBatch: () => Promise<void>;
+  removeBatchItem: (id: string) => void;
+  clearBatch: () => void;
+  runBatch: () => Promise<void>;
+  exportBatchIni: () => Promise<void>;
   checkSizeFitAfterImport: () => void;
   setIntentText: (text: string) => void;
   generateConfiguration: () => Promise<void>;
@@ -286,6 +306,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   geometry: null,
   analysis: null,
 
+  batchPanelOpen: false,
+  batchQueue: [],
+  batchRunning: false,
+
   intentText: "",
   intentResult: null,
   config: null,
@@ -379,6 +403,66 @@ export const useAppStore = create<AppState>((set, get) => ({
       get().checkSizeFitAfterImport();
     } catch (err) {
       set({ error: err instanceof Error ? err.message : String(err), step: "import" });
+    }
+  },
+
+  toggleBatchPanel: () => set((s) => ({ batchPanelOpen: !s.batchPanelOpen })),
+
+  addFilesToBatch: async () => {
+    try {
+      const result = await window.api.importOpenBatchDialog();
+      if (result.files.length === 0 && result.failed.length === 0) return;
+      const newItems: BatchItem[] = result.files.map((file) => ({
+        id: crypto.randomUUID(), file, status: "pending", errorMessage: null, config: null,
+      }));
+      set((s) => ({ batchQueue: [...s.batchQueue, ...newItems] }));
+      if (result.failed.length > 0) {
+        set({ error: result.failed.map((f) => `${f.path}: ${f.error}`).join("\n") });
+      }
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  removeBatchItem: (id) => set((s) => ({ batchQueue: s.batchQueue.filter((b) => b.id !== id) })),
+  clearBatch: () => set({ batchQueue: [] }),
+
+  // Sequential by design: each item reuses the same analysis worker and config-generation
+  // pipeline as the single-file flow, which isn't meant to run several requests at once.
+  runBatch: async () => {
+    if (get().batchRunning) return;
+    set({ batchRunning: true });
+    try {
+      for (const item of get().batchQueue) {
+        if (item.status === "ready") continue;
+        const { selectedPrinterId, selectedFilamentId, intentText, language } = get();
+        set((s) => ({ batchQueue: s.batchQueue.map((b) => (b.id === item.id ? { ...b, status: "analyzing", errorMessage: null } : b)) }));
+        try {
+          const { geometry, analysis } = await runAnalysisForFile(item.file);
+          set((s) => ({ batchQueue: s.batchQueue.map((b) => (b.id === item.id ? { ...b, status: "generating" } : b)) }));
+          const { config } = await window.api.generateConfig({
+            geometry, analysis, intentText, printerId: selectedPrinterId, filamentId: selectedFilamentId, language,
+          });
+          set((s) => ({ batchQueue: s.batchQueue.map((b) => (b.id === item.id ? { ...b, status: "ready", config } : b)) }));
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          set((s) => ({ batchQueue: s.batchQueue.map((b) => (b.id === item.id ? { ...b, status: "error", errorMessage: message } : b)) }));
+        }
+      }
+    } finally {
+      set({ batchRunning: false });
+    }
+  },
+
+  exportBatchIni: async () => {
+    const { batchQueue, selectedPrinterId, selectedFilamentId } = get();
+    const items = batchQueue.filter((b): b is BatchItem & { config: GeneratedConfig } => b.status === "ready" && b.config !== null)
+      .map((b) => ({ fileName: b.file.fileName, config: b.config }));
+    if (items.length === 0) return;
+    try {
+      await window.api.exportBatchIni({ printerId: selectedPrinterId, filamentId: selectedFilamentId, items });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
     }
   },
 

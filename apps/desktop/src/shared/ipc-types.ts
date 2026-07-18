@@ -109,6 +109,29 @@ export interface ExportIniRequest {
 
 export type ExportIniResponse = { saved: true; filePath: string } | { saved: false };
 
+export interface ExportBatchIniItem {
+  fileName: string;
+  config: GeneratedConfig;
+}
+
+export interface ExportBatchIniRequest {
+  printerId: string;
+  filamentId: string;
+  items: ExportBatchIniItem[];
+}
+
+export interface ExportBatchIniResultItem {
+  fileName: string;
+  saved: boolean;
+  filePath?: string;
+  error?: string;
+}
+
+export interface ExportBatchIniResponse {
+  folderPath: string | null;
+  results: ExportBatchIniResultItem[];
+}
+
 export interface ExportBambuProfileRequest {
   config: GeneratedConfig;
   printerId: string;

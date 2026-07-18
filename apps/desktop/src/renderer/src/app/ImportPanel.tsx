@@ -19,6 +19,7 @@ export function ImportPanel(): React.JSX.Element {
   const setFilament = useAppStore((s) => s.setFilament);
   const importFromDialog = useAppStore((s) => s.importFromDialog);
   const importDroppedPath = useAppStore((s) => s.importDroppedPath);
+  const toggleBatchPanel = useAppStore((s) => s.toggleBatchPanel);
   const error = useAppStore((s) => s.error);
 
   const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
@@ -69,7 +70,10 @@ export function ImportPanel(): React.JSX.Element {
       >
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-2 text-3xl text-accent">↑</div>
         <p className="text-sm text-text-secondary">{t("import.dropHint")}</p>
-        <Button onClick={() => void importFromDialog()}>{t("import.browse")}</Button>
+        <div className="flex gap-2">
+          <Button onClick={() => void importFromDialog()}>{t("import.browse")}</Button>
+          <Button variant="secondary" onClick={toggleBatchPanel}>{t("batch.menuLabel")}</Button>
+        </div>
       </div>
 
       {error && <p role="alert" className="max-w-md text-center text-sm text-confidence-low">{error}</p>}
