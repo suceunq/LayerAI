@@ -154,7 +154,7 @@ interface AppState {
   completeOnboarding: () => Promise<void>;
   replayOnboarding: () => void;
 
-  showToolNotice: (message: string) => void;
+  showToolNotice: (message: string, durationMs?: number) => void;
   autoOptimize: () => Promise<void>;
   checkModelHealth: () => void;
   openHelpDialog: (tab: HelpDialogTab) => void;
@@ -944,11 +944,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  showToolNotice: (message) => {
+  showToolNotice: (message, durationMs = 5000) => {
     set({ toolNotice: message });
     setTimeout(() => {
       if (get().toolNotice === message) set({ toolNotice: null });
-    }, 5000);
+    }, durationMs);
   },
 
   autoOptimize: async () => {

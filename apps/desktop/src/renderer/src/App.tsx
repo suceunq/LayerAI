@@ -50,6 +50,7 @@ export default function App(): React.JSX.Element {
   const facePickModeActive = useAppStore((s) => s.facePickModeActive);
   const toggleFacePickMode = useAppStore((s) => s.toggleFacePickMode);
   const applyManualFaceOrientation = useAppStore((s) => s.applyManualFaceOrientation);
+  const updateState = useAppStore((s) => s.updateState);
   const setUpdateState = useAppStore((s) => s.setUpdateState);
   const quantity = useAppStore((s) => s.quantity);
   const multiPlateEnabled = useAppStore((s) => s.multiPlateEnabled);
@@ -123,6 +124,15 @@ export default function App(): React.JSX.Element {
     void window.api.getUpdateState().then(setUpdateState);
     return window.api.onUpdateStateChanged(setUpdateState);
   }, [setUpdateState]);
+
+  // Brief, self-dismissing heads-up the first time a background download starts - the install
+  // itself stays fully silent, this just tells the user something is happening.
+  const updateToastShown = useRef(false);
+  useEffect(() => {
+    if (updateState?.status !== "downloading" || updateToastShown.current) return;
+    updateToastShown.current = true;
+    showToolNotice(t("update.downloadingToast"), 3000);
+  }, [updateState?.status, showToolNotice, t]);
 
   useEffect(() => setSurfaceInspect(null), [step, geometry]);
 

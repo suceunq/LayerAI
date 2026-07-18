@@ -373,6 +373,7 @@
   "update.available": "A new version is available: {version}",
   "update.changelogTitle": "Release notes",
   "update.downloading": "Downloading…",
+  "update.downloadingToast": "An update is downloading and will be installed automatically.",
   "update.downloaded": "Update downloaded and verified.",
   "update.preparing": "Preparing installation…",
   "update.installing": "Installing and restarting…",

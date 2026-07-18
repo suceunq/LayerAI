@@ -373,6 +373,7 @@
   "update.available": "Une nouvelle version est disponible : {version}",
   "update.changelogTitle": "Notes de version",
   "update.downloading": "Téléchargement en cours…",
+  "update.downloadingToast": "Une mise à jour est en cours de téléchargement et sera installée automatiquement.",
   "update.downloaded": "Mise à jour téléchargée et vérifiée.",
   "update.preparing": "Préparation de l'installation…",
   "update.installing": "Installation et redémarrage en cours…",
