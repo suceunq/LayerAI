@@ -1,13 +1,6 @@
-# LayerAI 1.7.26 — Mises à jour entièrement automatiques
+# LayerAI 1.7.27 — Notification de téléchargement
 
 ## Améliorations
 
-- Les mises à jour sont désormais recherchées, téléchargées et installées automatiquement en arrière-plan, sans aucune confirmation à donner.
-- Une fenêtre affiche une seule fois les nouveautés après un redémarrage automatique pour installer une mise à jour.
-- Filet de sécurité : la version précédente est téléchargée et vérifiée (SHA-512) avant toute installation, puis restaurée automatiquement si la nouvelle version ne démarre pas correctement dans les minutes qui suivent.
-- Journalisation détaillée de chaque étape (recherche, téléchargement, installation, éventuel retour arrière) dans un fichier local avec rotation automatique.
-- Une version dont l'installation a échoué n'est plus proposée à nouveau au prochain lancement.
-
-## Configuration
-
-- Le réglage existant « Rechercher les mises à jour au démarrage » reste disponible dans les Paramètres et continue de gouverner l'activation des vérifications automatiques.
+- Une petite fenêtre apparaît désormais brièvement (~3 secondes) au début du téléchargement d'une mise à jour, pour indiquer qu'elle est en cours et qu'elle sera installée automatiquement.
+- L'installation reste entièrement silencieuse : aucune confirmation n'est jamais demandée.
