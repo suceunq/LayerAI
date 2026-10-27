@@ -210,3 +210,47 @@ body {
 .release-notes strong {
   color: var(--color-text-primary);
 }
+
+/* ---------- Finitions premium ---------- */
+:root { --ease-out: cubic-bezier(.22, 1, .36, 1); }
+
+::selection { background: color-mix(in srgb, var(--color-accent) 40%, transparent); color: inherit; }
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-text-muted) 50%, transparent) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 999px; background: color-mix(in srgb, var(--color-text-muted) 45%, transparent) padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-accent) padding-box; }
+
+.layerai-shell button,
+.layerai-shell input,
+.layerai-shell select,
+.layerai-shell textarea { transition: background-color .18s var(--ease-out), color .18s var(--ease-out), border-color .18s var(--ease-out), box-shadow .18s var(--ease-out), transform .12s var(--ease-out), opacity .18s var(--ease-out); }
+.layerai-shell button:not(:disabled):active { transform: scale(.97); }
+
+/* Entrée en scène des panneaux */
+.layerai-header { animation: layerai-rise .5s var(--ease-out) both; }
+.layerai-panel { animation: layerai-slide-in .5s .05s var(--ease-out) both; }
+.layerai-workspace > div:nth-child(2) { animation: layerai-fade .6s var(--ease-out) both; }
+@keyframes layerai-rise { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes layerai-slide-in { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@keyframes layerai-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes layerai-pop { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* Dialogues : fondu du voile + flou, apparition douce de la fenêtre */
+.layerai-shell :has(> [role="dialog"]) { backdrop-filter: blur(6px); animation: layerai-fade .2s var(--ease-out) both; }
+.layerai-shell [role="dialog"] {
+  border-radius: 18px;
+  box-shadow: inset 0 1px rgb(255 255 255 / 5%), 0 30px 90px rgb(0 0 0 / 55%);
+  animation: layerai-pop .3s var(--ease-out) both;
+}
+
+/* Logo et titres */
+.layerai-logo { box-shadow: inset 0 1px rgb(255 255 255 / 35%), 0 0 26px color-mix(in srgb, var(--color-accent) 50%, transparent); }
+.layerai-header h1 { letter-spacing: -.02em; }
+
+/* Barre de progression */
+[role="progressbar"] > div:first-child { box-shadow: inset 0 1px 2px rgb(0 0 0 / 30%); }
+[role="progressbar"] > div:first-child > div { background: linear-gradient(90deg, var(--color-accent-dim), var(--color-accent-glow)); box-shadow: 0 0 12px color-mix(in srgb, var(--color-accent) 60%, transparent); }
+
+/* Boutons accentués : léger relief */
+.layerai-shell .bg-accent { box-shadow: inset 0 1px rgb(255 255 255 / 25%); }
+.layerai-shell .bg-accent:hover:not(:disabled) { filter: brightness(1.07); }
